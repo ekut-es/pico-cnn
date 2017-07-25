@@ -1,10 +1,11 @@
+#include "parameters.h"
 #include <stdint.h>
 #include <stdio.h>
 
-int write_pgm(const uint16_t height, const uint16_t width, const uint8_t* image, const char* pgm_path) {
+int write_pgm(const uint16_t height, const uint16_t width, const float_t* image, const char* pgm_path) {
 
     // determine max gray value
-    uint8_t max_gray_value = 0;
+    float_t max_gray_value = 0;
     int row, column;
 
     for(row = 0; row < height; row++) {
@@ -29,11 +30,11 @@ int write_pgm(const uint16_t height, const uint16_t width, const uint8_t* image,
     fprintf(pgm_file, "# pico-cnn\n");
     fprintf(pgm_file, "%u %u\n", width, height);
     
-    fprintf(pgm_file, "%u\n", max_gray_value);
+    fprintf(pgm_file, "%u\n", (uint8_t) (max_gray_value*255.0f));
 
     for(row = 0; row < height; row++) {
         for(column = 0; column < width; column++) {
-            fputc(image[row*width+column], pgm_file);
+            fputc((uint8_t) (image[row*width+column]*255.0f), pgm_file);
         }
     }
 

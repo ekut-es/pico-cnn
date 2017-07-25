@@ -3,7 +3,7 @@
  * Author: Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
-
+#include "parameters.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -18,10 +18,9 @@ uint32_t change_endianess(uint32_t value) {
     return result;
 }
 
-// TODO uint8_t to float
 // returns number of images read
 // 0 : problem occured
-int read_mnist_images(const char* path_to_mnist_images, uint8_t*** mnist_images, uint32_t num_images, uint8_t padding) {
+int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images, uint32_t num_images, uint8_t padding) {
 
     FILE *images;
     images = fopen(path_to_mnist_images, "r");
@@ -59,30 +58,27 @@ int read_mnist_images(const char* path_to_mnist_images, uint8_t*** mnist_images,
         }
 
         // allocate pointers for images
-        *mnist_images = (uint8_t**) malloc(num_images*sizeof(uint8_t*));
+        *mnist_images = (float_t**) malloc(num_images*sizeof(float_t*));
 
         // start reading images
         for(i = 0; i < num_images; i++) {
             
             // allocate memory for single image
-            (*mnist_images)[i] = (uint8_t*) malloc((width+2*padding)*(height+2*padding)*sizeof(uint8_t));
-            // store single image
-            if(padding == 0) {
-			    fread(&(*mnist_images)[i][0], 1, height*width, images);
-            } else {
-                uint8_t buffer[width*height];
-			    fread(&buffer, 1, height*width, images);
+            (*mnist_images)[i] = (float_t*) malloc((width+2*padding)*(height+2*padding)*sizeof(float_t));
 
-                uint32_t row, column;
-                for(row = 0; row < height+2*padding; row++) {
-                    for(column = 0; column < width+2*padding; column++) {
-                        if(row < padding || row >= height+padding) {
-                            (*mnist_images)[i][row*(width+2*padding)+column] = 0;
-                        } else if(column < padding || column >= width+padding) {
-                            (*mnist_images)[i][row*(width+2*padding)+column] = 0;
-                        } else {
-                            (*mnist_images)[i][row*(width+2*padding)+column] = buffer[(row-padding)*width+column-padding];
-                        }
+            uint32_t row, column;
+            uint8_t buffer[width*height];
+            // store single image
+            fread(&buffer, 1, height*width, images);
+
+            for(row = 0; row < height+2*padding; row++) {
+                for(column = 0; column < width+2*padding; column++) {
+                    if(row < padding || row >= height+padding) {
+                        (*mnist_images)[i][row*(width+2*padding)+column] = 0.0f;
+                    } else if(column < padding || column >= width+padding) {
+                        (*mnist_images)[i][row*(width+2*padding)+column] = 0.0f;
+                    } else {
+                        (*mnist_images)[i][row*(width+2*padding)+column] = buffer[(row-padding)*width+column-padding] / 255.0f;
                     }
                 }
             }

@@ -1,8 +1,10 @@
+#include "parameters.h"
 #include <stdio.h>
 #include "read_mnist.h"
 #include "write_pgm.h"
+#include "convolution.h"
 
-#define NUM 10
+#define NUM 1
 
 int main(int argc, char** argv) {
 
@@ -19,7 +21,7 @@ int main(int argc, char** argv) {
     strcat(t10k_images_path, argv[1]);
     strcat(t10k_images_path, "/t10k-images.idx3-ubyte");
 
-    uint8_t** t10k_images;
+    float_t** t10k_images;
     int num_images;
     int padding = 2;
     
@@ -44,7 +46,6 @@ int main(int argc, char** argv) {
 
     num_labels = read_mnist_labels(t10k_labels_path, &t10k_labels, NUM);
 
-
     // make pgm of original image
     for(i = 0; i < NUM; i++) {
         char pgm_path[20];
@@ -52,7 +53,18 @@ int main(int argc, char** argv) {
         write_pgm(28+2*padding, 28+2*padding, t10k_images[i], pgm_path);
     }
 
-    // TODO convolution
+    float_t* conv_image;
+    conv_image = (float_t*) malloc((32-4)*(32-4)*sizeof(float_t));
+
+    float_t kernel[25] = {1/255.0f, 4 /255.0f, 6 /255.0f, 4 /255.0f, 1/255.0f,
+                          4/255.0f, 16/255.0f, 25/255.0f, 16/255.0f, 4/255.0f,
+                          6/255.0f, 24/255.0f, 36/255.0f, 24/255.0f, 6/255.0f,
+                          4/255.0f, 16/255.0f, 25/255.0f, 16/255.0f, 4/255.0f,
+                          1/255.0f, 4 /255.0f, 6 /255.0f, 4 /255.0f, 1/255.0f};
+
+    convolution2d(t10k_images[0], 32, 32, conv_image, kernel, 5, 1);
+
+    write_pgm(28, 28, conv_image, "conv_image.pgm");
 
     // free memory
     for(i = 0; i < NUM; i++) {
