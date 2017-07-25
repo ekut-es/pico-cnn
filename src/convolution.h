@@ -2,8 +2,21 @@
 #include <stdint.h>
 #include <stdio.h>
 
-// shrinks image!
-void convolution2d(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image, const float_t* kernel, const uint16_t kernel_size, const uint16_t stride) {
+/**
+ * @brief performs a 2D convolution on original_image with kernel and stores the
+ * result to new_image
+ *
+ * stride = 1
+ * padding = valid => imags shrinks by kernel_size/2
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param new_image (height-kernel_size/2 x width-kernel_size/2)
+ * @param kernel (kernel_size x kernel_size)
+ * @param kernel_size
+ */
+void convolution2d_naive(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image, const float_t* kernel, const uint16_t kernel_size) {
     uint16_t image_row, image_column;
     uint16_t kernel_row, kernel_column;
     uint8_t padding = kernel_size/2;

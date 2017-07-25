@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
                           4/255.0f, 16/255.0f, 25/255.0f, 16/255.0f, 4/255.0f,
                           1/255.0f, 4 /255.0f, 6 /255.0f, 4 /255.0f, 1/255.0f};
 
-    convolution2d(t10k_images[0], 32, 32, conv_image, kernel, 5, 1);
+    convolution2d_naive(t10k_images[0], 32, 32, conv_image, kernel, 5);
 
     write_pgm(28, 28, conv_image, "conv_image.pgm");
 

@@ -2,6 +2,16 @@
 #include <stdint.h>
 #include <stdio.h>
 
+/**
+ * @brief makes a pgm image from an image (array)
+ * 
+ * @param height
+ * @param width
+ * @param image array which contains the image data
+ * @param pgm_path full path to pgm image which should be written
+ *
+ * @return error (0 = success, 1 = error)
+ */
 int write_pgm(const uint16_t height, const uint16_t width, const float_t* image, const char* pgm_path) {
 
     // determine max gray value

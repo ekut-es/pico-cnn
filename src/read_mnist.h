@@ -9,7 +9,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-uint32_t change_endianess(uint32_t value) {
+/**
+ * @brief changes the endianess of a 32-bit integer
+ *
+ * @param value input
+ *
+ * @return input with changed endianess
+ */
+static uint32_t change_endianess(uint32_t value) {
     uint32_t result = 0;
     result |= (value & 0x000000FF) << 24;
     result |= (value & 0x0000FF00) << 8;
@@ -18,8 +25,17 @@ uint32_t change_endianess(uint32_t value) {
     return result;
 }
 
-// returns number of images read
-// 0 : problem occured
+/**
+ * @brief reads MNIST images from a given file
+ *
+ * @param path_to_mnist_images full path to file which contains MNIST images
+ * @param mnist_images 2D array in which the images should be stored [image number][image content]
+ * @param num_images number of images which should be read from file
+ * @param padding number of 0 pixels which should be added to the border of
+ * each image
+ *
+ * @return number of images which were read from file (0 = error)
+ */
 int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images, uint32_t num_images, uint8_t padding) {
 
     FILE *images;
@@ -92,8 +108,15 @@ int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images,
     return 0;
 }
 
-// returns number of labels read
-// 0 : problem occured
+/**
+ * @brief reads MNIST labels from a given file
+ *
+ * @param path_to_mnist_labels full path to file which contains MNIST labels
+ * @param mnist_labels array in which the labels should be stored
+ * @param num_labels number of labels which should be read from file
+ *
+ * @return number of labels which were read from file (0 = error)
+ */
 int read_mnist_labels(const char* path_to_mnist_labels, uint8_t** mnist_labels, uint32_t num_labels) {
 
 	FILE *labels;
