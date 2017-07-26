@@ -15,8 +15,9 @@
  * @param new_image (height-kernel_size/2 x width-kernel_size/2)
  * @param kernel (kernel_size x kernel_size)
  * @param kernel_size
+ * @param bias
  */
-void convolution2d_naive(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image, const float_t* kernel, const uint16_t kernel_size) {
+void convolution2d_naive(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image, const float_t* kernel, const uint16_t kernel_size, const float_t bias) {
     uint16_t image_row, image_column;
     uint16_t kernel_row, kernel_column;
     uint8_t padding = kernel_size/2;
@@ -32,6 +33,8 @@ void convolution2d_naive(const float_t* original_image, const uint16_t height, c
                     pixel += kernel[kernel_row*kernel_size+kernel_column] * original_image[(image_row-padding+kernel_row)*width+(image_column-padding+kernel_column)];
                 }
             }
+
+            pixel += bias;
 
             new_image[(image_row-padding)*(width-2*padding)+(image_column-padding)] = pixel;
         }

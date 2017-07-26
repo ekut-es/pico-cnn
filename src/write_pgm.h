@@ -1,6 +1,7 @@
 #include "parameters.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 
 /**
  * @brief makes a pgm image from an image (array)
@@ -15,7 +16,8 @@
 int write_pgm(const uint16_t height, const uint16_t width, const float_t* image, const char* pgm_path) {
 
     // determine max gray value
-    float_t max_gray_value = 0;
+    float_t max_gray_value = -1000;
+    float_t min_gray_value = 1000;
     int row, column;
 
     for(row = 0; row < height; row++) {
@@ -23,9 +25,13 @@ int write_pgm(const uint16_t height, const uint16_t width, const float_t* image,
             if(image[row*width+column] > max_gray_value) {
                 max_gray_value = image[row*width+column];
             }
+            if(image[row*width+column] < min_gray_value) {
+                min_gray_value = image[row*width+column];
+            }
         }
     }
-    
+
+    float_t gray_value_range = fabsf(min_gray_value - max_gray_value);
 
     FILE* pgm_file; 
     pgm_file = fopen(pgm_path, "w+");
@@ -40,11 +46,13 @@ int write_pgm(const uint16_t height, const uint16_t width, const float_t* image,
     fprintf(pgm_file, "# pico-cnn\n");
     fprintf(pgm_file, "%u %u\n", width, height);
     
-    fprintf(pgm_file, "%u\n", (uint8_t) (max_gray_value*255.0f));
+    fprintf(pgm_file, "%u\n", 255);
 
     for(row = 0; row < height; row++) {
         for(column = 0; column < width; column++) {
-            fputc((uint8_t) (image[row*width+column]*255.0f), pgm_file);
+            // normalize
+            uint8_t pixel = (uint8_t) ( ( (image[row*width+column]-min_gray_value) / gray_value_range ) * 255.0f );
+            fputc(pixel, pgm_file);
         }
     }
 
