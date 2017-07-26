@@ -2,10 +2,14 @@
 #include <stdio.h>
 #include "read_mnist.h"
 #include "write_pgm.h"
+#include "lenet_kernels.h"
 #include "convolution.h"
 #include "activation_function.h"
+#include "pooling.h"
 
-#define NUM 2
+#define NUM 1
+#define DEBUG
+#define INDEX 0
 
 int main(int argc, char** argv) {
 
@@ -14,7 +18,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    int i;
+    int i, j;
 
     // read mnist t10k images
     char t10k_images_path[strlen(argv[1]) + 20];
@@ -49,134 +53,88 @@ int main(int argc, char** argv) {
     num_labels = read_mnist_labels(t10k_labels_path, &t10k_labels, NUM);
 
     // make pgm of original image
-    for(i = 0; i < NUM; i++) {
-        char pgm_path[20];
-        sprintf(pgm_path, "%u_%u.pgm", i, t10k_labels[i]);
-        write_pgm(28+2*padding, 28+2*padding, t10k_images[i], pgm_path);
-    }
+    #ifdef DEBUG
+    write_pgm(32, 32, t10k_images[INDEX], "input.pgm");
+    #endif
 
     // TODO read kernels and bias from file
-    // TODO loop for first convolution layer
-    // TODO max and average pooling
 
-    int index = 0;
+    for(i = 0; i < NUM; i++) {
 
-    // 0
-    {
-        float_t* conv_image;
-        conv_image = (float_t*) malloc((32-4)*(32-4)*sizeof(float_t));
+        // C1
+        float_t** c1_output;
+        c1_output = (float_t**) malloc(6*sizeof(float_t*));
 
-        float_t kernel[25] = {0.0503702, 0.321829, 0.178996, 0.291132, -0.102737,
-                            -0.043053, 0.0800959, 0.260101, -0.0331972, -0.0382014,
-                            -0.115718, -0.0159754, -0.115343, -0.0055044, -0.00718199,
-                            -0.00923267, -0.0708757, 0.0664141, 0.016911, 0.157364,
-                            -0.0537186, -0.0435987, 0.0133913, -0.0243876, -0.123523};
+        for(j = 0; j < 6; j++) {
+            c1_output[j] = (float_t*) malloc(28*28*sizeof(float_t));
+            convolution2d_naive(t10k_images[i], 32, 32, c1_output[j], c1_kernels[j], 5, c1_bias[j]);
+            tanh_naive(c1_output[j], 28, 28, c1_output[j]);
+        }
 
-        convolution2d_naive(t10k_images[index], 32, 32, conv_image, kernel, 5, -0.00347255);
-        tanh_naive(conv_image, 28, 28, conv_image);
+        // make pgm C1
+        #ifdef DEBUG
+        if(i == INDEX) {
+            float* c1_pgm = (float_t*) malloc(28*28*6*sizeof(float_t));
+            memcpy(&c1_pgm[0*28*28], c1_output[0], 28*28*sizeof(float_t));
+            memcpy(&c1_pgm[1*28*28], c1_output[1], 28*28*sizeof(float_t));
+            memcpy(&c1_pgm[2*28*28], c1_output[2], 28*28*sizeof(float_t));
+            memcpy(&c1_pgm[3*28*28], c1_output[3], 28*28*sizeof(float_t));
+            memcpy(&c1_pgm[4*28*28], c1_output[4], 28*28*sizeof(float_t));
+            memcpy(&c1_pgm[5*28*28], c1_output[5], 28*28*sizeof(float_t));
+            write_pgm(6*28, 28, c1_pgm, "c1_output.pgm");
+            free(c1_pgm);
+        }
+        #endif
 
-        write_pgm(28, 28, conv_image, "conv0_image.pgm");
+        // S1
+        float_t** s1_output;
+        s1_output = (float_t**) malloc(6*sizeof(float_t*));
 
-        free(conv_image);
+        for(j = 0; j < 6; j++) {
+            s1_output[j] = (float_t*) malloc(14*14*sizeof(float_t));
+            max_pooling2d_naive(c1_output[j], 28, 28, s1_output[j], 2);
+            tanh_naive(s1_output[j], 14, 14, s1_output[j]);
+        }
+
+        // make pgm S1
+        #ifdef DEBUG
+        if(i == INDEX) {
+            float* s1_pgm = (float_t*) malloc(14*14*6*sizeof(float_t));
+            memcpy(&s1_pgm[0*14*14], s1_output[0], 14*14*sizeof(float_t));
+            memcpy(&s1_pgm[1*14*14], s1_output[1], 14*14*sizeof(float_t));
+            memcpy(&s1_pgm[2*14*14], s1_output[2], 14*14*sizeof(float_t));
+            memcpy(&s1_pgm[3*14*14], s1_output[3], 14*14*sizeof(float_t));
+            memcpy(&s1_pgm[4*14*14], s1_output[4], 14*14*sizeof(float_t));
+            memcpy(&s1_pgm[5*14*14], s1_output[5], 14*14*sizeof(float_t));
+            write_pgm(6*14, 14, s1_pgm, "s1_output.pgm");
+            free(s1_pgm);
+        }
+        #endif
+
+
+        // make pgm of S1
+
+        // C1 free memory
+        for(j = 0; j < 6; j++) {
+            free(c1_output[j]);
+        }
+
+        free(c1_output);
+
+        // C2
+
+        // S1 free memory
+        for(j = 0; j < 6; j++) {
+            free(s1_output[j]);
+        }
+
+        free(s1_output);
+
     }
 
-    // 1
-    {
-        float_t* conv_image;
-        conv_image = (float_t*) malloc((32-4)*(32-4)*sizeof(float_t));
-
-        float_t kernel[25] = {-0.0770365, 0.0345966, -0.160769, -0.225885, -0.119277,
-                            -0.0264168, 0.0616594, -0.131291, -0.0888015, -0.0878033,
-                            -0.0321225, -0.053587, 0.157665, -0.00792996, 0.14707,
-                            0.118949, 0.164109, 0.179299, 0.2048, 0.02664,
-                            -0.112001, 0.14574, 0.0809537, 0.183332, 0.200962};
-
-        convolution2d_naive(t10k_images[index], 32, 32, conv_image, kernel, 5, 0.0908163);
-        tanh_naive(conv_image, 28, 28, conv_image);
-
-        write_pgm(28, 28, conv_image, "conv1_image.pgm");
-
-        free(conv_image);
-    }
-
-    // 2
-    {
-        float_t* conv_image;
-        conv_image = (float_t*) malloc((32-4)*(32-4)*sizeof(float_t));
-
-        float_t kernel[25] = {0.16622, 0.0980283, -0.154528, 0.0794689, -0.149562,
-                            -0.0489036, -0.143187, -0.166235, 0.106519, 0.077899,
-                            -0.167934, -0.0211066, -0.0540232, 0.065682, 0.201788,
-                            -0.0860653, -0.023683, -0.104004, 0.126629, 0.00943944,
-                            -0.0664681, -0.0823138, 0.110359, 0.111226, 0.132523};
-
-        convolution2d_naive(t10k_images[index], 32, 32, conv_image, kernel, 5, 0.0125789);
-        tanh_naive(conv_image, 28, 28, conv_image);
-
-        write_pgm(28, 28, conv_image, "conv2_image.pgm");
-
-        free(conv_image);
-    }
-
-    // 3
-    {
-        float_t* conv_image;
-        conv_image = (float_t*) malloc((32-4)*(32-4)*sizeof(float_t));
-
-        float_t kernel[25] = {-0.0193047, -0.148967, -0.129466, 0.117262, 0.0556525,
-                            0.177834, 0.0465613, 0.064182, -0.0560068, -0.0997407,
-                            -0.00353711, 0.0869634, -0.150035, -0.136275, -0.159884,
-                            0.00542482, -0.0268633, 0.096359, -0.105669, -0.126976,
-                            0.144686, -0.0741221, -0.100288, -0.0635448, -0.0388995};
-
-        convolution2d_naive(t10k_images[index], 32, 32, conv_image, kernel, 5, 0.027025);
-        tanh_naive(conv_image, 28, 28, conv_image);
-
-        write_pgm(28, 28, conv_image, "conv3_image.pgm");
-
-        free(conv_image);
-    }
-
-    // 4
-    {
-        float_t* conv_image;
-        conv_image = (float_t*) malloc((32-4)*(32-4)*sizeof(float_t));
-
-        float_t kernel[25] = {-0.193615, -0.154315, 0.0477816, 0.174346, -0.0321918,
-                            0.0878409, -0.0274826, 0.0644111, 0.086192, 0.0962856,
-                            -0.101726, 0.123956, 0.0949929, 0.0642185, -0.0504073,
-                            0.248567, 0.0775272, -0.099301, 0.101063, 0.0305015,
-                            -0.107393, -0.00542532, -0.0396422, 0.176904, 0.150425};
-
-        convolution2d_naive(t10k_images[index], 32, 32, conv_image, kernel, 5, 0.0268217);
-        tanh_naive(conv_image, 28, 28, conv_image);
-
-        write_pgm(28, 28, conv_image, "conv4_image.pgm");
-
-        free(conv_image);
-    }
-
-    // 5
-    {
-        float_t* conv_image;
-        conv_image = (float_t*) malloc((32-4)*(32-4)*sizeof(float_t));
-
-        float_t kernel[25] = {-0.0159969, -0.0330545, 0.0151124, -0.155135, 0.0267772,
-                            0.0603045, -0.119766, 0.0301981, -0.178801, -0.0762496,
-                            0.116541, 0.16019, -0.207605, -0.0729984, 0.0412346,
-                            0.214281, 0.092025, -0.0666976, -0.0286977, -0.121057,
-                            0.182971, 0.154956, 0.0157412, -0.010005, 0.00333844};
-
-        convolution2d_naive(t10k_images[index], 32, 32, conv_image, kernel, 5, -0.0190336);
-        tanh_naive(conv_image, 28, 28, conv_image);
-
-        write_pgm(28, 28, conv_image, "conv5_image.pgm");
-
-        free(conv_image);
-    }
-
+        
     
-    // free memory
+
     for(i = 0; i < NUM; i++) {
         free(t10k_images[i]);
     }
