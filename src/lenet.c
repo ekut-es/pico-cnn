@@ -171,205 +171,268 @@ int main(int argc, char** argv) {
         }
 
         // 0
-        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[0], 5, c3_bias[0]);
-        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[1], 5, c3_bias[0]);
-        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[2], c3_kernels[2], 5, c3_bias[0]);
+        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[0], 5, 0.0);
+        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[1], 5, 0.0);
+        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[2], c3_kernels[2], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[0];
+        }
 
         c3_output[0] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[0], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[0], 10, 10, c3_output[0]);
 
         // 1
-        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[0], c3_kernels[7], 5, c3_bias[1]);
-        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[1], c3_kernels[8], 5, c3_bias[1]);
-        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[2], c3_kernels[9], 5, c3_bias[1]);
+        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[0], c3_kernels[7], 5, 0.0);
+        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[1], c3_kernels[8], 5, 0.0);
+        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[2], c3_kernels[9], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[1];
+        }
 
         c3_output[1] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[1], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[1], 10, 10, c3_output[1]);
 
         // 2
-        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[0], c3_kernels[14], 5, c3_bias[2]);
-        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[1], c3_kernels[15], 5, c3_bias[2]);
-        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[2], c3_kernels[16], 5, c3_bias[2]);
+        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[0], c3_kernels[14], 5, 0.0);
+        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[1], c3_kernels[15], 5, 0.0);
+        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[2], c3_kernels[16], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[2];
+        }
 
         c3_output[2] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[2], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[2], 10, 10, c3_output[2]);
 
         // 3
-        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[0], c3_kernels[21], 5, c3_bias[3]);
-        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[1], c3_kernels[22], 5, c3_bias[3]);
-        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[2], c3_kernels[23], 5, c3_bias[3]);
+        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[0], c3_kernels[21], 5, 0.0);
+        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[1], c3_kernels[22], 5, 0.0);
+        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[2], c3_kernels[23], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[3];
+        }
 
         c3_output[3] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[3], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[3], 10, 10, c3_output[3]);
         
         // 4
-        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[24], 5, c3_bias[4]);
-        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[1], c3_kernels[28], 5, c3_bias[4]);
-        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[2], c3_kernels[29], 5, c3_bias[4]);
+        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[24], 5, 0.0);
+        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[1], c3_kernels[28], 5, 0.0);
+        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[2], c3_kernels[29], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[4];
+        }
 
         c3_output[4] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[4], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[4], 10, 10, c3_output[4]);
         
         // 5
-        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[30], 5, c3_bias[5]);
-        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[31], 5, c3_bias[5]);
-        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[2], c3_kernels[35], 5, c3_bias[5]);
+        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[30], 5, 0.0);
+        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[31], 5, 0.0);
+        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[2], c3_kernels[35], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[5];
+        }
 
         c3_output[5] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[5], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[5], 10, 10, c3_output[5]);
         
         // 6
-        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[36], 5, c3_bias[6]);
-        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[37], 5, c3_bias[6]);
-        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[2], c3_kernels[38], 5, c3_bias[6]);
-        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[3], c3_kernels[39], 5, c3_bias[6]);
+        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[36], 5, 0.0);
+        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[37], 5, 0.0);
+        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[2], c3_kernels[38], 5, 0.0);
+        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[3], c3_kernels[39], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[3], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[6];
+        }
 
         c3_output[6] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[6], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[6], 10, 10, c3_output[6]);
         
         // 7
-        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[0], c3_kernels[43], 5, c3_bias[7]);
-        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[1], c3_kernels[44], 5, c3_bias[7]);
-        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[2], c3_kernels[45], 5, c3_bias[7]);
-        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[3], c3_kernels[46], 5, c3_bias[7]);
+        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[0], c3_kernels[43], 5, 0.0);
+        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[1], c3_kernels[44], 5, 0.0);
+        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[2], c3_kernels[45], 5, 0.0);
+        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[3], c3_kernels[46], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[3], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[7];
+        }
 
         c3_output[7] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[7], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[7], 10, 10, c3_output[7]);
         
         // 8
-        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[0], c3_kernels[50], 5, c3_bias[8]);
-        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[1], c3_kernels[51], 5, c3_bias[8]);
-        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[2], c3_kernels[52], 5, c3_bias[8]);
-        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[3], c3_kernels[53], 5, c3_bias[8]);
+        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[0], c3_kernels[50], 5, 0.0);
+        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[1], c3_kernels[51], 5, 0.0);
+        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[2], c3_kernels[52], 5, 0.0);
+        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[3], c3_kernels[53], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[3], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[8];
+        }
 
         c3_output[8] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[8], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[8], 10, 10, c3_output[8]);
         
         // 9
-        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[54], 5, c3_bias[9]);
-        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[1], c3_kernels[57], 5, c3_bias[9]);
-        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[2], c3_kernels[58], 5, c3_bias[9]);
-        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[3], c3_kernels[59], 5, c3_bias[9]);
+        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[54], 5, 0.0);
+        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[1], c3_kernels[57], 5, 0.0);
+        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[2], c3_kernels[58], 5, 0.0);
+        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[3], c3_kernels[59], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[3], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[9];
+        }
 
         c3_output[9] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[9], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[9], 10, 10, c3_output[9]);
         
         // 10
-        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[60], 5, c3_bias[10]);
-        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[61], 5, c3_bias[10]);
-        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[2], c3_kernels[64], 5, c3_bias[10]);
-        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[2], c3_kernels[65], 5, c3_bias[10]);
+        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[60], 5, 0.0);
+        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[61], 5, 0.0);
+        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[2], c3_kernels[64], 5, 0.0);
+        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[3], c3_kernels[65], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[3], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[10];
+        }
 
         c3_output[10] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[10], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[10], 10, 10, c3_output[10]);
         
         // 11
-        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[66], 5, c3_bias[11]);
-        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[67], 5, c3_bias[11]);
-        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[2], c3_kernels[68], 5, c3_bias[11]);
-        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[3], c3_kernels[71], 5, c3_bias[11]);
+        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[66], 5, 0.0);
+        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[67], 5, 0.0);
+        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[2], c3_kernels[68], 5, 0.0);
+        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[3], c3_kernels[71], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[3], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[11];
+        }
 
         c3_output[11] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[11], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[11], 10, 10, c3_output[11]);
         
         // 12
-        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[72], 5, c3_bias[12]);
-        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[73], 5, c3_bias[12]);
-        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[2], c3_kernels[75], 5, c3_bias[12]);
-        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[3], c3_kernels[76], 5, c3_bias[12]);
+        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[72], 5, 0.0);
+        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[73], 5, 0.0);
+        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[2], c3_kernels[75], 5, 0.0);
+        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[3], c3_kernels[76], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[3], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[12];
+        }
 
         c3_output[12] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[12], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[12], 10, 10, c3_output[12]);
         
         // 13
-        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[0], c3_kernels[79], 5, c3_bias[13]);
-        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[1], c3_kernels[80], 5, c3_bias[13]);
-        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[2], c3_kernels[82], 5, c3_bias[13]);
-        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[3], c3_kernels[83], 5, c3_bias[13]);
+        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[0], c3_kernels[79], 5, 0.0);
+        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[1], c3_kernels[80], 5, 0.0);
+        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[2], c3_kernels[82], 5, 0.0);
+        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[3], c3_kernels[83], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[3], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[13];
+        }
 
         c3_output[13] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[13], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[13], 10, 10, c3_output[13]);
         
         // 14
-        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[84], 5, c3_bias[14]);
-        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[1], c3_kernels[86], 5, c3_bias[14]);
-        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[2], c3_kernels[87], 5, c3_bias[14]);
-        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[3], c3_kernels[89], 5, c3_bias[14]);
+        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[84], 5, 0.0);
+        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[1], c3_kernels[86], 5, 0.0);
+        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[2], c3_kernels[87], 5, 0.0);
+        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[3], c3_kernels[89], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[3], 10, 10);
+
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[14];
+        }
 
         c3_output[14] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[14], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[14], 10, 10, c3_output[14]);
         
         // 15
-        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[90], 5, c3_bias[15]);
-        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[91], 5, c3_bias[15]);
-        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[2], c3_kernels[92], 5, c3_bias[15]);
-        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[3], c3_kernels[93], 5, c3_bias[15]);
-        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[4], c3_kernels[94], 5, c3_bias[15]);
-        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[5], c3_kernels[95], 5, c3_bias[15]);
+        convolution2d_naive(s2_output[0], 14, 14, c3_intermediate[0], c3_kernels[90], 5, 0.0);
+        convolution2d_naive(s2_output[1], 14, 14, c3_intermediate[1], c3_kernels[91], 5, 0.0);
+        convolution2d_naive(s2_output[2], 14, 14, c3_intermediate[2], c3_kernels[92], 5, 0.0);
+        convolution2d_naive(s2_output[3], 14, 14, c3_intermediate[3], c3_kernels[93], 5, 0.0);
+        convolution2d_naive(s2_output[4], 14, 14, c3_intermediate[4], c3_kernels[94], 5, 0.0);
+        convolution2d_naive(s2_output[5], 14, 14, c3_intermediate[5], c3_kernels[95], 5, 0.0);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[1], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[2], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[3], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[4], 10, 10);
         add_image2d_naive(c3_intermediate[0], c3_intermediate[5], 10, 10);
 
+        for(j = 0; j < 10*10; j++) {
+            c3_intermediate[0][j] += c3_bias[15];
+        }
+
         c3_output[15] = (float_t*) malloc(10*10*sizeof(float_t));
         memcpy(c3_output[15], c3_intermediate[0], 10*10*sizeof(float_t));
         tanh_naive(c3_output[15], 10, 10, c3_output[15]);
-
 
         // free intermediate C3 outputs
         for(j = 0; j < 6; j++) {
