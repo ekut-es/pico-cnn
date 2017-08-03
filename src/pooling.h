@@ -42,7 +42,7 @@ void max_pooling2d_naive(const float_t* original_image, const uint16_t height, c
  * @param new_image (height/kernel_size x width/kernel_size)
  * @param kernel_size
  */
-void average_pooling2d_naive(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image, const uint16_t kernel_size) {
+void average_pooling2d_naive(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image, const uint16_t kernel_size, float_t bias) {
 
     uint16_t row, column;
 
@@ -58,7 +58,7 @@ void average_pooling2d_naive(const float_t* original_image, const uint16_t heigh
                 }
             }
             
-            new_image[(row/kernel_size)*(height/kernel_size)+(column/kernel_size)] = pixel/((float_t) kernel_size*kernel_size);
+            new_image[(row/kernel_size)*(height/kernel_size)+(column/kernel_size)] = pixel/((float_t) kernel_size*kernel_size) + bias;
         }
     }
 }

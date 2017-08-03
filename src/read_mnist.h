@@ -36,7 +36,7 @@ static uint32_t change_endianess(uint32_t value) {
  *
  * @return number of images which were read from file (0 = error)
  */
-int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images, uint32_t num_images, uint8_t padding) {
+int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images, uint32_t num_images, const uint8_t padding, const uint8_t negate) {
 
     FILE *images;
     images = fopen(path_to_mnist_images, "r");
@@ -90,11 +90,11 @@ int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images,
             for(row = 0; row < height+2*padding; row++) {
                 for(column = 0; column < width+2*padding; column++) {
                     if(row < padding || row >= height+padding) {
-                        (*mnist_images)[i][row*(width+2*padding)+column] = 0.0f;
+                        (*mnist_images)[i][row*(width+2*padding)+column] = (negate == 1) ? 1.0 : -1.0;
                     } else if(column < padding || column >= width+padding) {
-                        (*mnist_images)[i][row*(width+2*padding)+column] = 0.0f;
+                        (*mnist_images)[i][row*(width+2*padding)+column] = (negate == 1) ? 1.0 : -1.0;
                     } else {
-                        (*mnist_images)[i][row*(width+2*padding)+column] = buffer[(row-padding)*width+column-padding] / 255.0f;
+                        (*mnist_images)[i][row*(width+2*padding)+column] = ((buffer[(row-padding)*width+column-padding] / 255.0f) - 0.5) * ((negate == 1) ? -2.0 : 2.0);
                     }
                 }
             }

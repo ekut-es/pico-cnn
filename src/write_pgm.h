@@ -13,7 +13,7 @@
  *
  * @return error (0 = success, 1 = error)
  */
-int write_pgm(const uint16_t height, const uint16_t width, const float_t* image, const char* pgm_path) {
+int write_pgm(const float_t* image, const uint16_t height, const uint16_t width, const char* pgm_path) {
 
     // determine max gray value
     float_t max_gray_value = -1000;
