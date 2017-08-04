@@ -477,10 +477,11 @@ int main(int argc, char** argv) {
         // make pgm S4
         #ifdef DEBUG
         if(i == INDEX) {
+            
             float* s4_file_content = (float_t*) malloc(5*5*16*sizeof(float_t));
 
             for(j = 0; j < 16; j++) {
-                memcpy(&s4_file_content[j*5*5], c3_output[j], 5*5*sizeof(float_t));
+                memcpy(&s4_file_content[j*5*5], s4_output[j], 5*5*sizeof(float_t));
             }
 
             write_pgm(s4_file_content, 16*5, 5, "s4_output.pgm");
@@ -488,8 +489,6 @@ int main(int argc, char** argv) {
             free(s4_file_content);
         }
         #endif
-
-
 
         // C3 free memory
         for(j = 0; j < 16; j++) {
@@ -506,11 +505,14 @@ int main(int argc, char** argv) {
     
         for(j = 0; j < 120; j++) {
             c5_output[j] = 0.0;
+           
             
             for(k = 0; k < 16; k++) {
-                convolution2d_naive(s4_output[k], 5, 5, &c5_intermediate, c5_kernels[j*16+k], 5, c5_bias[j]);
+                convolution2d_naive(s4_output[k], 5, 5, &c5_intermediate, c5_kernels[j*16+k], 5, 0.0);
                 c5_output[j] += c5_intermediate;
             }
+
+            c5_output[j] += c5_bias[j];
         }
         
         tanh_naive(c5_output, 120, 1, c5_output);
