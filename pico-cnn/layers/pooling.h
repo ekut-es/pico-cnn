@@ -1,4 +1,10 @@
-#include "parameters.h"
+/** 
+ * @brief contains all poolings
+ *
+ * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ */
+
+#include "../parameters.h"
 #include <stdint.h>
 
 /**

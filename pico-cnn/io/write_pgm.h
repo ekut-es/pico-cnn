@@ -1,10 +1,17 @@
-#include "parameters.h"
+/** 
+ * @brief writes an array of floats into a pgm file
+ *
+ * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ */
+
+
+#include "../parameters.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <math.h>
 
 /**
- * @brief makes a pgm image from an image (array)
+ * @brief creates an pgm file from an image (array)
  * 
  * @param height
  * @param width

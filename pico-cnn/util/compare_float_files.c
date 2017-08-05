@@ -1,3 +1,9 @@
+/** 
+ * @brief simple program to compare two float files with each other
+ *
+ * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

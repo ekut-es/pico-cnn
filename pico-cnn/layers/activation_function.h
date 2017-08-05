@@ -1,4 +1,10 @@
-#include "parameters.h"
+/** 
+ * @brief contains all activations functions 
+ *
+ * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ */
+
+#include "../parameters.h"
 #include <stdint.h>
 #include <math.h>
 

@@ -1,9 +1,10 @@
-/* Little C header to read the MNIST dataset.
+/** 
+ * @brief provides functions to read the MNIST training/testing images and labels
  *
- * Author: Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
-#include "parameters.h"
+#include "../parameters.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>

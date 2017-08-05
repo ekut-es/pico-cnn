@@ -1,6 +1,11 @@
-#include "parameters.h"
+/** 
+ * @brief contains all convolutions
+ *
+ * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ */
+
+#include "../parameters.h"
 #include <stdint.h>
-#include <stdio.h>
 
 /**
  * @brief performs a 2D convolution on original_image with kernel and stores the

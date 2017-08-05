@@ -1,12 +1,5 @@
-#include "parameters.h"
-#include <stdio.h>
-#include "read_mnist.h"
-#include "write_pgm.h"
-#include "write_float.h"
+#include "pico-cnn/pico-cnn.h"
 #include "lenet_kernels.h"
-#include "convolution.h"
-#include "activation_function.h"
-#include "pooling.h"
 
 #define NUM 1
 #define DEBUG
@@ -532,6 +525,28 @@ int main(int argc, char** argv) {
         }
 
         free(s4_output);
+
+        // TODO
+        // F6 input 120x1x1 -> output 1x10x1
+        float_t* f6_output;
+        f6_output = (float_t*) malloc(10*sizeof(float_t));
+        
+        fully_connected_naive(c5_output, 120, f6_output, 10, f6_kernel, f6_bias);
+        //tanh_naive(f6_output, 10, 1, f6_output);
+
+        // make pgm F6
+        #ifdef DEBUG
+        if(i == INDEX) {
+            write_pgm(f6_output, 1, 10, "f6_output.pgm");
+            write_float(f6_output, 1, 10, "f6_output.float");
+        }
+        #endif
+
+        // C5 free memory
+        free(c5_output);
+
+        // F6 free memory
+        free(f6_output);
 
     }
 

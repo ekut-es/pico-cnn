@@ -1,8 +1,23 @@
-#include "parameters.h"
+/** 
+ * @brief writes an array of floats into a file
+ *
+ * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ */
+
+#include "../parameters.h"
 #include <stdint.h>
 #include <stdio.h>
 
-// write image (matrix) to file with float values
+/**
+ * @brief writes an array of floats into a file
+ *
+ * @param image (height x width)
+ * @param height
+ * @param width
+ * @param float_path full file path
+ *
+ * @return success = 0
+ */
 int write_float(const float_t* image, const uint16_t height, const uint16_t width, const char* float_path) {
 
     int row, column;
