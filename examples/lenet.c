@@ -1,8 +1,8 @@
 #include "pico-cnn/pico-cnn.h"
 #include "lenet_kernels.h"
 
-#define NUM 1
-#define DEBUG
+#define NUM 10000
+//#define DEBUG
 #define INDEX 0
 
 /**
@@ -23,6 +23,37 @@ void add_image2d_naive(float_t* image_a, const float_t* image_b, const uint16_t 
     }
 }
 
+void convert_prediction(const float_t* original_image, const uint16_t width, float_t* new_image) {
+    uint16_t column;
+
+    for(column = 0; column < width; column++) {
+        new_image[column] = (original_image[column] + 1.0)/2.0;
+    }
+}
+
+void sort_prediction(float_t* prediction, uint8_t* labels, const uint16_t length) {
+    // simple bubble sort
+    uint16_t i,j;
+
+    float_t temp_prediction;
+    uint8_t temp_label;
+
+    for(i = 0; i < length-1; i++) {
+        for(j = 0; j < length-1-i; j++) {
+            if(prediction[j] < prediction[j+1]) {
+                // swap
+                temp_prediction = prediction[j];
+                prediction[j] = prediction[j+1];
+                prediction[j+1] = temp_prediction;
+
+                temp_label = labels[j];
+                labels[j] = labels[j+1];
+                labels[j+1] = temp_label;
+            }
+        }
+    }
+}
+
 int main(int argc, char** argv) {
 
     if(argc != 2) {
@@ -37,16 +68,17 @@ int main(int argc, char** argv) {
     t10k_images_path[0] = '\0';
     strcat(t10k_images_path, argv[1]);
     strcat(t10k_images_path, "/t10k-images.idx3-ubyte");
+    //strcat(t10k_images_path, "/train-images.idx3-ubyte");
 
     float_t** t10k_images;
-    int num_images;
+    int num_t10k_images;
     int padding = 2;
     
     printf("reading images from '%s'\n", t10k_images_path);
 
-    num_images = read_mnist_images(t10k_images_path, &t10k_images, NUM, padding, 1);
+    num_t10k_images = read_mnist_images(t10k_images_path, &t10k_images, NUM, padding, 0);
 
-    if(num_images < 1) {
+    if(num_t10k_images < 1) {
         fprintf(stderr, "could not read mnist images from '%s'\n", t10k_images_path);
         return 1;
     }
@@ -56,19 +88,44 @@ int main(int argc, char** argv) {
     t10k_labels_path[0] = '\0';
     strcat(t10k_labels_path, argv[1]);
     strcat(t10k_labels_path, "/t10k-labels.idx1-ubyte");
+    //strcat(t10k_labels_path, "/train-labels.idx1-ubyte");
+
+    uint8_t* labels;
+    labels = (uint8_t*) malloc(10*sizeof(uint8_t)); 
 
     uint8_t* t10k_labels;
-    int num_labels;
+    int num_t10k_labels;
 
     printf("reading labels from '%s'\n", t10k_labels_path);
 
-    num_labels = read_mnist_labels(t10k_labels_path, &t10k_labels, NUM);
+    num_t10k_labels = read_mnist_labels(t10k_labels_path, &t10k_labels, NUM);
+
+    if(num_t10k_images != num_t10k_labels) {
+        fprintf(stderr, "%d images != %d labels\n", num_t10k_images, num_t10k_labels);
+        return 1;
+    }
 
     // make pgm of original image
     #ifdef DEBUG
     write_pgm(t10k_images[INDEX], 32, 32, "input.pgm");
     write_float(t10k_images[INDEX], 32, 32, "input.float");
     #endif
+
+    int correct_predictions = 0;
+
+    int confusion_matrix[10][10] = {
+        {0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0}
+    };
+    
 
     // TODO read kernels and bias from file
 
@@ -526,13 +583,12 @@ int main(int argc, char** argv) {
 
         free(s4_output);
 
-        // TODO
-        // F6 input 120x1x1 -> output 1x10x1
+        // F6 input 1x1x120 -> output 1x10x1
         float_t* f6_output;
         f6_output = (float_t*) malloc(10*sizeof(float_t));
         
         fully_connected_naive(c5_output, 120, f6_output, 10, f6_kernel, f6_bias);
-        //tanh_naive(f6_output, 10, 1, f6_output);
+        tanh_naive(f6_output, 10, 1, f6_output);
 
         // make pgm F6
         #ifdef DEBUG
@@ -545,13 +601,33 @@ int main(int argc, char** argv) {
         // C5 free memory
         free(c5_output);
 
+
+        for(j = 0; j < 10; j++) {
+            labels[j] = j;
+        }
+
+        convert_prediction(f6_output, 10, f6_output);
+        sort_prediction(f6_output, labels, 10);
+
+        #ifdef DEBUG
+        if(i == INDEX) {
+            printf("%d\n", t10k_labels[i]);
+            for(j = 0; j < 10; j++) {
+                printf("%d: %f\n", labels[j], f6_output[j]);
+            }
+        }
+        #endif
+
+
+        if(t10k_labels[i] == labels[0]) {
+            correct_predictions++;
+        }
+
+        confusion_matrix[labels[0]][t10k_labels[i]]++;
+
         // F6 free memory
         free(f6_output);
-
     }
-
-        
-    
 
     for(i = 0; i < NUM; i++) {
         free(t10k_images[i]);
@@ -559,6 +635,23 @@ int main(int argc, char** argv) {
 
     free(t10k_images);
     free(t10k_labels);
+    free(labels);
+
+    float_t error_rate = 1.0-((float_t) correct_predictions/10000.0);
+
+    printf("error rate:%f (%d/%d)\n", error_rate, correct_predictions, num_t10k_images);
+
+    printf("columns: actual label\n");
+    printf("rows: predicted label\n");
+    printf("*\t0\t1\t2\t3\t4\t5\t6\t7\t8\t9\n");
+
+    for(i = 0; i < 10; i++) {
+        printf("%d\t", i);
+        for(j = 0; j < 10; j++) {
+            printf("%d\t", confusion_matrix[i][j]);
+        }
+        printf("\n");
+    }
 
     return 0;
 }
