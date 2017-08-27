@@ -65,14 +65,14 @@ int read_weights(const char* path_to_weights_file, float_t**** kernels, float_t*
 
             uint16_t kernel_height;
             uint16_t kernel_width;
-            uint16_t num_kernels;
+            unsigned int num_kernels;
 
             // read kernel dimensions
             fscanf(weights, "%hu\n", &kernel_height);
             fscanf(weights, "%hu\n", &kernel_width);
 
             // read number of kernels
-            fscanf(weights, "%hu\n", &num_kernels);
+            fscanf(weights, "%u\n", &num_kernels);
 
             uint16_t kernel;
 
@@ -84,7 +84,7 @@ int read_weights(const char* path_to_weights_file, float_t**** kernels, float_t*
 
                 (*kernels)[layer][kernel] = (float_t*) malloc(kernel_height*kernel_width * sizeof(float_t));
             
-                uint16_t kernel_pos;
+                unsigned int kernel_pos;
                 float_t kernel_entry;
 
                 for(kernel_pos = 0; kernel_pos < kernel_height*kernel_width; kernel_pos++) {
