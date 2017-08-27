@@ -1,9 +1,14 @@
 #include "pico-cnn/pico-cnn.h"
-#include "lenet_kernels.h"
+
+#include <float.h>
 
 #define NUM 10000
 //#define DEBUG
 #define INDEX 0
+
+void usage() {
+    printf("./lenet_tanh PATH_TO_MNIST_DATASET PATH_TO_WEIGHTS_FILE\n");
+}
 
 /**
  * @brief adds image_a and image_b pixel by pixel and stores result in image_a
@@ -23,6 +28,14 @@ void add_image2d_naive(float_t* image_a, const float_t* image_b, const uint16_t 
     }
 }
 
+/**
+ * @brief takes the output of the fully-connected layer and converts into
+ * values from [0,1]
+ *
+ * @param image (1 x width)
+ * @param width
+ * @param new_image (1 x width)
+ */
 void convert_prediction(const float_t* original_image, const uint16_t width, float_t* new_image) {
     uint16_t column;
 
@@ -31,6 +44,14 @@ void convert_prediction(const float_t* original_image, const uint16_t width, flo
     }
 }
 
+/**
+ * @brief sorts the prediction and the labels (in place) of the network such that the label with the
+ * highes prediction is at the front of the array (position 0)
+ *
+ * @param prediction (1 x length)
+ * @param labels (1 x length)
+ * @param length
+ */
 void sort_prediction(float_t* prediction, uint8_t* labels, const uint16_t length) {
     // simple bubble sort
     uint16_t i,j;
@@ -56,8 +77,15 @@ void sort_prediction(float_t* prediction, uint8_t* labels, const uint16_t length
 
 int main(int argc, char** argv) {
 
-    if(argc != 2) {
-        fprintf(stderr, "no path to mnist dataset provided!\n");
+    if(argc == 1) {
+        fprintf(stderr, "no path to mnist dataset and weights provided!\n");
+        usage();
+        return 1;
+    }
+
+    if(argc == 2) {
+        fprintf(stderr, "no path to weights provided!\n");
+        usage();
         return 1;
     }
 
@@ -76,7 +104,7 @@ int main(int argc, char** argv) {
     
     printf("reading images from '%s'\n", t10k_images_path);
 
-    num_t10k_images = read_mnist_images(t10k_images_path, &t10k_images, NUM, padding, 0);
+    num_t10k_images = read_mnist_images(t10k_images_path, &t10k_images, NUM, padding, -1.0, 1.0);
 
     if(num_t10k_images < 1) {
         fprintf(stderr, "could not read mnist images from '%s'\n", t10k_images_path);
@@ -111,6 +139,17 @@ int main(int argc, char** argv) {
     write_float(t10k_images[INDEX], 32, 32, "input.float");
     #endif
 
+    // read kernels and biasses
+    float_t*** kernels;
+    float_t** biasses;
+
+    printf("reading weights from '%s'\n", argv[2]);
+
+    if(read_weights(argv[2], &kernels, &biasses) != 0) {
+        fprintf(stderr, "could not read weights from '%s'\n", t10k_images_path);
+        return 1;
+    }
+
     int correct_predictions = 0;
 
     int confusion_matrix[10][10] = {
@@ -127,13 +166,15 @@ int main(int argc, char** argv) {
     };
     
 
-    // TODO read kernels and bias from file
 
     for(i = 0; i < NUM; i++) {
 
         // C1 input 32x32x1 -> output 28x28x6
         float_t** c1_output;
         c1_output = (float_t**) malloc(6*sizeof(float_t*));
+        
+        float_t** c1_kernels = kernels[0];
+        float_t* c1_bias = biasses[0];
 
         for(j = 0; j < 6; j++) {
             c1_output[j] = (float_t*) malloc(28*28*sizeof(float_t));
@@ -215,6 +256,9 @@ int main(int argc, char** argv) {
 
         float_t** c3_intermediate;
         c3_intermediate = (float_t**) malloc(6*sizeof(float_t*));
+
+        float_t** c3_kernels = kernels[1];
+        float_t* c3_bias = biasses[1];
 
         for(j = 0; j < 6; j++) {
             c3_intermediate[j] = (float_t*) malloc(10*10*sizeof(float_t)); 
@@ -551,6 +595,9 @@ int main(int argc, char** argv) {
         float_t* c5_output;
         c5_output = (float_t*) malloc(120*sizeof(float_t));
 
+        float_t** c5_kernels = kernels[2];
+        float_t* c5_bias = biasses[2];
+
         float_t c5_intermediate;
     
         for(j = 0; j < 120; j++) {
@@ -586,6 +633,9 @@ int main(int argc, char** argv) {
         // F6 input 1x1x120 -> output 1x10x1
         float_t* f6_output;
         f6_output = (float_t*) malloc(10*sizeof(float_t));
+
+        float_t* f6_kernel = kernels[3][0];
+        float_t* f6_bias = biasses[3];
         
         fully_connected_naive(c5_output, 120, f6_output, 10, f6_kernel, f6_bias);
         tanh_naive(f6_output, 10, 1, f6_output);
@@ -629,6 +679,7 @@ int main(int argc, char** argv) {
         free(f6_output);
     }
 
+    // freeing memory
     for(i = 0; i < NUM; i++) {
         free(t10k_images[i]);
     }
@@ -637,9 +688,26 @@ int main(int argc, char** argv) {
     free(t10k_labels);
     free(labels);
 
+    for(i = 0; i < 6; i++) {
+        free(kernels[0][i]);
+    }
+    for(i = 0; i < 96; i++) {
+        free(kernels[1][i]);
+    }
+    for(i = 0; i < 1920; i++) {
+        free(kernels[2][i]);
+    }
+
+    free(kernels[3][0]);
+
+    for(i = 0; i < 4; i++) {
+        free(biasses[i]);
+    }
+
+    // calculate and print results
     float_t error_rate = 1.0-((float_t) correct_predictions/10000.0);
 
-    printf("error rate:%f (%d/%d)\n", error_rate, correct_predictions, num_t10k_images);
+    printf("error rate: %f (%d/%d)\n", error_rate, correct_predictions, num_t10k_images);
 
     printf("columns: actual label\n");
     printf("rows: predicted label\n");

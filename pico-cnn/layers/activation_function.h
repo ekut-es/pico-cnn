@@ -1,12 +1,16 @@
 /** 
- * @brief contains all activations functions 
+ * @brief contains all activation functions 
  *
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
+#ifndef ACTIVATION_FUNCTION_H
+#define ACTIVATION_FUNCTION_H
+
 #include "../parameters.h"
 #include <stdint.h>
 #include <math.h>
+
 
 /**
  * @brief applies tanh(x) to all pixel of original_image and stores it in
@@ -25,3 +29,5 @@ void tanh_naive(const float_t* original_image, const uint16_t height, const uint
         new_image[i] = tanhf(original_image[i]);
     }
 }
+
+#endif // ACTIVATION_FUNCTION_H

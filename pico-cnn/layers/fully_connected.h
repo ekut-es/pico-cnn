@@ -4,6 +4,9 @@
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
+#ifndef FULLY_CONNECTED_H
+#define FULLY_CONNECTED_H
+
 #include "../parameters.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -13,7 +16,7 @@
  *
  * @param original_image (1 x original_width)
  * @param original_width
- * @param new_image (1 x new_width
+ * @param new_image (1 x new_width)
  * @param new_width
  * @param kernel
  * @param bias
@@ -34,3 +37,5 @@ void fully_connected_naive(const float_t* original_image, const uint16_t origina
         new_image[i] = pixel;
     }
 }
+
+#endif // FULLY_CONNECTED_H

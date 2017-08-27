@@ -4,6 +4,9 @@
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
+#ifndef WRITE_FLOAT_H
+#define WRITE_FLOAT_H
+
 #include "../parameters.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -46,3 +49,5 @@ int write_float(const float_t* image, const uint16_t height, const uint16_t widt
 
     return 0;
 }
+
+#endif // WRITE_FLOAT_H

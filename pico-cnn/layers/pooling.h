@@ -4,6 +4,9 @@
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
+#ifndef POOLING_H
+#define POOLING_H
+
 #include "../parameters.h"
 #include <stdint.h>
 
@@ -68,3 +71,5 @@ void average_pooling2d_naive(const float_t* original_image, const uint16_t heigh
         }
     }
 }
+
+#endif // POOLING_H

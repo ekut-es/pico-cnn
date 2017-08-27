@@ -4,11 +4,15 @@
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
+#ifndef READ_MNIST_H
+#define READ_MNIST_H
+
 #include "../parameters.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 /**
  * @brief changes the endianess of a 32-bit integer
@@ -34,10 +38,14 @@ static uint32_t change_endianess(uint32_t value) {
  * @param num_images number of images which should be read from file
  * @param padding number of 0 pixels which should be added to the border of
  * each image
+ * @param lower_bound to which float range should the images be converted
+ * [lower_bound, upper_bound]
+ * @param upper_bound to which float range should the images be converted
+ * [lower_bound, upper_bound]
  *
  * @return number of images which were read from file (0 = error)
  */
-int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images, uint32_t num_images, const uint8_t padding, const uint8_t negate) {
+int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images, uint32_t num_images, const uint8_t padding, const float lower_bound, const float upper_bound) {
 
     FILE *images;
     images = fopen(path_to_mnist_images, "r");
@@ -47,6 +55,7 @@ int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images,
         uint32_t num_images_provided;
         uint32_t height;
         uint32_t width;
+        float_t range = fabs(lower_bound - upper_bound);
 
         int i;
 
@@ -91,11 +100,11 @@ int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images,
             for(row = 0; row < height+2*padding; row++) {
                 for(column = 0; column < width+2*padding; column++) {
                     if(row < padding || row >= height+padding) {
-                        (*mnist_images)[i][row*(width+2*padding)+column] = (negate == 1) ? 1.0 : -1.0;
+                        (*mnist_images)[i][row*(width+2*padding)+column] = lower_bound;
                     } else if(column < padding || column >= width+padding) {
-                        (*mnist_images)[i][row*(width+2*padding)+column] = (negate == 1) ? 1.0 : -1.0;
+                        (*mnist_images)[i][row*(width+2*padding)+column] = lower_bound;
                     } else {
-                        (*mnist_images)[i][row*(width+2*padding)+column] = ((buffer[(row-padding)*width+column-padding] / 255.0f) - 0.5) * ((negate == 1) ? -2.0 : 2.0);
+                        (*mnist_images)[i][row*(width+2*padding)+column] = (((buffer[(row-padding)*width+column-padding] / 255.0f) * range) + lower_bound);
                     }
                 }
             }
@@ -163,3 +172,5 @@ int read_mnist_labels(const char* path_to_mnist_labels, uint8_t** mnist_labels, 
 
     return 0;
 }
+
+#endif // READ_MNIST_H

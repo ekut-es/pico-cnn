@@ -4,6 +4,8 @@
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
+#ifndef WRITE_PGM_H
+#define WRITE_PGM_H
 
 #include "../parameters.h"
 #include <stdint.h>
@@ -51,8 +53,9 @@ int write_pgm(const float_t* image, const uint16_t height, const uint16_t width,
     fprintf(pgm_file, "P5\n");
     // comment
     fprintf(pgm_file, "# pico-cnn\n");
+    // write dimensions
     fprintf(pgm_file, "%u %u\n", width, height);
-    
+    // write max gray value 
     fprintf(pgm_file, "%u\n", 255);
 
     for(row = 0; row < height; row++) {
@@ -68,3 +71,5 @@ int write_pgm(const float_t* image, const uint16_t height, const uint16_t width,
 
     return 0;
 }
+
+#endif // WRITE_PGM_H

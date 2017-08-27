@@ -4,6 +4,9 @@
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
+#ifndef PICO_CNN_H
+#define PICO_CNN_H
+
 #include "parameters.h"
 
 #include "layers/activation_function.h"
@@ -12,5 +15,8 @@
 #include "layers/fully_connected.h"
 
 #include "io/read_mnist.h"
+#include "io/read_weights.h"
 #include "io/write_pgm.h"
 #include "io/write_float.h"
+
+#endif // PICO_CNN_H

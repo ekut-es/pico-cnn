@@ -4,6 +4,9 @@
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
+#ifndef CONVOLUTION_H
+#define CONVOLUTION_H
+
 #include "../parameters.h"
 #include <stdint.h>
 
@@ -45,3 +48,5 @@ void convolution2d_naive(const float_t* original_image, const uint16_t height, c
         }
     }
 }
+
+#endif // CONVOLUTION_H
