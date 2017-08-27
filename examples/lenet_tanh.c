@@ -1,3 +1,9 @@
+/** 
+ * @brief LeNet-5 implementation as proposed by Yann LeCun
+ *
+ * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ */
+
 #include "pico-cnn/pico-cnn.h"
 
 #include <float.h>
