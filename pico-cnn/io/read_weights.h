@@ -111,9 +111,10 @@ int read_weights(const char* path_to_weights_file, float_t**** kernels, float_t*
         }
 
         fclose(weights);
+        return 0;
     }
 
-    return 0;
+    return 1;
 
 }
 

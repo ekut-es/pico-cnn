@@ -45,7 +45,7 @@ static uint32_t change_endianess(uint32_t value) {
  *
  * @return number of images which were read from file (0 = error)
  */
-int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images, uint32_t num_images, const uint8_t padding, const float lower_bound, const float upper_bound) {
+int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images, uint32_t num_images, const uint8_t padding, const float_t lower_bound, const float_t upper_bound) {
 
     FILE *images;
     images = fopen(path_to_mnist_images, "r");

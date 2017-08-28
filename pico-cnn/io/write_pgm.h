@@ -15,9 +15,9 @@
 /**
  * @brief creates an pgm file from an image (array)
  * 
+ * @param image array which contains the image data
  * @param height
  * @param width
- * @param image array which contains the image data
  * @param pgm_path full path to pgm image which should be written
  *
  * @return error (0 = success, 1 = error)
