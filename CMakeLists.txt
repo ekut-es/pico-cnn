@@ -18,6 +18,8 @@ endif()
 
 if(BUILD_UTILS)
     add_executable(compare_float_files ${PROJECT_SOURCE_DIR}/util/compare_float_files.c)
+    add_executable(display_pgm_cmd ${PROJECT_SOURCE_DIR}/util/display_pgm_cmd.c)
+    target_link_libraries(display_pgm_cmd m)
 endif()
 
 if(BUILD_EXAMPLES)
