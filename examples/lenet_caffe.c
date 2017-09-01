@@ -160,12 +160,39 @@ int main(int argc, char** argv) {
 
         free(c1_output);
 
+        // C3 input 12x12x20 -> output 8x8x50
+        float_t** c3_output;
+        c3_output = (float_t**) malloc(50*sizeof(float_t*));
+
+        float_t* c3_intermediate = malloc(8*8*sizeof(float_t*));
+        
+        float_t** c3_kernels = kernels[1];
+        float_t* c3_bias = biasses[1];
+
+        // TODO find out how (in tiny-dnn) input 20 -> output 50
+        for(j = 0; j < 50; j++) {
+            c3_output[j] = (float_t*) malloc(8*8*sizeof(float_t));
+            for(k = 1; k < 20; k++) {
+
+            }
+            //c1_output[j] = (float_t*) malloc(24*24*sizeof(float_t));
+            //convolution2d_naive(t10k_images[i], 28, 28, c1_output[j], c1_kernels[j], 5, c1_bias[j]);
+        }
+
+
         // S2 free memory
         for(j = 0; j < 20; j++) {
             free(s2_output[j]);
         }
 
         free(s2_output);
+
+        // C3 free memory
+        for(j = 0; j < 50; j++) {
+            free(c3_output[j]);
+        }
+
+        free(c3_output);
 
     }
 
