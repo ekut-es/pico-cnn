@@ -169,15 +169,28 @@ int main(int argc, char** argv) {
         float_t** c3_kernels = kernels[1];
         float_t* c3_bias = biasses[1];
 
-        // TODO find out how (in tiny-dnn) input 20 -> output 50
         for(j = 0; j < 50; j++) {
             c3_output[j] = (float_t*) malloc(8*8*sizeof(float_t));
-            for(k = 1; k < 20; k++) {
+            convolution2d_naive(s2_output[0], 12, 12, c3_output[j], c3_kernels[j*20], 5, c3_bias[j]);
 
+            for(k = 1; k < 20; k++) {
+                convolution2d_naive(s2_output[k], 12, 12, c3_intermediate, c3_kernels[j*20+k], 5, 0.0);
+                add_image2d_naive(c3_output[j], c3_intermediate, 8, 8);
             }
-            //c1_output[j] = (float_t*) malloc(24*24*sizeof(float_t));
-            //convolution2d_naive(t10k_images[i], 28, 28, c1_output[j], c1_kernels[j], 5, c1_bias[j]);
         }
+
+        // make pgm C3
+        #ifdef DEBUG
+        if(i == INDEX) {
+            float* c3_file_content = (float_t*) malloc(8*8*50*sizeof(float_t));
+            for(j = 0; j < 50; j++) {
+                memcpy(&c3_file_content[j*8*8], c3_output[j], 8*8*sizeof(float_t));
+            }
+            write_pgm(c3_file_content, 50*8, 8, "c3_output.pgm");
+            write_float(c3_file_content, 50*8, 8, "c3_output.float");
+            free(c3_file_content);
+        }
+        #endif
 
 
         // S2 free memory
@@ -187,12 +200,42 @@ int main(int argc, char** argv) {
 
         free(s2_output);
 
+        // S4 input 8x8x50 -> output 8x8x50
+        float_t** s4_output;
+        s4_output = (float_t**) malloc(50*sizeof(float_t*));
+
+        for(j = 0; j < 50; j++) {
+            s4_output[j] = (float_t*) malloc(4*4*sizeof(float_t));
+            max_pooling2d_naive(c3_output[j], 8, 8, s4_output[j], 2);
+        }
+
+        // make pgm S4
+        #ifdef DEBUG
+        if(i == INDEX) {
+            float* s4_file_content = (float_t*) malloc(4*4*50*sizeof(float_t));
+            for(j = 0; j < 50; j++) {
+                memcpy(&s4_file_content[j*4*4], s4_output[j], 4*4*sizeof(float_t));
+            }
+            write_pgm(s4_file_content, 50*4, 4, "s4_output.pgm");
+            write_float(s4_file_content, 50*4, 4, "s4_output.float");
+            free(s4_file_content);
+        }
+        #endif
+
         // C3 free memory
         for(j = 0; j < 50; j++) {
             free(c3_output[j]);
         }
 
         free(c3_output);
+
+        // S4 free memory
+        for(j = 0; j < 50; j++) {
+            free(s4_output[j]);
+        }
+
+        free(s4_output);
+
 
     }
 

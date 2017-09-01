@@ -16,23 +16,7 @@ void usage() {
     printf("./lenet_tanh PATH_TO_MNIST_DATASET PATH_TO_WEIGHTS_FILE\n");
 }
 
-/**
- * @brief adds image_a and image_b pixel by pixel and stores result in image_a
- * 
- * @param image_a (height x width)
- * @param image_b (height x width)
- * @param height
- * @param width
- */
-void add_image2d_naive(float_t* image_a, const float_t* image_b, const uint16_t height, const uint16_t width) {
-    uint16_t row, column;
 
-    for(row = 0; row < height; row++) {
-        for(column = 0; column < width; column++) {
-            image_a[row*width+column] = (image_a[row*width+column] + image_b[row*width+column]);
-        }
-    }
-}
 
 /**
  * @brief takes the output of the fully-connected layer and converts into
