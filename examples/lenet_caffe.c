@@ -229,13 +229,51 @@ int main(int argc, char** argv) {
 
         free(c3_output);
 
+        // F5 input 50x4x4 = 1x800 -> output 1x500
+        
+        // merge S4 output
+        float_t* s4_output_merged = (float_t*) malloc(4*4*50*sizeof(float_t));
+        for(j = 0; j < 50; j++) {
+            memcpy(&s4_output_merged[j*4*4], s4_output[j], 4*4*sizeof(float_t));
+        }
+
+        float_t* f5_output;
+        f5_output = (float_t*) malloc(500*sizeof(float_t));
+
+        float_t* f5_kernel = kernels[2][0];
+        float_t* f5_bias = biasses[2];
+        
+        fully_connected_naive(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias);
+
+        // make pgm F5
+        #ifdef DEBUG
+        if(i == INDEX) {
+            write_pgm(f5_output, 1, 500, "f5_output.pgm");
+            write_float(f5_output, 1, 500, "f5_output.float");
+        }
+        #endif
+
         // S4 free memory
         for(j = 0; j < 50; j++) {
             free(s4_output[j]);
         }
 
         free(s4_output);
+        free(s4_output_merged);
 
+        // ReLU
+        relu_naive(f5_output, 1, 500, f5_output);
+
+        // make pgm F5 ReLU
+        #ifdef DEBUG
+        if(i == INDEX) {
+            write_pgm(f5_output, 1, 500, "f5_relu_output.pgm");
+            write_float(f5_output, 1, 500, "f5_relu_output.float");
+        }
+        #endif
+
+        // F5 free memory
+        free(f5_output);
 
     }
 
