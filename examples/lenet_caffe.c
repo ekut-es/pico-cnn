@@ -272,8 +272,29 @@ int main(int argc, char** argv) {
         }
         #endif
 
+        // F6 input 1x500 -> 1x10
+        float_t* f6_output;
+        f6_output = (float_t*) malloc(10*sizeof(float_t));
+
+        float_t* f6_kernel = kernels[3][0];
+        float_t* f6_bias = biasses[3];
+        
+        fully_connected_naive(f5_output, 500, f6_output, 10, f6_kernel, f6_bias);
+
+        // make pgm F5
+        #ifdef DEBUG
+        if(i == INDEX) {
+            write_pgm(f6_output, 1, 10, "f6_output.pgm");
+            write_float(f6_output, 1, 10, "f6_output.float");
+        }
+        #endif
+
         // F5 free memory
         free(f5_output);
+
+        // F6 free memory
+        free(f6_output);
+
 
     }
 
