@@ -53,5 +53,9 @@ int main(int argc, char** argv) {
 	write_pgm(jpeg_image[2], height, width, filename_green);
 	printf("%s\n", filename_green);
 
+	free(jpeg_image[0]);
+	free(jpeg_image[1]);
+	free(jpeg_image[2]);
+
     return 0;
 } 

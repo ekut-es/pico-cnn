@@ -33,5 +33,7 @@ int main(int argc, char** argv) {
     }
     printf("\n");
 
+	free(image);
+
     return 0;
 }
