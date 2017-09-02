@@ -48,4 +48,19 @@ void relu_naive(const float_t* original_image, const uint16_t height, const uint
     }
 }
 
+void softmax_naive(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image) {
+
+    uint16_t i;
+
+    float_t denominator = 0.0;
+
+    for(i = 0; i < height*width; i++) {
+        denominator += expf(original_image[i]);
+    }
+
+    for(i = 0; i < height*width; i++) {
+        new_image[i] = expf(original_image[i]) / denominator;
+    }
+}
+
 #endif // ACTIVATION_FUNCTION_H
