@@ -4,13 +4,14 @@
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
-#include "pico-cnn/pico-cnn.h"
-
-#include <float.h>
-
+#define MNIST
 #define NUM 10000
 //#define DEBUG
 #define INDEX 0
+
+#include "pico-cnn/pico-cnn.h"
+
+#include <float.h>
 
 void usage() {
     printf("./lenet_tanh PATH_TO_MNIST_DATASET PATH_TO_WEIGHTS_FILE\n");

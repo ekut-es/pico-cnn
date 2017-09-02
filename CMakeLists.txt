@@ -11,7 +11,7 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 include_directories("${PROJECT_SOURCE_DIR}")
 
-list(APPEND LINK_LIBS m jpeg)
+list(APPEND LINK_LIBS m)
 
 if(BUILD_TESTS)
     add_executable(max_pooling_test ${PROJECT_SOURCE_DIR}/test/max_pooling_test.c)
@@ -25,7 +25,7 @@ if(BUILD_UTILS)
     target_link_libraries(display_pgm_cmd ${LINK_LIBS})
 
     add_executable(jpeg_to_rgb_pgms ${PROJECT_SOURCE_DIR}/util/jpeg_to_rgb_pgms.c)
-    target_link_libraries(jpeg_to_rgb_pgms ${LINK_LIBS})
+	target_link_libraries(jpeg_to_rgb_pgms ${LINK_LIBS} jpeg)
 endif()
 
 if(BUILD_EXAMPLES)

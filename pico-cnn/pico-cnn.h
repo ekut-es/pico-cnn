@@ -14,11 +14,20 @@
 #include "layers/pooling.h"
 #include "layers/fully_connected.h"
 
-#include "io/read_mnist.h"
 #include "io/read_weights.h"
 #include "io/read_pgm.h"
+
+#ifdef MNIST
+#include "io/read_mnist.h"
+#endif
+
+#ifdef JPEG
 #include "io/read_jpeg.h"
+#endif
+
+#ifdef DEBUG
 #include "io/write_pgm.h"
 #include "io/write_float.h"
+#endif
 
 #endif // PICO_CNN_H

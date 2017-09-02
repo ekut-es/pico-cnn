@@ -4,6 +4,9 @@
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
+#define JPEG
+#define DEBUG
+
 #include "pico-cnn/pico-cnn.h"
 #include <stdio.h>
 
