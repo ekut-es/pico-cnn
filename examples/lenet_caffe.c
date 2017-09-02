@@ -7,14 +7,60 @@
 
 #include "pico-cnn/pico-cnn.h"
 
-#define NUM 1
-#define DEBUG
+#define NUM 10000
+//#define DEBUG
 #define INDEX 0
 
 void usage() {
     printf("./lenet_caffe PATH_TO_MNIST_DATASET PATH_TO_WEIGHTS_FILE\n");
 }
 
+/**
+ * @brief takes the output of the fully-connected layer and converts into
+ * values from [0,1]
+ *
+ * @param image (1 x width)
+ * @param width
+ * @param new_image (1 x width)
+ */
+void convert_prediction(const float_t* original_image, const uint16_t width, float_t* new_image) {
+    uint16_t column;
+
+    for(column = 0; column < width; column++) {
+        new_image[column] = (original_image[column] + 1.0)/2.0;
+    }
+}
+
+/**
+ * @brief sorts the prediction and the labels (in place) of the network such that the label with the
+ * highes prediction is at the front of the array (position 0)
+ *
+ * @param prediction (1 x length)
+ * @param labels (1 x length)
+ * @param length
+ */
+void sort_prediction(float_t* prediction, uint8_t* labels, const uint16_t length) {
+    // simple bubble sort
+    uint16_t i,j;
+
+    float_t temp_prediction;
+    uint8_t temp_label;
+
+    for(i = 0; i < length-1; i++) {
+        for(j = 0; j < length-1-i; j++) {
+            if(prediction[j] < prediction[j+1]) {
+                // swap
+                temp_prediction = prediction[j];
+                prediction[j] = prediction[j+1];
+                prediction[j+1] = temp_prediction;
+
+                temp_label = labels[j];
+                labels[j] = labels[j+1];
+                labels[j+1] = temp_label;
+            }
+        }
+    }
+}
 int main(int argc, char** argv) {
 
     if(argc == 1) {
@@ -281,7 +327,7 @@ int main(int argc, char** argv) {
         
         fully_connected_naive(f5_output, 500, f6_output, 10, f6_kernel, f6_bias);
 
-        // make pgm F5
+        // make pgm F6
         #ifdef DEBUG
         if(i == INDEX) {
             write_pgm(f6_output, 1, 10, "f6_output.pgm");
@@ -292,10 +338,41 @@ int main(int argc, char** argv) {
         // F5 free memory
         free(f5_output);
 
+        // softmax
+        softmax_naive(f6_output, 1, 10, f6_output);
+
+        // make pgm F6 softmax
+        #ifdef DEBUG
+        if(i == INDEX) {
+            write_pgm(f6_output, 1, 10, "f6_softmax_output.pgm");
+            write_float(f6_output, 1, 10, "f6_softmax_output.float");
+        }
+        #endif
+
+        for(j = 0; j < 10; j++) {
+            labels[j] = j;
+        }
+
+        convert_prediction(f6_output, 10, f6_output);
+        sort_prediction(f6_output, labels, 10);
+
+        #ifdef DEBUG
+        if(i == INDEX) {
+            printf("%d\n", t10k_labels[i]);
+            for(j = 0; j < 10; j++) {
+                printf("%d: %f\n", labels[j], f6_output[j]);
+            }
+        }
+        #endif
+
+        if(t10k_labels[i] == labels[0]) {
+            correct_predictions++;
+        }
+
+        confusion_matrix[labels[0]][t10k_labels[i]]++;
+
         // F6 free memory
         free(f6_output);
-
-
     }
 
     // freeing memory
@@ -320,5 +397,21 @@ int main(int argc, char** argv) {
         free(biasses[i]);
     }
 
+    // calculate and print results
+    float_t error_rate = 1.0-((float_t) correct_predictions/((float_t) NUM));
+
+    printf("error rate: %f (%d/%d)\n", error_rate, correct_predictions, num_t10k_images);
+
+    printf("columns: actual label\n");
+    printf("rows: predicted label\n");
+    printf("*\t0\t1\t2\t3\t4\t5\t6\t7\t8\t9\n");
+
+    for(i = 0; i < 10; i++) {
+        printf("%d\t", i);
+        for(j = 0; j < 10; j++) {
+            printf("%d\t", confusion_matrix[i][j]);
+        }
+        printf("\n");
+    }
     return 0;
 }

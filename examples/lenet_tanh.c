@@ -695,7 +695,7 @@ int main(int argc, char** argv) {
     }
 
     // calculate and print results
-    float_t error_rate = 1.0-((float_t) correct_predictions/10000.0);
+    float_t error_rate = 1.0-((float_t) correct_predictions/((float_t) NUM));
 
     printf("error rate: %f (%d/%d)\n", error_rate, correct_predictions, num_t10k_images);
 
