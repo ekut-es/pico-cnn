@@ -17,6 +17,7 @@
 #include "io/read_mnist.h"
 #include "io/read_weights.h"
 #include "io/read_pgm.h"
+#include "io/read_jpeg.h"
 #include "io/write_pgm.h"
 #include "io/write_float.h"
 

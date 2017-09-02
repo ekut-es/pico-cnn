@@ -11,21 +11,27 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 include_directories("${PROJECT_SOURCE_DIR}")
 
+list(APPEND LINK_LIBS m jpeg)
+
 if(BUILD_TESTS)
     add_executable(max_pooling_test ${PROJECT_SOURCE_DIR}/test/max_pooling_test.c)
-    target_link_libraries(max_pooling_test m)
+    target_link_libraries(max_pooling_test ${LINK_LIBS})
 endif()
 
 if(BUILD_UTILS)
     add_executable(compare_float_files ${PROJECT_SOURCE_DIR}/util/compare_float_files.c)
+
     add_executable(display_pgm_cmd ${PROJECT_SOURCE_DIR}/util/display_pgm_cmd.c)
-    target_link_libraries(display_pgm_cmd m)
+    target_link_libraries(display_pgm_cmd ${LINK_LIBS})
+
+    add_executable(jpeg_to_rgb_pgms ${PROJECT_SOURCE_DIR}/util/jpeg_to_rgb_pgms.c)
+    target_link_libraries(jpeg_to_rgb_pgms ${LINK_LIBS})
 endif()
 
 if(BUILD_EXAMPLES)
     add_executable(lenet_tanh ${PROJECT_SOURCE_DIR}/examples/lenet_tanh.c)
-    target_link_libraries(lenet_tanh m)
+    target_link_libraries(lenet_tanh ${LINK_LIBS})
 
     add_executable(lenet_caffe ${PROJECT_SOURCE_DIR}/examples/lenet_caffe.c)
-    target_link_libraries(lenet_caffe m)
+    target_link_libraries(lenet_caffe ${LINK_LIBS})
 endif()

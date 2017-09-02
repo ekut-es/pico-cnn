@@ -8,16 +8,16 @@
 #include <stdio.h>
 
 int main(int argc, char** argv) {
-    if(argc != 4) {
-        fprintf(stderr, "no path to pgm file/height/width provided!\n");
+    if(argc != 2) {
+        fprintf(stderr, "no path to pgm file provided!\n");
         return 1;
     }
  
     float_t* image; 
-    int height = atoi(argv[2]);
-    int width = atoi(argv[3]);
+    uint16_t height;
+    uint16_t width;
 
-    if(read_pgm(&image, argv[1], 0, 0.0, 255.0) != 0) {
+    if(read_pgm(&image, argv[1], 0, 0.0, 255.0, &height, &width) != 0) {
         fprintf(stderr, "could not read pgm file '%s'\n", argv[1]);
         return 1;
     }
