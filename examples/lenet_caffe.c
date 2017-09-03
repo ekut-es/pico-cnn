@@ -17,22 +17,6 @@ void usage() {
 }
 
 /**
- * @brief takes the output of the fully-connected layer and converts into
- * values from [0,1]
- *
- * @param image (1 x width)
- * @param width
- * @param new_image (1 x width)
- */
-void convert_prediction(const float_t* original_image, const uint16_t width, float_t* new_image) {
-    uint16_t column;
-
-    for(column = 0; column < width; column++) {
-        new_image[column] = (original_image[column] + 1.0)/2.0;
-    }
-}
-
-/**
  * @brief sorts the prediction and the labels (in place) of the network such that the label with the
  * highes prediction is at the front of the array (position 0)
  *
@@ -62,6 +46,7 @@ void sort_prediction(float_t* prediction, uint8_t* labels, const uint16_t length
         }
     }
 }
+
 int main(int argc, char** argv) {
 
     if(argc == 1) {
@@ -354,7 +339,6 @@ int main(int argc, char** argv) {
             labels[j] = j;
         }
 
-        convert_prediction(f6_output, 10, f6_output);
         sort_prediction(f6_output, labels, 10);
 
         #ifdef DEBUG
