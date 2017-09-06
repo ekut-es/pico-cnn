@@ -1,7 +1,7 @@
 /** 
  * @brief reads a jpeg file and stores it into a 2-dimensional (1-dimensional
  * arrays for R,G,B) array
- * Adopted from:
+ * Adopted from Denis Tola:
  * https://www.quora.com/In-C-and-C%2B%2B-how-can-I-open-an-image-file-like-JPEG-and-read-it-as-a-matrix-of-pixels/answer/Denis-Tola?srid=uaBxY
  *
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
@@ -58,11 +58,11 @@ int read_jpeg(float_t*** image, const char* jpeg_path, const float_t lower_bound
 
 		(*image) = (float_t**) malloc(3*sizeof(float_t*));
 		// red
-		(*image)[0] = (float_t*) malloc((*height)*(*width)*sizeof(float_t));
+		(*image)[2] = (float_t*) malloc((*height)*(*width)*sizeof(float_t));
 		// green
 		(*image)[1] = (float_t*) malloc((*height)*(*width)*sizeof(float_t));
 		// blue
-		(*image)[2] = (float_t*) malloc((*height)*(*width)*sizeof(float_t));
+		(*image)[0] = (float_t*) malloc((*height)*(*width)*sizeof(float_t));
 
  		row_stride = (*width) * cinfo.output_components;
   		jpeg_buffer = (*cinfo.mem->alloc_sarray) ((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
@@ -80,9 +80,9 @@ int read_jpeg(float_t*** image, const char* jpeg_path, const float_t lower_bound
 					g = r;
 					b = r;
 			  	}
-				(*image)[0][pos] = (((r / 255.0f) * range) + lower_bound);
+				(*image)[2][pos] = (((r / 255.0f) * range) + lower_bound);
 				(*image)[1][pos] = (((g / 255.0f) * range) + lower_bound);
-				(*image)[2][pos] = (((b / 255.0f) * range) + lower_bound);
+				(*image)[0][pos] = (((b / 255.0f) * range) + lower_bound);
 				pos++;
 			}
 		}
