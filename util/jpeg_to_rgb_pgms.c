@@ -47,13 +47,13 @@ int main(int argc, char** argv) {
 
     read_jpeg(&jpeg_image, argv[1], 0.0, 1.0, &height, &width);
 
-	write_pgm(jpeg_image[0], height, width, filename_red);
+	write_pgm(jpeg_image[2], height, width, filename_red);
 	printf("%s\n", filename_red);
 
 	write_pgm(jpeg_image[1], height, width, filename_blue);
 	printf("%s\n", filename_blue);
 
-	write_pgm(jpeg_image[2], height, width, filename_green);
+	write_pgm(jpeg_image[0], height, width, filename_green);
 	printf("%s\n", filename_green);
 
 	free(jpeg_image[0]);
