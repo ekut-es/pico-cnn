@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    int i, j, k;
+    unsigned int i, j, k;
 
     // read mnist t10k images
     char t10k_images_path[strlen(argv[1]) + 20];
