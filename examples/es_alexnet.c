@@ -12,8 +12,8 @@
 #include <stdio.h>
 
 void usage() {
-    printf("./bvlc_alexnet \\\n"); 
-    printf("PATH_TO_ALEXNET_WEIGHTS.weights \\\n");
+    printf("./es_alexnet \\\n"); 
+    printf("PATH_TO_ES_WEIGHTS.weights \\\n");
     printf("PATH_TO_IMAGE_NET_MEAN.binaryproto \\\n");
     printf("PATH_TO_IMAGE_NET_LABELS.txt \\\n");
     printf("PATH_TO_IMAGE.jpg\n");

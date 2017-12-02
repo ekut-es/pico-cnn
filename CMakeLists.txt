@@ -35,8 +35,8 @@ if(BUILD_EXAMPLES)
     add_executable(lenet_caffe ${PROJECT_SOURCE_DIR}/examples/lenet_caffe.c)
     target_link_libraries(lenet_caffe ${LINK_LIBS})
 
-	add_executable(bvlc_alexnet ${PROJECT_SOURCE_DIR}/examples/bvlc_alexnet.c)
-    target_link_libraries(bvlc_alexnet ${LINK_LIBS} jpeg)
+	add_executable(es_alexnet ${PROJECT_SOURCE_DIR}/examples/es_alexnet.c)
+    target_link_libraries(es_alexnet ${LINK_LIBS} jpeg)
 endif()
 
 # removes pgm and float files
