@@ -6,7 +6,7 @@
  */
 
 #define MNIST
-#define NUM 10000
+#define NUM 5000
 //#define DEBUG
 #define INDEX 0
 
@@ -61,12 +61,18 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    char mnist_path[1024];
+    char weights_path[1024];
+
+    strcpy(mnist_path, argv[1]);
+    strcpy(weights_path, argv[2]);
+
     unsigned int i, j, k;
 
     // read mnist t10k images
-    char t10k_images_path[strlen(argv[1]) + 20];
+    char t10k_images_path[strlen(mnist_path) + 20];
     t10k_images_path[0] = '\0';
-    strcat(t10k_images_path, argv[1]);
+    strcat(t10k_images_path, mnist_path);
     strcat(t10k_images_path, "/t10k-images.idx3-ubyte");
     //strcat(t10k_images_path, "/train-images.idx3-ubyte");
 
@@ -83,9 +89,9 @@ int main(int argc, char** argv) {
     }
 
     // read t10k labels
-    char t10k_labels_path[strlen(argv[1]) + 20];
+    char t10k_labels_path[strlen(mnist_path) + 20];
     t10k_labels_path[0] = '\0';
-    strcat(t10k_labels_path, argv[1]);
+    strcat(t10k_labels_path, mnist_path);
     strcat(t10k_labels_path, "/t10k-labels.idx1-ubyte");
     //strcat(t10k_labels_path, "/train-labels.idx1-ubyte");
 
@@ -114,9 +120,9 @@ int main(int argc, char** argv) {
     fp_t*** kernels;
     fp_t** biasses;
 
-    printf("reading weights from '%s'\n", argv[2]);
+    printf("reading weights from '%s'\n", weights_path);
 
-    if(read_weights(argv[2], &kernels, &biasses) != 0) {
+    if(read_weights(weights_path, &kernels, &biasses) != 0) {
         fprintf(stderr, "could not read weights from '%s'\n", t10k_images_path);
         return 1;
     }
@@ -398,5 +404,6 @@ int main(int argc, char** argv) {
         }
         printf("\n");
     }
+
     return 0;
 }
