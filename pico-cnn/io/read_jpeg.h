@@ -71,7 +71,9 @@ int read_jpeg(float_t*** image, const char* jpeg_path, const float_t lower_bound
 
 			(void) jpeg_read_scanlines(&cinfo, jpeg_buffer, 1);
 
-			for (int x = 0; x < *width; x++) {
+            int x;
+
+			for(x = 0; x < *width; x++) {
 				r = jpeg_buffer[0][cinfo.output_components * x];
 			  	if (cinfo.output_components > 2) {
 					g = jpeg_buffer[0][cinfo.output_components * x + 1];
