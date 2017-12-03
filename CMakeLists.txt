@@ -5,7 +5,7 @@ option(BUILD_TESTS "Test programs from the 'test' directory will be built." OFF)
 option(BUILD_UTILS "Utility programs from the 'util' directory will be built." OFF)
 option(BUILD_EXAMPLES "Example programs from the 'examples' directory will be built." OFF)
 
-set(CMAKE_C_FLAGS "-Wall")
+set(CMAKE_C_FLAGS "-Wall -O2")
 set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
