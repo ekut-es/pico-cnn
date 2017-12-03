@@ -11,17 +11,18 @@
 #include <stdio.h>
 
 
-#define KERNEL_SIZE 11
+#define KERNEL_SIZE 3
 #define KERNEL_CROP (KERNEL_SIZE/2)
 
-/*
 // kernel 3x3
 fp_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
-    0.1933171948, 0.0535442412, 0.1878331911, 
-    0.0004219844, 0.2196035127, 0.0857518851, 
-    0.0956728014, 0.1089575281, 0.0548976613
+    //0.1933171948, 0.0535442412, 0.1878331911, 
+    //0.0004219844, 0.2196035127, 0.0857518851, 
+    //0.0956728014, 0.1089575281, 0.0548976613
+    1.0, 0.0, -1.0,
+    2.0, 0.0, -2.0,
+    1.0, 0.0, -1.0
 };
-*/
 
 /*
 // kernel 5x5
@@ -34,6 +35,7 @@ fp_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
 };
 */
 
+/*
 // kernel 11x11
 fp_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
     0.0133775946, 0.0081662832, 0.0037958851, 0.0025589938, 0.0111077079, 0.0094678558, 0.0084671443, 0.0048633728, 0.0105224367, 0.0022854223, 0.0067605625, 
@@ -48,6 +50,7 @@ fp_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
     0.0113839157, 0.0120713458, 0.0150390929, 0.0045380464, 0.0090216058, 0.0100194912, 0.0134224489, 0.0141499280, 0.0154726817, 0.0046160813, 0.0001460937, 
     0.0028159609, 0.0023485310, 0.0131379167, 0.0077512142, 0.0082149093, 0.0094532890, 0.0091168997, 0.0162273827, 0.0152643834, 0.0071902420, 0.0091178775 
 };
+*/
 
 enum mode_t {NAIVE, CPU, CGRA, GPU};
 
@@ -65,7 +68,7 @@ int main(int argc, char** argv) {
     }
 
     // check if naive of opt was chosen
-    mode_t mode;
+    mode_t mode = NAIVE;
 
     if(strcmp(argv[1], "naive") == 0) {
         mode = NAIVE;
@@ -78,7 +81,7 @@ int main(int argc, char** argv) {
     }
 
     // check if input image is pgm or jpeg
-    uint8_t jpg;
+    uint8_t jpg = 0;
     char * extension;
 
     extension = strrchr(argv[2], '.');
@@ -117,11 +120,15 @@ int main(int argc, char** argv) {
     if(mode == NAIVE) {
         convolution2d_naive(input_image, height, width, output_image, kernel, KERNEL_SIZE, 0.5);
     } else if(mode == CPU) {
-        convolution2d_cpu(input_image, height, width, output_image, kernel, KERNEL_SIZE, 0.5);
+        convolution2d_cpu_3x3(input_image, height, width, output_image, kernel, 0.5);
     }
 
     #ifdef DEBUG
-    write_pgm(output_image, (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "output.pgm");
+    if(mode == NAIVE) {
+        write_pgm(output_image, (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "naive.pgm");
+    } else if(mode == CPU) {
+        write_pgm(output_image, (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "cpu.pgm");
+    }
     #endif
 
     free(output_image);
