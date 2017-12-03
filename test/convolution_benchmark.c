@@ -9,13 +9,15 @@
 
 #include "pico-cnn/pico-cnn.h"
 #include <stdio.h>
+#include <omp.h>
 
+#define NUM_CONVOLUTIONS 20
 
 #define KERNEL_SIZE 3
 #define KERNEL_CROP (KERNEL_SIZE/2)
 
 // kernel 3x3
-fp_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
+fp_t kernel_template[KERNEL_SIZE*KERNEL_SIZE] = {
     //0.1933171948, 0.0535442412, 0.1878331911, 
     //0.0004219844, 0.2196035127, 0.0857518851, 
     //0.0956728014, 0.1089575281, 0.0548976613
@@ -114,24 +116,50 @@ int main(int argc, char** argv) {
         free(input_image_jpg[2]);
     }
 
+    int i; 
 
-    fp_t* output_image = (fp_t*) malloc((height-2*KERNEL_CROP)*(width-2*KERNEL_CROP)*sizeof(fp_t));
+    fp_t** kernels = (fp_t**) malloc(NUM_CONVOLUTIONS*sizeof(fp_t*));
+    fp_t** output_images = (fp_t**) malloc(NUM_CONVOLUTIONS*sizeof(fp_t*));
+
+    for(i = 0; i < NUM_CONVOLUTIONS; i++) {
+        kernels[i] = (fp_t*) malloc(KERNEL_SIZE*KERNEL_SIZE*sizeof(fp_t));
+        memcpy(kernels[i], kernel_template, KERNEL_SIZE*KERNEL_SIZE*sizeof(fp_t));
+        output_images[i] = (fp_t*) malloc((height-2*KERNEL_CROP)*(width-2*KERNEL_CROP)*sizeof(fp_t));
+    }
 
     if(mode == NAIVE) {
-        convolution2d_naive(input_image, height, width, output_image, kernel, KERNEL_SIZE, 0.5);
+        for(i = 0; i < NUM_CONVOLUTIONS; i++) {
+            convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 0.5);
+        }
     } else if(mode == CPU) {
-        convolution2d_cpu_3x3(input_image, height, width, output_image, kernel, 0.5);
+        #pragma omp parallel for
+        for(i = 0; i < NUM_CONVOLUTIONS; i++) {
+            //printf("thread num %d\n", omp_get_thread_num());
+            #if KERNEL_SIZE == 3
+            convolution2d_cpu_3x3(input_image, height, width, output_images[i], kernels[i], 0.5);
+            #endif
+        }
     }
 
     #ifdef DEBUG
     if(mode == NAIVE) {
-        write_pgm(output_image, (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "naive.pgm");
+        for(i = 0; i < NUM_CONVOLUTIONS; i++) {
+            write_pgm(output_images[i], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "naive.pgm");
+        }
     } else if(mode == CPU) {
-        write_pgm(output_image, (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "cpu.pgm");
+        for(i = 0; i < NUM_CONVOLUTIONS; i++) {
+            write_pgm(output_images[i], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "cpu.pgm");
+        }
     }
     #endif
 
-    free(output_image);
+    free(input_image);
+
+    for(i = 0; i < NUM_CONVOLUTIONS; i++) {
+        free(output_images[i]);
+    }
+
+    free(output_images);
 
     return 0;
 }

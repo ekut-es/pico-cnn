@@ -7,7 +7,7 @@ option(BUILD_EXAMPLES "Example programs from the 'examples' directory will be bu
 
 #set(CMAKE_C_FLAGS "-Wall -mfp16-format=ieee -mfpu=neon-fp16 -O2")
 set(CMAKE_C_COMPILER arm-linux-gnueabihf-gcc)
-set(CMAKE_C_FLAGS "-Wall -mfpu=neon -mfloat-abi=hard -O2")
+set(CMAKE_C_FLAGS "-Wall -mfpu=neon -mfloat-abi=hard -fopenmp -O2")
 set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
