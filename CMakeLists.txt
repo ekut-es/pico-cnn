@@ -16,6 +16,9 @@ list(APPEND LINK_LIBS m)
 if(BUILD_TESTS)
     add_executable(max_pooling_test ${PROJECT_SOURCE_DIR}/test/max_pooling_test.c)
     target_link_libraries(max_pooling_test ${LINK_LIBS})
+
+    add_executable(convolution_benchmark ${PROJECT_SOURCE_DIR}/test/convolution_benchmark.c)
+    target_link_libraries(convolution_benchmark ${LINK_LIBS} jpeg)
 endif()
 
 if(BUILD_UTILS)
