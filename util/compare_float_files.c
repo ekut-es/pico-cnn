@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-typedef float float_t;
+typedef float fp_t;
 
 void usage() {
     printf("USAGE:\n");
@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
         return 1;
     }
    
-    float_t tolerance = 0.0;
+    fp_t tolerance = 0.0;
 
     if(argc == 4) {
         sscanf(argv[3], "%f", &tolerance);
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
     printf("%dx%d\n", height, width);
     printf("tolerance: %.9f\n", tolerance);
 
-    float_t float_a, float_b;
+    fp_t float_a, float_b;
 
     int row, column;
 

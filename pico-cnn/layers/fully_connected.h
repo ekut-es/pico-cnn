@@ -21,12 +21,12 @@
  * @param kernel
  * @param bias
  */
-void fully_connected_naive(const float_t* original_image, const uint16_t original_width, float_t* new_image, const uint16_t new_width, const float_t* kernel, const float_t* bias) {
+void fully_connected_naive(const fp_t* original_image, const uint16_t original_width, fp_t* new_image, const uint16_t new_width, const fp_t* kernel, const fp_t* bias) {
 
     int i, j;
     for(i = 0; i < new_width; i++) {
 
-        float_t pixel = 0.0;
+        fp_t pixel = 0.0;
 
         for(j = 0; j < original_width; j++) {
             // takes each new_width'nd element

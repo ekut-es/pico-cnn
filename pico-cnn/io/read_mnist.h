@@ -45,7 +45,7 @@ static uint32_t change_endianess(uint32_t value) {
  *
  * @return number of images which were read from file (0 = error)
  */
-int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images, uint32_t num_images, const uint8_t padding, const float_t lower_bound, const float_t upper_bound) {
+int read_mnist_images(const char* path_to_mnist_images, fp_t*** mnist_images, uint32_t num_images, const uint8_t padding, const fp_t lower_bound, const fp_t upper_bound) {
 
     FILE *images;
     images = fopen(path_to_mnist_images, "r");
@@ -55,7 +55,7 @@ int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images,
         uint32_t num_images_provided;
         uint32_t height;
         uint32_t width;
-        float_t range = fabs(lower_bound - upper_bound);
+        fp_t range = fabs(lower_bound - upper_bound);
 
         int i;
 
@@ -84,13 +84,13 @@ int read_mnist_images(const char* path_to_mnist_images, float_t*** mnist_images,
         }
 
         // allocate pointers for images
-        *mnist_images = (float_t**) malloc(num_images*sizeof(float_t*));
+        *mnist_images = (fp_t**) malloc(num_images*sizeof(fp_t*));
 
         // start reading images
         for(i = 0; i < num_images; i++) {
             
             // allocate memory for single image
-            (*mnist_images)[i] = (float_t*) malloc((width+2*padding)*(height+2*padding)*sizeof(float_t));
+            (*mnist_images)[i] = (fp_t*) malloc((width+2*padding)*(height+2*padding)*sizeof(fp_t));
 
             uint32_t row, column;
             uint8_t buffer[width*height];

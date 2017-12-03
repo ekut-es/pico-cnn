@@ -27,7 +27,7 @@ void usage() {
  * @param width
  * @param new_image (1 x width)
  */
-void convert_prediction(const float_t* original_image, const uint16_t width, float_t* new_image) {
+void convert_prediction(const fp_t* original_image, const uint16_t width, fp_t* new_image) {
     uint16_t column;
 
     for(column = 0; column < width; column++) {
@@ -43,11 +43,11 @@ void convert_prediction(const float_t* original_image, const uint16_t width, flo
  * @param labels (1 x length)
  * @param length
  */
-void sort_prediction(float_t* prediction, uint8_t* labels, const uint16_t length) {
+void sort_prediction(fp_t* prediction, uint8_t* labels, const uint16_t length) {
     // simple bubble sort
     uint16_t i,j;
 
-    float_t temp_prediction;
+    fp_t temp_prediction;
     uint8_t temp_label;
 
     for(i = 0; i < length-1; i++) {
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
     strcat(t10k_images_path, "/t10k-images.idx3-ubyte");
     //strcat(t10k_images_path, "/train-images.idx3-ubyte");
 
-    float_t** t10k_images;
+    fp_t** t10k_images;
     int num_t10k_images;
     int padding = 2;
     
@@ -131,8 +131,8 @@ int main(int argc, char** argv) {
     #endif
 
     // read kernels and biasses
-    float_t*** kernels;
-    float_t** biasses;
+    fp_t*** kernels;
+    fp_t** biasses;
 
     printf("reading weights from '%s'\n", argv[2]);
 
@@ -161,14 +161,14 @@ int main(int argc, char** argv) {
     for(i = 0; i < NUM; i++) {
 
         // C1 input 32x32x1 -> output 28x28x6
-        float_t** c1_output;
-        c1_output = (float_t**) malloc(6*sizeof(float_t*));
+        fp_t** c1_output;
+        c1_output = (fp_t**) malloc(6*sizeof(fp_t*));
         
-        float_t** c1_kernels = kernels[0];
-        float_t* c1_bias = biasses[0];
+        fp_t** c1_kernels = kernels[0];
+        fp_t* c1_bias = biasses[0];
 
         for(j = 0; j < 6; j++) {
-            c1_output[j] = (float_t*) malloc(28*28*sizeof(float_t));
+            c1_output[j] = (fp_t*) malloc(28*28*sizeof(fp_t));
             convolution2d_naive(t10k_images[i], 32, 32, c1_output[j], c1_kernels[j], 5, c1_bias[j]);
             tanh_naive(c1_output[j], 28, 28, c1_output[j]);
         }
@@ -176,13 +176,13 @@ int main(int argc, char** argv) {
         // make pgm C1
         #ifdef DEBUG
         if(i == INDEX) {
-            float* c1_file_content = (float_t*) malloc(28*28*6*sizeof(float_t));
-            memcpy(&c1_file_content[0*28*28], c1_output[0], 28*28*sizeof(float_t));
-            memcpy(&c1_file_content[1*28*28], c1_output[1], 28*28*sizeof(float_t));
-            memcpy(&c1_file_content[2*28*28], c1_output[2], 28*28*sizeof(float_t));
-            memcpy(&c1_file_content[3*28*28], c1_output[3], 28*28*sizeof(float_t));
-            memcpy(&c1_file_content[4*28*28], c1_output[4], 28*28*sizeof(float_t));
-            memcpy(&c1_file_content[5*28*28], c1_output[5], 28*28*sizeof(float_t));
+            float* c1_file_content = (fp_t*) malloc(28*28*6*sizeof(fp_t));
+            memcpy(&c1_file_content[0*28*28], c1_output[0], 28*28*sizeof(fp_t));
+            memcpy(&c1_file_content[1*28*28], c1_output[1], 28*28*sizeof(fp_t));
+            memcpy(&c1_file_content[2*28*28], c1_output[2], 28*28*sizeof(fp_t));
+            memcpy(&c1_file_content[3*28*28], c1_output[3], 28*28*sizeof(fp_t));
+            memcpy(&c1_file_content[4*28*28], c1_output[4], 28*28*sizeof(fp_t));
+            memcpy(&c1_file_content[5*28*28], c1_output[5], 28*28*sizeof(fp_t));
             write_pgm(c1_file_content, 6*28, 28, "c1_output.pgm");
             write_float(c1_file_content, 6*28, 28, "c1_output.float");
             free(c1_file_content);
@@ -190,11 +190,11 @@ int main(int argc, char** argv) {
         #endif
 
         // S2 input 28x28x6 -> output 14x14x6
-        float_t** s2_output;
-        s2_output = (float_t**) malloc(6*sizeof(float_t*));
+        fp_t** s2_output;
+        s2_output = (fp_t**) malloc(6*sizeof(fp_t*));
 
         for(j = 0; j < 6; j++) {
-            s2_output[j] = (float_t*) malloc(14*14*sizeof(float_t));
+            s2_output[j] = (fp_t*) malloc(14*14*sizeof(fp_t));
             max_pooling2d_naive(c1_output[j], 28, 28, s2_output[j], 2);
             tanh_naive(s2_output[j], 14, 14, s2_output[j]);
         }
@@ -202,13 +202,13 @@ int main(int argc, char** argv) {
         // make pgm S2
         #ifdef DEBUG
         if(i == INDEX) {
-            float* s2_file_content = (float_t*) malloc(14*14*6*sizeof(float_t));
-            memcpy(&s2_file_content[0*14*14], s2_output[0], 14*14*sizeof(float_t));
-            memcpy(&s2_file_content[1*14*14], s2_output[1], 14*14*sizeof(float_t));
-            memcpy(&s2_file_content[2*14*14], s2_output[2], 14*14*sizeof(float_t));
-            memcpy(&s2_file_content[3*14*14], s2_output[3], 14*14*sizeof(float_t));
-            memcpy(&s2_file_content[4*14*14], s2_output[4], 14*14*sizeof(float_t));
-            memcpy(&s2_file_content[5*14*14], s2_output[5], 14*14*sizeof(float_t));
+            float* s2_file_content = (fp_t*) malloc(14*14*6*sizeof(fp_t));
+            memcpy(&s2_file_content[0*14*14], s2_output[0], 14*14*sizeof(fp_t));
+            memcpy(&s2_file_content[1*14*14], s2_output[1], 14*14*sizeof(fp_t));
+            memcpy(&s2_file_content[2*14*14], s2_output[2], 14*14*sizeof(fp_t));
+            memcpy(&s2_file_content[3*14*14], s2_output[3], 14*14*sizeof(fp_t));
+            memcpy(&s2_file_content[4*14*14], s2_output[4], 14*14*sizeof(fp_t));
+            memcpy(&s2_file_content[5*14*14], s2_output[5], 14*14*sizeof(fp_t));
             write_pgm(s2_file_content, 6*14, 14, "s2_output.pgm");
             write_float(s2_file_content, 6*14, 14, "s2_output.float");
             free(s2_file_content);
@@ -242,17 +242,17 @@ int main(int argc, char** argv) {
         // 4        16  22  28          46  52  58  64      76  82      94
         // 5            23  29  35          53  59  65  71      83  89  95
         
-        float_t** c3_output;
-        c3_output = (float_t**) malloc(16*sizeof(float_t*));
+        fp_t** c3_output;
+        c3_output = (fp_t**) malloc(16*sizeof(fp_t*));
 
-        float_t** c3_intermediate;
-        c3_intermediate = (float_t**) malloc(6*sizeof(float_t*));
+        fp_t** c3_intermediate;
+        c3_intermediate = (fp_t**) malloc(6*sizeof(fp_t*));
 
-        float_t** c3_kernels = kernels[1];
-        float_t* c3_bias = biasses[1];
+        fp_t** c3_kernels = kernels[1];
+        fp_t* c3_bias = biasses[1];
 
         for(j = 0; j < 6; j++) {
-            c3_intermediate[j] = (float_t*) malloc(10*10*sizeof(float_t)); 
+            c3_intermediate[j] = (fp_t*) malloc(10*10*sizeof(fp_t)); 
         }
 
         // 0
@@ -266,8 +266,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[0];
         }
 
-        c3_output[0] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[0], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[0] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[0], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[0], 10, 10, c3_output[0]);
 
         // 1
@@ -281,8 +281,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[1];
         }
 
-        c3_output[1] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[1], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[1] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[1], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[1], 10, 10, c3_output[1]);
 
         // 2
@@ -296,8 +296,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[2];
         }
 
-        c3_output[2] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[2], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[2] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[2], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[2], 10, 10, c3_output[2]);
 
         // 3
@@ -311,8 +311,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[3];
         }
 
-        c3_output[3] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[3], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[3] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[3], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[3], 10, 10, c3_output[3]);
         
         // 4
@@ -326,8 +326,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[4];
         }
 
-        c3_output[4] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[4], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[4] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[4], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[4], 10, 10, c3_output[4]);
         
         // 5
@@ -341,8 +341,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[5];
         }
 
-        c3_output[5] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[5], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[5] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[5], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[5], 10, 10, c3_output[5]);
         
         // 6
@@ -358,8 +358,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[6];
         }
 
-        c3_output[6] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[6], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[6] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[6], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[6], 10, 10, c3_output[6]);
         
         // 7
@@ -375,8 +375,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[7];
         }
 
-        c3_output[7] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[7], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[7] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[7], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[7], 10, 10, c3_output[7]);
         
         // 8
@@ -392,8 +392,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[8];
         }
 
-        c3_output[8] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[8], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[8] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[8], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[8], 10, 10, c3_output[8]);
         
         // 9
@@ -409,8 +409,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[9];
         }
 
-        c3_output[9] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[9], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[9] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[9], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[9], 10, 10, c3_output[9]);
         
         // 10
@@ -426,8 +426,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[10];
         }
 
-        c3_output[10] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[10], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[10] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[10], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[10], 10, 10, c3_output[10]);
         
         // 11
@@ -443,8 +443,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[11];
         }
 
-        c3_output[11] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[11], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[11] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[11], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[11], 10, 10, c3_output[11]);
         
         // 12
@@ -460,8 +460,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[12];
         }
 
-        c3_output[12] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[12], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[12] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[12], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[12], 10, 10, c3_output[12]);
         
         // 13
@@ -477,8 +477,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[13];
         }
 
-        c3_output[13] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[13], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[13] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[13], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[13], 10, 10, c3_output[13]);
         
         // 14
@@ -494,8 +494,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[14];
         }
 
-        c3_output[14] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[14], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[14] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[14], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[14], 10, 10, c3_output[14]);
         
         // 15
@@ -515,8 +515,8 @@ int main(int argc, char** argv) {
             c3_intermediate[0][j] += c3_bias[15];
         }
 
-        c3_output[15] = (float_t*) malloc(10*10*sizeof(float_t));
-        memcpy(c3_output[15], c3_intermediate[0], 10*10*sizeof(float_t));
+        c3_output[15] = (fp_t*) malloc(10*10*sizeof(fp_t));
+        memcpy(c3_output[15], c3_intermediate[0], 10*10*sizeof(fp_t));
         tanh_naive(c3_output[15], 10, 10, c3_output[15]);
 
         // free intermediate C3 outputs
@@ -529,10 +529,10 @@ int main(int argc, char** argv) {
         // make pgm C3
         #ifdef DEBUG
         if(i == INDEX) {
-            float* c3_file_content = (float_t*) malloc(10*10*16*sizeof(float_t));
+            float* c3_file_content = (fp_t*) malloc(10*10*16*sizeof(fp_t));
 
             for(j = 0; j < 16; j++) {
-                memcpy(&c3_file_content[j*10*10], c3_output[j], 10*10*sizeof(float_t));
+                memcpy(&c3_file_content[j*10*10], c3_output[j], 10*10*sizeof(fp_t));
             }
 
             write_pgm(c3_file_content, 16*10, 10, "c3_output.pgm");
@@ -550,11 +550,11 @@ int main(int argc, char** argv) {
         free(s2_output);
 
         // S4 input 10x10x16 -> output 5x5x16
-        float_t** s4_output;
-        s4_output = (float_t**) malloc(16*sizeof(float_t*));
+        fp_t** s4_output;
+        s4_output = (fp_t**) malloc(16*sizeof(fp_t*));
 
         for(j = 0; j < 16; j++) {
-            s4_output[j] = (float_t*) malloc(5*5*sizeof(float_t));
+            s4_output[j] = (fp_t*) malloc(5*5*sizeof(fp_t));
             max_pooling2d_naive(c3_output[j], 10, 10, s4_output[j], 2);
             tanh_naive(s4_output[j], 5, 5, s4_output[j]);
         }
@@ -563,10 +563,10 @@ int main(int argc, char** argv) {
         #ifdef DEBUG
         if(i == INDEX) {
             
-            float* s4_file_content = (float_t*) malloc(5*5*16*sizeof(float_t));
+            float* s4_file_content = (fp_t*) malloc(5*5*16*sizeof(fp_t));
 
             for(j = 0; j < 16; j++) {
-                memcpy(&s4_file_content[j*5*5], s4_output[j], 5*5*sizeof(float_t));
+                memcpy(&s4_file_content[j*5*5], s4_output[j], 5*5*sizeof(fp_t));
             }
 
             write_pgm(s4_file_content, 16*5, 5, "s4_output.pgm");
@@ -583,13 +583,13 @@ int main(int argc, char** argv) {
         free(c3_output);
 
         // C5 input 5x5x16 -> output 1x1x120
-        float_t* c5_output;
-        c5_output = (float_t*) malloc(120*sizeof(float_t));
+        fp_t* c5_output;
+        c5_output = (fp_t*) malloc(120*sizeof(fp_t));
 
-        float_t** c5_kernels = kernels[2];
-        float_t* c5_bias = biasses[2];
+        fp_t** c5_kernels = kernels[2];
+        fp_t* c5_bias = biasses[2];
 
-        float_t c5_intermediate;
+        fp_t c5_intermediate;
     
         for(j = 0; j < 120; j++) {
             c5_output[j] = 0.0;
@@ -622,11 +622,11 @@ int main(int argc, char** argv) {
         free(s4_output);
 
         // F6 input 1x1x120 -> output 1x10x1
-        float_t* f6_output;
-        f6_output = (float_t*) malloc(10*sizeof(float_t));
+        fp_t* f6_output;
+        f6_output = (fp_t*) malloc(10*sizeof(fp_t));
 
-        float_t* f6_kernel = kernels[3][0];
-        float_t* f6_bias = biasses[3];
+        fp_t* f6_kernel = kernels[3][0];
+        fp_t* f6_bias = biasses[3];
         
         fully_connected_naive(c5_output, 120, f6_output, 10, f6_kernel, f6_bias);
         tanh_naive(f6_output, 10, 1, f6_output);
@@ -696,7 +696,7 @@ int main(int argc, char** argv) {
     }
 
     // calculate and print results
-    float_t error_rate = 1.0-((float_t) correct_predictions/((float_t) NUM));
+    fp_t error_rate = 1.0-((fp_t) correct_predictions/((fp_t) NUM));
 
     printf("error rate: %f (%d/%d)\n", error_rate, correct_predictions, num_t10k_images);
 

@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
 
     unsigned int i, j, k;
 
-    float_t** input;
+    fp_t** input;
 
     uint16_t height;
     uint16_t width;
@@ -38,9 +38,9 @@ int main(int argc, char** argv) {
 
     // make pgm of original image
     #ifdef DEBUG
-    float* input_file_content = (float_t*) malloc(227*227*3*sizeof(float_t));
+    float* input_file_content = (fp_t*) malloc(227*227*3*sizeof(fp_t));
     for(j = 0; j < 3; j++) {
-        memcpy(&input_file_content[j*227*227], input[j], 227*227*sizeof(float_t));
+        memcpy(&input_file_content[j*227*227], input[j], 227*227*sizeof(fp_t));
     }
     
     write_pgm(input_file_content, 3*227, 227, "input.pgm");

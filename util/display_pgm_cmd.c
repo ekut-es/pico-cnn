@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
         return 1;
     }
  
-    float_t* image; 
+    fp_t* image; 
     uint16_t height;
     uint16_t width;
 

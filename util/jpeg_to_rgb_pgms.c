@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    float_t** jpeg_image;
+    fp_t** jpeg_image;
 
     uint16_t height;
     uint16_t width;

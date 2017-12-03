@@ -22,11 +22,11 @@
  *
  * @return error (0 = success, 1 = error)
  */
-int write_pgm(const float_t* image, const uint16_t height, const uint16_t width, const char* pgm_path) {
+int write_pgm(const fp_t* image, const uint16_t height, const uint16_t width, const char* pgm_path) {
 
     // determine max gray value
-    float_t max_gray_value = -1000;
-    float_t min_gray_value = 1000;
+    fp_t max_gray_value = -1000;
+    fp_t min_gray_value = 1000;
     int row, column;
 
     for(row = 0; row < height; row++) {
@@ -40,7 +40,7 @@ int write_pgm(const float_t* image, const uint16_t height, const uint16_t width,
         }
     }
 
-    float_t gray_value_range = fabsf(min_gray_value - max_gray_value);
+    fp_t gray_value_range = fabsf(min_gray_value - max_gray_value);
 
     FILE* pgm_file; 
     pgm_file = fopen(pgm_path, "w+");

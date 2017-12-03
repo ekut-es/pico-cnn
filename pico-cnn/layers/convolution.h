@@ -25,12 +25,12 @@
  * @param kernel_size
  * @param bias
  */
-void convolution2d_naive(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image, const float_t* kernel, const uint16_t kernel_size, const float_t bias) {
+void convolution2d_naive(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const uint16_t kernel_size, const fp_t bias) {
     uint16_t image_row, image_column;
     uint16_t kernel_row, kernel_column;
     uint8_t padding = kernel_size/2;
 
-    float_t pixel;
+    fp_t pixel;
     
     for(image_row = padding; image_row < height-padding; image_row++) {
         for(image_column = padding; image_column < width-padding; image_column++) {
@@ -57,7 +57,7 @@ void convolution2d_naive(const float_t* original_image, const uint16_t height, c
  * @param height
  * @param width
  */
-void add_image2d_naive(float_t* image_a, const float_t* image_b, const uint16_t height, const uint16_t width) {
+void add_image2d_naive(fp_t* image_a, const fp_t* image_b, const uint16_t height, const uint16_t width) {
     uint16_t row, column;
 
     for(row = 0; row < height; row++) {
@@ -82,12 +82,12 @@ void add_image2d_naive(float_t* image_a, const float_t* image_b, const uint16_t 
  * @param kernel_size
  * @param bias
  */
-void convolution2d_cpu(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image, const float_t* kernel, const uint16_t kernel_size, const float_t bias) {
+void convolution2d_cpu(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const uint16_t kernel_size, const fp_t bias) {
     uint16_t image_row, image_column;
     uint16_t kernel_row, kernel_column;
     uint8_t padding = kernel_size/2;
 
-    float_t pixel;
+    fp_t pixel;
     
     for(image_row = padding; image_row < height-padding; image_row++) {
         for(image_column = padding; image_column < width-padding; image_column++) {
@@ -114,7 +114,7 @@ void convolution2d_cpu(const float_t* original_image, const uint16_t height, con
  * @param height
  * @param width
  */
-void add_image2d_cpu(float_t* image_a, const float_t* image_b, const uint16_t height, const uint16_t width) {
+void add_image2d_cpu(fp_t* image_a, const fp_t* image_b, const uint16_t height, const uint16_t width) {
     uint16_t row, column;
 
     for(row = 0; row < height; row++) {

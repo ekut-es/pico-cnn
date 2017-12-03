@@ -30,7 +30,7 @@
  *
  * @return error (0 = success, 1 = error)
  */
-int read_jpeg(float_t*** image, const char* jpeg_path, const float_t lower_bound, const float_t upper_bound, uint16_t *height, uint16_t *width) {
+int read_jpeg(fp_t*** image, const char* jpeg_path, const fp_t lower_bound, const fp_t upper_bound, uint16_t *height, uint16_t *width) {
 
   	FILE * jpeg_file;
 
@@ -38,7 +38,7 @@ int read_jpeg(float_t*** image, const char* jpeg_path, const float_t lower_bound
 
     if(jpeg_file != 0) {
 		uint8_t r,g,b;
-        float_t range = fabs(lower_bound - upper_bound);
+        fp_t range = fabs(lower_bound - upper_bound);
 
 		struct jpeg_decompress_struct cinfo;
 		struct jpeg_error_mgr jerr;
@@ -56,13 +56,13 @@ int read_jpeg(float_t*** image, const char* jpeg_path, const float_t lower_bound
   		*width = cinfo.output_width;
   		*height = cinfo.output_height;
 
-		(*image) = (float_t**) malloc(3*sizeof(float_t*));
+		(*image) = (fp_t**) malloc(3*sizeof(fp_t*));
 		// red
-		(*image)[2] = (float_t*) malloc((*height)*(*width)*sizeof(float_t));
+		(*image)[2] = (fp_t*) malloc((*height)*(*width)*sizeof(fp_t));
 		// green
-		(*image)[1] = (float_t*) malloc((*height)*(*width)*sizeof(float_t));
+		(*image)[1] = (fp_t*) malloc((*height)*(*width)*sizeof(fp_t));
 		// blue
-		(*image)[0] = (float_t*) malloc((*height)*(*width)*sizeof(float_t));
+		(*image)[0] = (fp_t*) malloc((*height)*(*width)*sizeof(fp_t));
 
  		row_stride = (*width) * cinfo.output_components;
   		jpeg_buffer = (*cinfo.mem->alloc_sarray) ((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);

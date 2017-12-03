@@ -21,7 +21,7 @@
  * @param width
  * @param new_image (height x width)
  */
-void tanh_naive(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image) {
+void tanh_naive(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
 
     uint16_t i;
 
@@ -39,7 +39,7 @@ void tanh_naive(const float_t* original_image, const uint16_t height, const uint
  * @param width
  * @param new_image (height x width)
  */
-void relu_naive(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image) {
+void relu_naive(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
 
     uint16_t i;
 
@@ -48,11 +48,11 @@ void relu_naive(const float_t* original_image, const uint16_t height, const uint
     }
 }
 
-void softmax_naive(const float_t* original_image, const uint16_t height, const uint16_t width, float_t* new_image) {
+void softmax_naive(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
 
     uint16_t i;
 
-    float_t denominator = 0.0;
+    fp_t denominator = 0.0;
 
     for(i = 0; i < height*width; i++) {
         denominator += expf(original_image[i]);

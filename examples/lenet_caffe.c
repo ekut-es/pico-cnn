@@ -24,11 +24,11 @@ void usage() {
  * @param labels (1 x length)
  * @param length
  */
-void sort_prediction(float_t* prediction, uint8_t* labels, const uint16_t length) {
+void sort_prediction(fp_t* prediction, uint8_t* labels, const uint16_t length) {
     // simple bubble sort
     uint16_t i,j;
 
-    float_t temp_prediction;
+    fp_t temp_prediction;
     uint8_t temp_label;
 
     for(i = 0; i < length-1; i++) {
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     strcat(t10k_images_path, "/t10k-images.idx3-ubyte");
     //strcat(t10k_images_path, "/train-images.idx3-ubyte");
 
-    float_t** t10k_images;
+    fp_t** t10k_images;
     int num_t10k_images;
     
     printf("reading images from '%s'\n", t10k_images_path);
@@ -111,8 +111,8 @@ int main(int argc, char** argv) {
     #endif
 
     // read kernels and biasses
-    float_t*** kernels;
-    float_t** biasses;
+    fp_t*** kernels;
+    fp_t** biasses;
 
     printf("reading weights from '%s'\n", argv[2]);
 
@@ -138,23 +138,23 @@ int main(int argc, char** argv) {
 
     for(i = 0; i < NUM; i++) {
         // C1 input 28x28x1 -> output 24x24x20
-        float_t** c1_output;
-        c1_output = (float_t**) malloc(20*sizeof(float_t*));
+        fp_t** c1_output;
+        c1_output = (fp_t**) malloc(20*sizeof(fp_t*));
         
-        float_t** c1_kernels = kernels[0];
-        float_t* c1_bias = biasses[0];
+        fp_t** c1_kernels = kernels[0];
+        fp_t* c1_bias = biasses[0];
 
         for(j = 0; j < 20; j++) {
-            c1_output[j] = (float_t*) malloc(24*24*sizeof(float_t));
+            c1_output[j] = (fp_t*) malloc(24*24*sizeof(fp_t));
             convolution2d_naive(t10k_images[i], 28, 28, c1_output[j], c1_kernels[j], 5, c1_bias[j]);
         }
 
         // make pgm C1
         #ifdef DEBUG
         if(i == INDEX) {
-            float* c1_file_content = (float_t*) malloc(24*24*20*sizeof(float_t));
+            float* c1_file_content = (fp_t*) malloc(24*24*20*sizeof(fp_t));
             for(j = 0; j < 20; j++) {
-                memcpy(&c1_file_content[j*24*24], c1_output[j], 24*24*sizeof(float_t));
+                memcpy(&c1_file_content[j*24*24], c1_output[j], 24*24*sizeof(fp_t));
             }
             
             write_pgm(c1_file_content, 20*24, 24, "c1_output.pgm");
@@ -164,20 +164,20 @@ int main(int argc, char** argv) {
         #endif
 
         // S2 input 24x24x20 -> output 12x12x20
-        float_t** s2_output;
-        s2_output = (float_t**) malloc(20*sizeof(float_t*));
+        fp_t** s2_output;
+        s2_output = (fp_t**) malloc(20*sizeof(fp_t*));
 
         for(j = 0; j < 20; j++) {
-            s2_output[j] = (float_t*) malloc(12*12*sizeof(float_t));
+            s2_output[j] = (fp_t*) malloc(12*12*sizeof(fp_t));
             max_pooling2d_naive(c1_output[j], 24, 24, s2_output[j], 2);
         }
 
         // make pgm S2
         #ifdef DEBUG
         if(i == INDEX) {
-            float* s2_file_content = (float_t*) malloc(12*12*20*sizeof(float_t));
+            float* s2_file_content = (fp_t*) malloc(12*12*20*sizeof(fp_t));
             for(j = 0; j < 20; j++) {
-                memcpy(&s2_file_content[j*12*12], s2_output[j], 12*12*sizeof(float_t));
+                memcpy(&s2_file_content[j*12*12], s2_output[j], 12*12*sizeof(fp_t));
             }
             write_pgm(s2_file_content, 20*12, 12, "s2_output.pgm");
             write_float(s2_file_content, 20*12, 12, "s2_output.float");
@@ -193,16 +193,16 @@ int main(int argc, char** argv) {
         free(c1_output);
 
         // C3 input 12x12x20 -> output 8x8x50
-        float_t** c3_output;
-        c3_output = (float_t**) malloc(50*sizeof(float_t*));
+        fp_t** c3_output;
+        c3_output = (fp_t**) malloc(50*sizeof(fp_t*));
 
-        float_t* c3_intermediate = malloc(8*8*sizeof(float_t*));
+        fp_t* c3_intermediate = malloc(8*8*sizeof(fp_t*));
         
-        float_t** c3_kernels = kernels[1];
-        float_t* c3_bias = biasses[1];
+        fp_t** c3_kernels = kernels[1];
+        fp_t* c3_bias = biasses[1];
 
         for(j = 0; j < 50; j++) {
-            c3_output[j] = (float_t*) malloc(8*8*sizeof(float_t));
+            c3_output[j] = (fp_t*) malloc(8*8*sizeof(fp_t));
             convolution2d_naive(s2_output[0], 12, 12, c3_output[j], c3_kernels[j*20], 5, c3_bias[j]);
 
             for(k = 1; k < 20; k++) {
@@ -214,9 +214,9 @@ int main(int argc, char** argv) {
         // make pgm C3
         #ifdef DEBUG
         if(i == INDEX) {
-            float* c3_file_content = (float_t*) malloc(8*8*50*sizeof(float_t));
+            float* c3_file_content = (fp_t*) malloc(8*8*50*sizeof(fp_t));
             for(j = 0; j < 50; j++) {
-                memcpy(&c3_file_content[j*8*8], c3_output[j], 8*8*sizeof(float_t));
+                memcpy(&c3_file_content[j*8*8], c3_output[j], 8*8*sizeof(fp_t));
             }
             write_pgm(c3_file_content, 50*8, 8, "c3_output.pgm");
             write_float(c3_file_content, 50*8, 8, "c3_output.float");
@@ -233,20 +233,20 @@ int main(int argc, char** argv) {
         free(s2_output);
 
         // S4 input 8x8x50 -> output 8x8x50
-        float_t** s4_output;
-        s4_output = (float_t**) malloc(50*sizeof(float_t*));
+        fp_t** s4_output;
+        s4_output = (fp_t**) malloc(50*sizeof(fp_t*));
 
         for(j = 0; j < 50; j++) {
-            s4_output[j] = (float_t*) malloc(4*4*sizeof(float_t));
+            s4_output[j] = (fp_t*) malloc(4*4*sizeof(fp_t));
             max_pooling2d_naive(c3_output[j], 8, 8, s4_output[j], 2);
         }
 
         // make pgm S4
         #ifdef DEBUG
         if(i == INDEX) {
-            float* s4_file_content = (float_t*) malloc(4*4*50*sizeof(float_t));
+            float* s4_file_content = (fp_t*) malloc(4*4*50*sizeof(fp_t));
             for(j = 0; j < 50; j++) {
-                memcpy(&s4_file_content[j*4*4], s4_output[j], 4*4*sizeof(float_t));
+                memcpy(&s4_file_content[j*4*4], s4_output[j], 4*4*sizeof(fp_t));
             }
             write_pgm(s4_file_content, 50*4, 4, "s4_output.pgm");
             write_float(s4_file_content, 50*4, 4, "s4_output.float");
@@ -264,16 +264,16 @@ int main(int argc, char** argv) {
         // F5 input 50x4x4 = 1x800 -> output 1x500
         
         // merge S4 output
-        float_t* s4_output_merged = (float_t*) malloc(4*4*50*sizeof(float_t));
+        fp_t* s4_output_merged = (fp_t*) malloc(4*4*50*sizeof(fp_t));
         for(j = 0; j < 50; j++) {
-            memcpy(&s4_output_merged[j*4*4], s4_output[j], 4*4*sizeof(float_t));
+            memcpy(&s4_output_merged[j*4*4], s4_output[j], 4*4*sizeof(fp_t));
         }
 
-        float_t* f5_output;
-        f5_output = (float_t*) malloc(500*sizeof(float_t));
+        fp_t* f5_output;
+        f5_output = (fp_t*) malloc(500*sizeof(fp_t));
 
-        float_t* f5_kernel = kernels[2][0];
-        float_t* f5_bias = biasses[2];
+        fp_t* f5_kernel = kernels[2][0];
+        fp_t* f5_bias = biasses[2];
         
         fully_connected_naive(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias);
 
@@ -305,11 +305,11 @@ int main(int argc, char** argv) {
         #endif
 
         // F6 input 1x500 -> 1x10
-        float_t* f6_output;
-        f6_output = (float_t*) malloc(10*sizeof(float_t));
+        fp_t* f6_output;
+        f6_output = (fp_t*) malloc(10*sizeof(fp_t));
 
-        float_t* f6_kernel = kernels[3][0];
-        float_t* f6_bias = biasses[3];
+        fp_t* f6_kernel = kernels[3][0];
+        fp_t* f6_bias = biasses[3];
         
         fully_connected_naive(f5_output, 500, f6_output, 10, f6_kernel, f6_bias);
 
@@ -383,7 +383,7 @@ int main(int argc, char** argv) {
     }
 
     // calculate and print results
-    float_t error_rate = 1.0-((float_t) correct_predictions/((float_t) NUM));
+    fp_t error_rate = 1.0-((fp_t) correct_predictions/((fp_t) NUM));
 
     printf("error rate: %f (%d/%d)\n", error_rate, correct_predictions, num_t10k_images);
 

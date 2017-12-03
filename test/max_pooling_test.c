@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     }
 
     uint16_t height, width;
-    float_t* input_image;
+    fp_t* input_image;
 
     if(read_pgm(&input_image, argv[1], 0, 0.0, 1.0, &height, &width) != 0) {
         fprintf(stderr, "could not read pgm image '%s'!\n", argv[1]);
@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     }
 
 
-    float_t* output_image = (float_t*) malloc((height/2) * (width/2) * sizeof(float_t));
+    fp_t* output_image = (fp_t*) malloc((height/2) * (width/2) * sizeof(fp_t));
 
     max_pooling2d_naive(input_image, height, width, output_image, 2);
 

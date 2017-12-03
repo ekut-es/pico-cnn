@@ -1,5 +1,5 @@
 /** 
- * @brief test for max-pooling
+ * @brief benchmark for different implementations of 2D convolution
  *
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
@@ -16,7 +16,7 @@
 
 /*
 // kernel 3x3
-float_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
+fp_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
     0.1933171948, 0.0535442412, 0.1878331911, 
     0.0004219844, 0.2196035127, 0.0857518851, 
     0.0956728014, 0.1089575281, 0.0548976613
@@ -25,7 +25,7 @@ float_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
 
 /*
 // kernel 5x5
-float_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
+fp_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
     0.04084506, 0.04182326, 0.03507044, 0.04544337, 0.03872346, 
     0.03757646, 0.04150467, 0.04431239, 0.03268669, 0.04032026,
     0.04189709, 0.04434769, 0.03836922, 0.03769494, 0.04838630, 
@@ -35,7 +35,7 @@ float_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
 */
 
 // kernel 11x11
-float_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
+fp_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
     0.0133775946, 0.0081662832, 0.0037958851, 0.0025589938, 0.0111077079, 0.0094678558, 0.0084671443, 0.0048633728, 0.0105224367, 0.0022854223, 0.0067605625, 
     0.0122735694, 0.0077536908, 0.0092950599, 0.0034780756, 0.0042276106, 0.0047869384, 0.0122461177, 0.0020111278, 0.0136192431, 0.0074915024, 0.0014510841, 
     0.0048870096, 0.0107253250, 0.0028913983, 0.0060770306, 0.0077741476, 0.0108696328, 0.0137626939, 0.0082248597, 0.0096482358, 0.0095305894, 0.0032545504, 
@@ -90,18 +90,18 @@ int main(int argc, char** argv) {
     }
 
     uint16_t height, width;
-    float_t* input_image;
+    fp_t* input_image;
   
 
     if(jpg == 0) {
-        float_t* input_image_pgm;
+        fp_t* input_image_pgm;
         if(read_pgm(&input_image_pgm, argv[2], 0, 0.0, 1.0, &height, &width) != 0) {
             fprintf(stderr, "could not read pgm image '%s'!\n", argv[1]);
             return 1;
         }
         input_image = input_image_pgm;
     } else if(jpg == 1) {
-        float_t** input_image_jpg;
+        fp_t** input_image_jpg;
         if(read_jpeg(&input_image_jpg, argv[2], 0.0, 1.0, &height, &width) != 0) {
             fprintf(stderr, "could not read jpeg image '%s'!\n", argv[1]);
             return 1;
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
     }
 
 
-    float_t* output_image = (float_t*) malloc((height-2*KERNEL_CROP)*(width-2*KERNEL_CROP)*sizeof(float_t));
+    fp_t* output_image = (fp_t*) malloc((height-2*KERNEL_CROP)*(width-2*KERNEL_CROP)*sizeof(fp_t));
 
     if(mode == NAIVE) {
         convolution2d_naive(input_image, height, width, output_image, kernel, KERNEL_SIZE, 0.5);

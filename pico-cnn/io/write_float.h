@@ -21,7 +21,7 @@
  *
  * @return success = 0
  */
-int write_float(const float_t* image, const uint16_t height, const uint16_t width, const char* float_path) {
+int write_float(const fp_t* image, const uint16_t height, const uint16_t width, const char* float_path) {
 
     int row, column;
 

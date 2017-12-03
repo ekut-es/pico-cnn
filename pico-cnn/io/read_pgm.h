@@ -26,7 +26,7 @@
  *
  * @return error (0 = success, 1 = error)
  */
-int read_pgm(float_t** image, const char* pgm_path, const uint8_t padding, const float_t lower_bound, const float_t upper_bound, uint16_t* height, uint16_t* width) {
+int read_pgm(fp_t** image, const char* pgm_path, const uint8_t padding, const fp_t lower_bound, const fp_t upper_bound, uint16_t* height, uint16_t* width) {
 
     FILE *pgm_file;
     pgm_file = fopen(pgm_path, "r");
@@ -44,7 +44,7 @@ int read_pgm(float_t** image, const char* pgm_path, const uint8_t padding, const
 
         uint8_t max_gray_value;
 
-        float_t range = fabs(lower_bound - upper_bound);
+        fp_t range = fabs(lower_bound - upper_bound);
 
         // skip comment
         fgets(buffer, 100, pgm_file);
@@ -53,7 +53,7 @@ int read_pgm(float_t** image, const char* pgm_path, const uint8_t padding, const
         // read max gray value 
         fscanf(pgm_file, "%hhu\n", &max_gray_value);
 
-        (*image) = (float_t*) malloc(((*height)+2*padding) * ((*width)+2*padding) * sizeof(float_t));
+        (*image) = (fp_t*) malloc(((*height)+2*padding) * ((*width)+2*padding) * sizeof(fp_t));
 
         uint16_t row, column;
         uint8_t pixel;
