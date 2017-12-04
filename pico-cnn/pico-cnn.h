@@ -25,6 +25,10 @@
 #include "io/read_jpeg.h"
 #endif
 
+#ifdef IMAGENET
+#include "io/read_means.h"
+#endif
+
 #ifdef DEBUG
 #include "io/write_pgm.h"
 #include "io/write_float.h"
