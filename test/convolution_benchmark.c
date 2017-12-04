@@ -5,13 +5,13 @@
  */
 
 #define JPEG
-#define DEBUG
+//#define DEBUG
 
 #include "pico-cnn/pico-cnn.h"
 #include <stdio.h>
 #include <omp.h>
 
-#define NUM_CONVOLUTIONS 20
+#define NUM_CONVOLUTIONS 64
 
 #define KERNEL_SIZE 3
 #define KERNEL_CROP (KERNEL_SIZE/2)
