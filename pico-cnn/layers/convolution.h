@@ -9,7 +9,10 @@
 
 #include "../parameters.h"
 #include <stdint.h>
+
+#ifdef __aarch64__
 #include "arm_neon.h"
+#endif
 
 /**
  * @brief performs a 2D convolution on original_image with kernel and stores the
@@ -68,6 +71,7 @@ void add_image2d_naive(fp_t* image_a, const fp_t* image_b, const uint16_t height
     }
 }
 
+#ifdef __aarch64__
 /**
  * @brief performs an CPU optimized 2D convolution on original_image with a 
  * kernel 3x3 and stores the result to new_image
@@ -209,4 +213,6 @@ void add_image2d_cpu(fp_t* image_a, const fp_t* image_b, const uint16_t height, 
         }
     }
 }
+#endif
+
 #endif // CONVOLUTION_H

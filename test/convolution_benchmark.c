@@ -136,7 +136,11 @@ int main(int argc, char** argv) {
         for(i = 0; i < NUM_CONVOLUTIONS; i++) {
             //printf("thread num %d\n", omp_get_thread_num());
             #if KERNEL_SIZE == 3
+            #ifdef __aarch64__
             convolution2d_cpu_3x3(input_image, height, width, output_images[i], kernels[i], 0.5);
+            #else
+            convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 0.5);
+            #endif
             #endif
         }
     }
