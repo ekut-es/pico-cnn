@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
 
     if(mode == NAIVE) {
         for(i = 0; i < NUM_CONVOLUTIONS; i++) {
-            convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 0.5);
+            convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 1, 0.5);
         }
     } else if(mode == CPU) {
         #pragma omp parallel for
@@ -137,9 +137,9 @@ int main(int argc, char** argv) {
             //printf("thread num %d\n", omp_get_thread_num());
             #if KERNEL_SIZE == 3
             #ifdef __aarch64__
-            convolution2d_cpu_3x3(input_image, height, width, output_images[i], kernels[i], 0.5);
+            convolution2d_cpu_3x3_s1(input_image, height, width, output_images[i], kernels[i], 0.5);
             #else
-            convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 0.5);
+            convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 1, 0.5);
             #endif
             #endif
         }

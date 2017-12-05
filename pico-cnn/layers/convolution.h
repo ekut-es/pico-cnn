@@ -9,6 +9,7 @@
 
 #include "../parameters.h"
 #include <stdint.h>
+#include <stdio.h>
 
 #ifdef __aarch64__
 #include "arm_neon.h"
@@ -29,15 +30,26 @@
  * @param kernel_size
  * @param bias
  */
-void convolution2d_naive(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const uint16_t kernel_size, const fp_t bias) {
+void convolution2d_naive(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const uint16_t kernel_size, const uint16_t stride, const fp_t bias) {
     uint16_t image_row, image_column;
     uint16_t kernel_row, kernel_column;
     uint8_t padding = kernel_size/2;
 
+    uint16_t new_image_row, new_image_column, new_image_width;
+
     fp_t pixel;
-    
-    for(image_row = padding; image_row < height-padding; image_row++) {
-        for(image_column = padding; image_column < width-padding; image_column++) {
+
+    new_image_row = 0;
+    new_image_column = 0;
+
+    if(stride == 1) {
+        new_image_width = ((width-2*padding)/stride);
+    } else {
+        new_image_width = ((width-2*padding)/stride)+1;
+    }
+
+    for(image_row = padding; image_row < height-padding; image_row+=stride) {
+        for(image_column = padding; image_column < width-padding; image_column+=stride) {
             pixel = 0.0;
 
             for(kernel_row = 0; kernel_row < kernel_size; kernel_row++) {
@@ -48,8 +60,12 @@ void convolution2d_naive(const fp_t* original_image, const uint16_t height, cons
 
             pixel += bias;
 
-            new_image[(image_row-padding)*(width-2*padding)+(image_column-padding)] = pixel;
+            new_image[new_image_row*new_image_width+new_image_column] = pixel;
+        
+            new_image_column++;
         }
+        new_image_row++;
+        new_image_column = 0;
     }
 }
 
@@ -86,7 +102,7 @@ void add_image2d_naive(fp_t* image_a, const fp_t* image_b, const uint16_t height
  * @param kernel (3x3)
  * @param bias
  */
-void convolution2d_cpu_3x3(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const fp_t bias) {
+void convolution2d_cpu_3x3_s1(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const fp_t bias) {
 
     uint16_t image_row, image_column;
     uint8_t padding = 1;
