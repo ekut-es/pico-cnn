@@ -35,12 +35,12 @@ int read_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** bia
 
         char buffer[100];
 
-        uint16_t num_layers;
+        uint32_t num_layers;
 
         // read magic number
         fgets(buffer, 100, weights);
 
-        if(strcmp(buffer,"EF\n") != 0) {
+        if(strcmp(buffer,"FE\n") != 0) {
             fclose(weights);
             return 1;
         }
@@ -49,13 +49,13 @@ int read_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** bia
         fgets(buffer, 100, weights);
 
         // read number of layers
-        fscanf(weights, "%hu\n", &num_layers);
+        fscanf(weights, "%u\n", &num_layers);
 
         // allocate memory for layers
         *kernels = (fp_t***) malloc(num_layers * sizeof(fp_t**));
         *biasses = (fp_t**) malloc(num_layers * sizeof(fp_t*));
 
-        uint16_t layer;
+        uint32_t layer;
 
         // loop over layers
         for(layer = 0; layer < num_layers; layer++) {
@@ -63,18 +63,18 @@ int read_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** bia
             // read layer name
             fgets(buffer, 100, weights);
 
-            uint16_t kernel_height;
-            uint16_t kernel_width;
-            unsigned int num_kernels;
+            uint32_t kernel_height;
+            uint32_t kernel_width;
+            uint32_t num_kernels;
 
             // read kernel dimensions
-            fscanf(weights, "%hu\n", &kernel_height);
-            fscanf(weights, "%hu\n", &kernel_width);
+            fscanf(weights, "%u\n", &kernel_height);
+            fscanf(weights, "%u\n", &kernel_width);
 
             // read number of kernels
             fscanf(weights, "%u\n", &num_kernels);
 
-            uint16_t kernel;
+            uint32_t kernel;
 
             // allocate memory for kernels
             (*kernels)[layer] = (fp_t**) malloc(num_kernels * sizeof(fp_t*));
@@ -84,7 +84,7 @@ int read_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** bia
 
                 (*kernels)[layer][kernel] = (fp_t*) malloc(kernel_height*kernel_width * sizeof(fp_t));
             
-                unsigned int kernel_pos;
+                uint32_t kernel_pos;
                 fp_t kernel_entry;
 
                 for(kernel_pos = 0; kernel_pos < kernel_height*kernel_width; kernel_pos++) {
@@ -94,14 +94,14 @@ int read_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** bia
             }
 
             // read number of biasses
-            uint16_t num_biasses;
+            uint32_t num_biasses;
 
-            fscanf(weights, "%hu\n", &num_biasses);
+            fscanf(weights, "%u\n", &num_biasses);
             
             // allocate memory for biasses
             (*biasses)[layer] = (fp_t*) malloc(num_biasses * sizeof(fp_t));
 
-            uint16_t bias;
+            uint32_t bias;
 
             for(bias = 0; bias < num_biasses; bias++) {
                 fp_t bias_entry;
