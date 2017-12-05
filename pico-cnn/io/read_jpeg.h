@@ -82,9 +82,15 @@ int read_jpeg(fp_t*** image, const char* jpeg_path, const fp_t lower_bound, cons
 					g = r;
 					b = r;
 			  	}
+				/*
 				(*image)[2][pos] = (((r / 255.0f) * range) + lower_bound);
 				(*image)[1][pos] = (((g / 255.0f) * range) + lower_bound);
 				(*image)[0][pos] = (((b / 255.0f) * range) + lower_bound);
+				*/
+				(*image)[2][pos] = (((r / 255.0f) * range) + lower_bound);
+				(*image)[1][pos] = (((g / 255.0f) * range) + lower_bound);
+				(*image)[0][pos] = (((b / 255.0f) * range) + lower_bound);
+
 				pos++;
 			}
 		}
