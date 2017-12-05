@@ -383,10 +383,12 @@ int main(int argc, char** argv) {
 
     free(kernels[2][0]);
     free(kernels[3][0]);
+    free(kernels);
 
     for(i = 0; i < 4; i++) {
         free(biasses[i]);
     }
+    free(biasses);
 
     // calculate and print results
     fp_t error_rate = 1.0-((fp_t) correct_predictions/((fp_t) NUM));
