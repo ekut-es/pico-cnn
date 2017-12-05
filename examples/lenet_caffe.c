@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
     printf("reading weights from '%s'\n", weights_path);
 
     if(read_weights(weights_path, &kernels, &biasses) != 0) {
-        fprintf(stderr, "could not read weights from '%s'\n", t10k_images_path);
+        fprintf(stderr, "could not read weights from '%s'\n", weights_path);
         return 1;
     }
 
