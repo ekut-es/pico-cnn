@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
 
     // make pgm of input image
     #ifdef DEBUG
-    float* conv1_file_content = (fp_t*) malloc(55*55*96*sizeof(fp_t));
+    fp_t* conv1_file_content = (fp_t*) malloc(55*55*96*sizeof(fp_t));
     for(i = 0; i < 96; i++) {
         memcpy(&conv1_file_content[i*55*55], conv1_output[i], 55*55*sizeof(fp_t));
     }
@@ -168,12 +168,29 @@ int main(int argc, char** argv) {
     free(conv1_file_content);
     #endif
 
-
     // free input
     free(input[0]);
     free(input[1]);
     free(input[2]);
     free(input);
+
+    // relu1
+    for(i = 0; i < 96; i++) {
+        relu_naive(conv1_output[i], 55, 55, conv1_output[i]);
+    }
+
+    // make pgm of input image
+    #ifdef DEBUG
+    fp_t* relu1_file_content = (fp_t*) malloc(55*55*96*sizeof(fp_t));
+    for(i = 0; i < 96; i++) {
+        memcpy(&relu1_file_content[i*55*55], conv1_output[i], 55*55*sizeof(fp_t));
+    }
+    write_pgm(relu1_file_content, 96*55, 55, "relu1_output.pgm");
+    write_float(relu1_file_content, 96*55, 55, "relu1_output.float");
+    free(relu1_file_content);
+    #endif
+
+    // TODO lrn 
 
     // free conv1 output
     for(i = 0; i < 96; i++) {
