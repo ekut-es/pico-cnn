@@ -20,6 +20,7 @@
  * @param value input
  *
  * @return input with changed endianess
+ * TODO make it a macro
  */
 static uint32_t change_endianess(uint32_t value) {
     uint32_t result = 0;

@@ -7,7 +7,7 @@
 
 #define MNIST
 #define NUM 1000
-#define DEBUG
+//#define DEBUG
 #define INDEX 0
 
 #include "pico-cnn/pico-cnn.h"
@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
 
         for(j = 0; j < 20; j++) {
             c1_output[j] = (fp_t*) malloc(24*24*sizeof(fp_t));
-            convolution2d_naive(t10k_images[i], 28, 28, c1_output[j], c1_kernels[j], 5, 1, c1_bias[j]);
+            convolution2d_naive(t10k_images[i], 28, 28, c1_output[j], c1_kernels[j], 5, 1, 0, c1_bias[j]);
         }
 
         // make pgm C1
@@ -209,10 +209,10 @@ int main(int argc, char** argv) {
 
         for(j = 0; j < 50; j++) {
             c3_output[j] = (fp_t*) malloc(8*8*sizeof(fp_t));
-            convolution2d_naive(s2_output[0], 12, 12, c3_output[j], c3_kernels[j*20], 5, 1, c3_bias[j]);
+            convolution2d_naive(s2_output[0], 12, 12, c3_output[j], c3_kernels[j*20], 5, 1, 0, c3_bias[j]);
 
             for(k = 1; k < 20; k++) {
-                convolution2d_naive(s2_output[k], 12, 12, c3_intermediate, c3_kernels[j*20+k], 5, 1, 0.0);
+                convolution2d_naive(s2_output[k], 12, 12, c3_intermediate, c3_kernels[j*20+k], 5, 1, 0, 0.0);
                 add_image2d_naive(c3_output[j], c3_intermediate, 8, 8);
             }
         }
