@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
         relu_naive(conv1_output[i], 55, 55, conv1_output[i]);
     }
 
-    // make pgm of input image
+    // make pgm of relu1 output
     #ifdef DEBUG
     fp_t* relu1_file_content = (fp_t*) malloc(55*55*96*sizeof(fp_t));
     for(i = 0; i < 96; i++) {
@@ -191,12 +191,37 @@ int main(int argc, char** argv) {
     #endif
 
     // TODO lrn 
+    fp_t** norm1_output;
+    norm1_output = (fp_t**) malloc(96*sizeof(fp_t*));
+    
+    for(i = 0; i < 96; i++) {
+        norm1_output[i] = (fp_t*) malloc(55*55*sizeof(fp_t));
+    }
+
+    local_response_normalization_naive(conv1_output, 55, 55, 96, norm1_output, 0.0001, 0.75, 5);
+
+    // make pgm of norm1 output
+    #ifdef DEBUG
+    fp_t* norm1_file_content = (fp_t*) malloc(55*55*96*sizeof(fp_t));
+    for(i = 0; i < 96; i++) {
+        memcpy(&norm1_file_content[i*55*55], norm1_output[i], 55*55*sizeof(fp_t));
+    }
+    write_pgm(norm1_file_content, 96*55, 55, "norm1_output.pgm");
+    write_float(norm1_file_content, 96*55, 55, "norm1_output.float");
+    free(norm1_file_content);
+    #endif
 
     // free conv1 output
     for(i = 0; i < 96; i++) {
         free(conv1_output[i]);
     }
     free(conv1_output);
+
+    // free norm1 output
+    for(i = 0; i < 96; i++) {
+        free(norm1_output[i]);
+    }
+    free(norm1_output);
 
 
     for(i = 0; i < 288; i++) {

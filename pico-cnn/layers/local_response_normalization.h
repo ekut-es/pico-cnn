@@ -30,7 +30,7 @@
  * @param beta
  * @param n
  */
-void local_response_normalization_naive(const fp_t** original_image, const uint16_t height, const uint16_t width, const uint16_t depth, fp_t** new_image, const fp_t alpha, const fp_t beta, const uint16_t n) {
+void local_response_normalization_naive(fp_t** original_image, const uint16_t height, const uint16_t width, const uint16_t depth, fp_t** new_image, const fp_t alpha, const fp_t beta, const uint16_t n) {
     
     int32_t channel, row, column, i;
     int32_t from;
