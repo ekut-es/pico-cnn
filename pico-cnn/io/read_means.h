@@ -32,8 +32,6 @@ int read_means(const char* path_to_means_file, fp_t* means) {
 
         char buffer[100];
 
-        uint16_t num_layers;
-
         // read magic number
         fgets(buffer, 100, means_file);
 
