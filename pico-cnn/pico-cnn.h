@@ -13,6 +13,7 @@
 #include "layers/convolution.h"
 #include "layers/pooling.h"
 #include "layers/fully_connected.h"
+#include "layers/local_response_normalization.h"
 
 #include "io/read_weights.h"
 #include "io/read_pgm.h"
