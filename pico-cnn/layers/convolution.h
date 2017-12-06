@@ -19,53 +19,82 @@
  * @brief performs a 2D convolution on original_image with kernel and stores the
  * result to new_image
  *
- * stride = 1
- * padding = valid => imags shrinks by kernel_size/2
- *
  * @param original_image (height x width)
  * @param height
  * @param width
  * @param new_image (height-kernel_size/2 x width-kernel_size/2)
  * @param kernel (kernel_size x kernel_size)
  * @param kernel_size
+ * @param stride
+ * @param padding (0 means valid, > 0 zeros will be added to the edge)
  * @param bias
  */
-void convolution2d_naive(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const uint16_t kernel_size, const uint16_t stride, const fp_t bias) {
-    uint16_t image_row, image_column;
-    uint16_t kernel_row, kernel_column;
-    uint8_t padding = kernel_size/2;
+void convolution2d_naive(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const uint16_t kernel_size, const uint16_t stride, const uint16_t padding, const fp_t bias) {
+    int32_t image_row, image_column;
+    int32_t kernel_row, kernel_column;
+    int32_t crop = kernel_size/2;
 
-    uint16_t new_image_row, new_image_column, new_image_width;
+    int32_t new_image_row, new_image_column, new_image_width;
 
     fp_t pixel;
 
     new_image_row = 0;
     new_image_column = 0;
 
-    if(stride == 1) {
-        new_image_width = ((width-2*padding)/stride);
-    } else {
-        new_image_width = ((width-2*padding)/stride)+1;
+    // padding valid
+    if(padding == 0) {
+        if(stride == 1) {
+            new_image_width = ((width-2*crop)/stride);
+        } else {
+            new_image_width = ((width-2*crop)/stride)+1;
+        }
+
+        for(image_row = crop; image_row < height-crop; image_row+=stride) {
+            for(image_column = crop; image_column < width-crop; image_column+=stride) {
+                pixel = 0.0;
+
+                for(kernel_row = 0; kernel_row < kernel_size; kernel_row++) {
+                    for(kernel_column = 0; kernel_column < kernel_size; kernel_column++) {
+                        pixel += kernel[kernel_row*kernel_size+kernel_column] * original_image[(image_row-crop+kernel_row)*width+(image_column-crop+kernel_column)];
+                    }
+                }
+
+                pixel += bias;
+
+                new_image[new_image_row*new_image_width+new_image_column] = pixel;
+                new_image_column++;
+            }
+            new_image_row++;
+            new_image_column = 0;
+        }
     }
 
-    for(image_row = padding; image_row < height-padding; image_row+=stride) {
-        for(image_column = padding; image_column < width-padding; image_column+=stride) {
-            pixel = 0.0;
+    // padding same
+    else if(padding == kernel_size/2) {
+        new_image_width = width;
 
-            for(kernel_row = 0; kernel_row < kernel_size; kernel_row++) {
-                for(kernel_column = 0; kernel_column < kernel_size; kernel_column++) {
-                    pixel += kernel[kernel_row*kernel_size+kernel_column] * original_image[(image_row-padding+kernel_row)*width+(image_column-padding+kernel_column)];
-                }
+        for(image_row = 0; image_row < height; image_row+=stride) {
+            for(image_column = 0; image_column < width; image_column+=stride) {
+                pixel = 0.0;
+
+                for(kernel_row = -padding; kernel_row <= padding; kernel_row++) {
+                    for(kernel_column = -padding; kernel_column <= padding; kernel_column++) {
+                        if((image_row+kernel_row) < 0 || (image_row+kernel_row) > height-1 || (image_column+kernel_column) < 0 || (image_column+kernel_column) > width-1) {
+                            pixel += 0.0;
+                        } else {
+                            pixel += kernel[(kernel_row+padding)*kernel_size+(kernel_column+padding)] * original_image[(image_row+kernel_row)*width+(image_column+kernel_column)];
+                        }
+                    }
+                } 
+
+                pixel += bias;
+
+                new_image[new_image_row*new_image_width+new_image_column] = pixel;
+                new_image_column++;
             }
-
-            pixel += bias;
-
-            new_image[new_image_row*new_image_width+new_image_column] = pixel;
-        
-            new_image_column++;
+            new_image_row++;
+            new_image_column = 0;
         }
-        new_image_row++;
-        new_image_column = 0;
     }
 }
 
@@ -102,7 +131,7 @@ void add_image2d_naive(fp_t* image_a, const fp_t* image_b, const uint16_t height
  * @param kernel (3x3)
  * @param bias
  */
-void convolution2d_cpu_3x3_s1(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const fp_t bias) {
+void convolution2d_cpu_3x3_s1_valid(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const fp_t bias) {
 
     uint16_t image_row, image_column;
     uint8_t padding = 1;

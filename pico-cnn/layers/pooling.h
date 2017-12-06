@@ -9,6 +9,7 @@
 
 #include "../parameters.h"
 #include <stdint.h>
+#include <stdio.h>
 
 /**
  * @brief applies max pooling of kernel_size x kernel_size to original_image 
@@ -23,22 +24,22 @@ void max_pooling2d_naive(const fp_t* original_image, const uint16_t height, cons
 
     uint16_t image_row, image_column;
     uint16_t new_image_row, new_image_column;
-    uint16_t new_image_width;
+    uint16_t new_image_height, new_image_width;
 
     uint16_t kernel_row, kernel_column;
 
     new_image_row = 0;
     new_image_column = 0;
     
+    new_image_height = height/stride;
     new_image_width = width/stride;
 
-    for(image_row = 0; image_row < height; image_row += stride) {
-        for(image_column = 0; image_column < width; image_column += stride) {
+    for(image_row = 0; image_row < height && new_image_row < new_image_height; image_row += stride) {
+        for(image_column = 0; image_column < width && new_image_column < new_image_width; image_column += stride) {
             fp_t pixel = original_image[image_row*width+image_column];
     
-            
-            for(kernel_row = image_row; kernel_row < image_row+kernel_size; kernel_row++) {
-                for(kernel_column = image_column; kernel_column < image_column+kernel_size; kernel_column++) {
+            for(kernel_row = image_row; kernel_row < image_row+kernel_size && kernel_row < height; kernel_row++) {
+                for(kernel_column = image_column; kernel_column < image_column+kernel_size && kernel_column < width; kernel_column++) {
                     if(original_image[kernel_row*width+kernel_column] > pixel) {
                         pixel = original_image[kernel_row*width+kernel_column];
                     }
