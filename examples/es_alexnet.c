@@ -174,6 +174,7 @@ int main(int argc, char** argv) {
     free(input[2]);
     free(input);
 
+
     // relu1
     for(i = 0; i < 96; i++) {
         relu_naive(conv1_output[i], 55, 55, conv1_output[i]);
@@ -190,7 +191,8 @@ int main(int argc, char** argv) {
     free(relu1_file_content);
     #endif
 
-    // TODO lrn 
+
+    // norm1
     fp_t** norm1_output;
     norm1_output = (fp_t**) malloc(96*sizeof(fp_t*));
     
@@ -217,11 +219,43 @@ int main(int argc, char** argv) {
     }
     free(conv1_output);
 
+    
+    // pool1 55x55x96 -> 27x27x96
+    fp_t** pool1_output;
+    pool1_output = (fp_t**) malloc(96*sizeof(fp_t*));
+    
+    for(i = 0; i < 96; i++) {
+        pool1_output[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
+    }
+
+    for(i = 0; i < 96; i++) {
+        max_pooling2d_naive(norm1_output[i], 55, 55, pool1_output[i], 3, 2);
+    }
+
+    // make pgm of norm1 output
+    #ifdef DEBUG
+    fp_t* pool1_file_content = (fp_t*) malloc(27*27*96*sizeof(fp_t));
+    for(i = 0; i < 96; i++) {
+        memcpy(&pool1_file_content[i*27*27], pool1_output[i], 27*27*sizeof(fp_t));
+    }
+    write_pgm(pool1_file_content, 96*27, 27, "pool1_output.pgm");
+    write_float(pool1_file_content, 96*27, 27, "pool1_output.float");
+    free(pool1_file_content);
+    #endif
+
     // free norm1 output
     for(i = 0; i < 96; i++) {
         free(norm1_output[i]);
     }
     free(norm1_output);
+
+
+    // free pool1 output
+    for(i = 0; i < 96; i++) {
+        free(pool1_output[i]);
+    }
+    free(pool1_output);
+
 
 
     for(i = 0; i < 288; i++) {
