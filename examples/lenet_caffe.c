@@ -6,7 +6,7 @@
  */
 
 #define MNIST
-#define NUM 5000
+#define NUM 1000
 #define DEBUG
 #define INDEX 0
 
@@ -175,7 +175,7 @@ int main(int argc, char** argv) {
 
         for(j = 0; j < 20; j++) {
             s2_output[j] = (fp_t*) malloc(12*12*sizeof(fp_t));
-            max_pooling2d_naive(c1_output[j], 24, 24, s2_output[j], 2);
+            max_pooling2d_naive(c1_output[j], 24, 24, s2_output[j], 2, 2);
         }
 
         // make pgm S2
@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
 
         for(j = 0; j < 50; j++) {
             s4_output[j] = (fp_t*) malloc(4*4*sizeof(fp_t));
-            max_pooling2d_naive(c3_output[j], 8, 8, s4_output[j], 2);
+            max_pooling2d_naive(c3_output[j], 8, 8, s4_output[j], 2, 2);
         }
 
         // make pgm S4
