@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 
     fp_t* output_image = (fp_t*) malloc((height/2) * (width/2) * sizeof(fp_t));
 
-    max_pooling2d_naive(input_image, height, width, output_image, 2);
+    max_pooling2d_naive(input_image, height, width, output_image, 2, 2);
 
     write_pgm(output_image, (height/2), (width/2), argv[2]);
 
