@@ -219,6 +219,8 @@ int main(int argc, char** argv) {
             }
         }
 
+        free(c3_intermediate);
+
         // make pgm C3
         #ifdef DEBUG
         if(i == INDEX) {
@@ -379,18 +381,25 @@ int main(int argc, char** argv) {
     for(i = 0; i < 20; i++) {
         free(kernels[0][i]);
     }
+    free(kernels[0]);
+
     for(i = 0; i < 1000; i++) {
         free(kernels[1][i]);
     }
+    free(kernels[1]);
 
     free(kernels[2][0]);
+    free(kernels[2]);
     free(kernels[3][0]);
+    free(kernels[3]);
     free(kernels);
 
     for(i = 0; i < 4; i++) {
         free(biasses[i]);
     }
     free(biasses);
+
+    free(labels);
 
     // calculate and print results
     fp_t error_rate = 1.0-((fp_t) correct_predictions/((fp_t) NUM));
