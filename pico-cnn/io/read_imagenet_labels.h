@@ -27,13 +27,13 @@ int read_imagenet_labels(const char* path_to_imagenet_labels, char*** imagenet_l
 
         (*imagenet_labels) = (char**) malloc(1000*sizeof(char*));
 
-        char* buffer = NULL;
+        char buffer[255];
         int i = 0;
         int label_length;
-        size_t len = 0;
 
-        while (((label_length = getline(&buffer, &len, labels_file)) != -1) && i < num_labels) {
-            (*imagenet_labels)[i] = (char*) malloc((label_length-1)*sizeof(char));
+        while(fgets(buffer, 255, labels_file)) {
+            label_length = strlen(buffer);
+            (*imagenet_labels)[i] = (char*) malloc((label_length)*sizeof(char));
             strncpy((*imagenet_labels)[i], buffer, label_length-1);
             (*imagenet_labels)[i][label_length-1] = '\0';
             i++;

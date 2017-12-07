@@ -71,7 +71,6 @@ int main(int argc, char** argv) {
 
     unsigned int i, j;
 
-
     // read kernels and biasses
     fp_t*** kernels;
     fp_t** biasses;
@@ -155,7 +154,7 @@ int main(int argc, char** argv) {
 
     // free means
     free(means);
-
+    
     // make pgm of input image
     #ifdef DEBUG
     float* input_file_content = (fp_t*) malloc(227*227*3*sizeof(fp_t));
@@ -184,7 +183,6 @@ int main(int argc, char** argv) {
     fp_t** conv1_kernels = kernels[0];
     fp_t* conv1_bias = biasses[0];
 
- 
     uint16_t kernel_number = 0;
 
     for(i = 0; i < 96; i++) {
@@ -266,7 +264,7 @@ int main(int argc, char** argv) {
     }
     free(conv1_output);
 
-    
+
     // pool1 55x55x96 -> 27x27x96
     fp_t** pool1_output;
     pool1_output = (fp_t**) malloc(96*sizeof(fp_t*));
@@ -716,6 +714,7 @@ int main(int argc, char** argv) {
     // drop8
     // do nothing
 
+
     // fc7 1x4096 -> 1x1000
     fp_t* fc8_output;
     fc8_output = (fp_t*) malloc(1000*sizeof(fp_t));
@@ -745,33 +744,43 @@ int main(int argc, char** argv) {
     #endif
 
 
-
     for(i = 0; i < 288; i++) {
         free(kernels[0][i]);
     }
+    free(kernels[0]);
+
     for(i = 0; i < 24576; i++) {
         free(kernels[1][i]);
     }
+    free(kernels[1]);
+
     for(i = 0; i < 98304; i++) {
         free(kernels[2][i]);
     }
+    free(kernels[2]);
+
     for(i = 0; i < 147456; i++) {
         free(kernels[3][i]);
     }
+    free(kernels[3]);
+
     for(i = 0; i < 98304; i++) {
         free(kernels[4][i]);
     }
+    free(kernels[4]);
 
     free(kernels[5][0]);
+    free(kernels[5]);
     free(kernels[6][0]);
+    free(kernels[6]);
     free(kernels[7][0]);
+    free(kernels[7]);
     free(kernels);
 
-    for(i = 0; i < 7; i++) {
+    for(i = 0; i < 8; i++) {
         free(biasses[i]);
     }
     free(biasses);
-
     
     // print prediction
     uint16_t* labels_pos;
@@ -790,6 +799,7 @@ int main(int argc, char** argv) {
     }
 
     free(fc8_output);
+
     for(i = 0; i < 1000; i++) {
         free(labels[i]);
     }

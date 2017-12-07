@@ -7,11 +7,15 @@
 #ifndef READ_WEIGHTS_H
 #define READ_WEIGHTS_H
 
+//#define DEBUG
+
 #include "../parameters.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+
+
 
 /** 
  * @brief reads weights (elements of kernels and biasses) from a weight file
@@ -50,6 +54,10 @@ int read_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** bia
 
         // read number of layers
         fscanf(weights, "%u\n", &num_layers);
+
+        #ifdef DEBUG
+        printf("layers: %u\n", num_layers);
+        #endif
 
         // allocate memory for layers
         *kernels = (fp_t***) malloc(num_layers * sizeof(fp_t**));
@@ -108,6 +116,13 @@ int read_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** bia
                 fscanf(weights, "%a\n", &bias_entry);
                 (*biasses)[layer][bias] = bias_entry;
             }
+
+            #ifdef DEBUG
+            printf("layer: %u\n", layer);
+            printf("kernels: %ux%ux%u\n", kernel_height, kernel_width, num_kernels);
+            printf("biasses: %u\n", num_biasses);
+            #endif
+
         }
 
         fclose(weights);
