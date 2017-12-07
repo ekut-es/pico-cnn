@@ -6,7 +6,7 @@ option(BUILD_UTILS "Utility programs from the 'util' directory will be built." O
 option(BUILD_EXAMPLES "Example programs from the 'examples' directory will be built." OFF)
 
 set(CMAKE_C_COMPILER gcc-5)
-set(CMAKE_C_FLAGS "-Wall -fopenmp -O2")
+set(CMAKE_C_FLAGS "-Wall -fopenmp -Wno-unused-result -O0 -g")
 set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})

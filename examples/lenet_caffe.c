@@ -142,6 +142,8 @@ int main(int argc, char** argv) {
         {0,0,0,0,0,0,0,0,0,0}
     };
 
+    printf("starting CNN\n");
+
     for(i = 0; i < NUM; i++) {
         // C1 input 28x28x1 -> output 24x24x20
         fp_t** c1_output;

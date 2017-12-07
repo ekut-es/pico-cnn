@@ -7,7 +7,7 @@
 
 #define JPEG
 #define IMAGENET
-#define DEBUG
+//#define DEBUG
 
 #include "pico-cnn/pico-cnn.h"
 #include <stdio.h>
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     strcpy(labels_path, argv[3]);
     strcpy(jpeg_path, argv[4]);
 
-    unsigned int i, j, k;
+    unsigned int i, j;
 
 
     // read kernels and biasses
@@ -152,6 +152,9 @@ int main(int argc, char** argv) {
         free(pre_mean_input[i]);
     }
     free(pre_mean_input);
+
+    // free means
+    free(means);
 
     // make pgm of input image
     #ifdef DEBUG
