@@ -5,17 +5,18 @@
  */
 
 #define JPEG
-//#define DEBUG
+#define DEBUG
 
 #include "pico-cnn/pico-cnn.h"
 #include <stdio.h>
 #include <omp.h>
 
-#define NUM_CONVOLUTIONS 64
+#define NUM_CONVOLUTIONS 1
 
-#define KERNEL_SIZE 3
-#define KERNEL_CROP (KERNEL_SIZE/2)
+#define KERNEL_SIZE 5
+#define KERNEL_CROP 0 //(KERNEL_SIZE/2)
 
+#if KERNEL_SIZE == 3
 // kernel 3x3
 fp_t kernel_template[KERNEL_SIZE*KERNEL_SIZE] = {
     //0.1933171948, 0.0535442412, 0.1878331911, 
@@ -26,20 +27,24 @@ fp_t kernel_template[KERNEL_SIZE*KERNEL_SIZE] = {
     1.0, 0.0, -1.0
 };
 
-/*
+#elif KERNEL_SIZE == 5
 // kernel 5x5
-fp_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
-    0.04084506, 0.04182326, 0.03507044, 0.04544337, 0.03872346, 
-    0.03757646, 0.04150467, 0.04431239, 0.03268669, 0.04032026,
-    0.04189709, 0.04434769, 0.03836922, 0.03769494, 0.04838630, 
-    0.03593228, 0.03419258, 0.03564377, 0.04019063, 0.04144708, 
-    0.03534928, 0.04342522, 0.03947366, 0.04237048, 0.04297373
+fp_t kernel_template[KERNEL_SIZE*KERNEL_SIZE] = {
+    //0.04084506, 0.04182326, 0.03507044, 0.04544337, 0.03872346, 
+    //0.03757646, 0.04150467, 0.04431239, 0.03268669, 0.04032026,
+    //0.04189709, 0.04434769, 0.03836922, 0.03769494, 0.04838630, 
+    //0.03593228, 0.03419258, 0.03564377, 0.04019063, 0.04144708, 
+    //0.03534928, 0.04342522, 0.03947366, 0.04237048, 0.04297373
+    2.0, 1.0, 0.0, -1.0, -2.0,
+    3.0, 2.0, 0.0, -2.0, -3.0,
+    4.0, 3.0, 0.0, -3.0, -4.0,
+    3.0, 2.0, 0.0, -2.0, -3.0,
+    2.0, 1.0, 0.0, -1.0, -2.0
 };
-*/
 
-/*
+#elif KERNEL_SIZE == 11
 // kernel 11x11
-fp_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
+fp_t kernel_template[KERNEL_SIZE*KERNEL_SIZE] = {
     0.0133775946, 0.0081662832, 0.0037958851, 0.0025589938, 0.0111077079, 0.0094678558, 0.0084671443, 0.0048633728, 0.0105224367, 0.0022854223, 0.0067605625, 
     0.0122735694, 0.0077536908, 0.0092950599, 0.0034780756, 0.0042276106, 0.0047869384, 0.0122461177, 0.0020111278, 0.0136192431, 0.0074915024, 0.0014510841, 
     0.0048870096, 0.0107253250, 0.0028913983, 0.0060770306, 0.0077741476, 0.0108696328, 0.0137626939, 0.0082248597, 0.0096482358, 0.0095305894, 0.0032545504, 
@@ -52,7 +57,7 @@ fp_t kernel[KERNEL_SIZE*KERNEL_SIZE] = {
     0.0113839157, 0.0120713458, 0.0150390929, 0.0045380464, 0.0090216058, 0.0100194912, 0.0134224489, 0.0141499280, 0.0154726817, 0.0046160813, 0.0001460937, 
     0.0028159609, 0.0023485310, 0.0131379167, 0.0077512142, 0.0082149093, 0.0094532890, 0.0091168997, 0.0162273827, 0.0152643834, 0.0071902420, 0.0091178775 
 };
-*/
+#endif
 
 enum mode_t {NAIVE, CPU, CGRA, GPU};
 
@@ -129,18 +134,30 @@ int main(int argc, char** argv) {
 
     if(mode == NAIVE) {
         for(i = 0; i < NUM_CONVOLUTIONS; i++) {
-            convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 1, 0, 0.5);
+            //convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 1, 0, 0.5);
+            convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 1, 2, 0.5);
         }
     } else if(mode == CPU) {
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for(i = 0; i < NUM_CONVOLUTIONS; i++) {
             //printf("thread num %d\n", omp_get_thread_num());
             #if KERNEL_SIZE == 3
-            #ifdef __aarch64__
-            convolution2d_cpu_3x3_s1_valid(input_image, height, width, output_images[i], kernels[i], 0.5);
-            #else
-            convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 1, 0, 0.5);
-            #endif
+                #ifdef __aarch64__
+                //convolution2d_cpu_3x3_s1_valid(input_image, height, width, output_images[i], kernels[i], 0.5);
+                convolution2d_cpu_3x3_s1_same(input_image, height, width, output_images[i], kernels[i], 0.5);
+                #else
+                //convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 1, 0, 0.5);
+                convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 1, 1, 0.5);
+                #endif
+            #elif KERNEL_SIZE == 5
+                #ifdef __aarch64__
+                //convolution2d_cpu_5x5_s1_valid(input_image, height, width, output_images[i], kernels[i], 0.5);
+                convolution2d_cpu_5x5_s1_same(input_image, height, width, output_images[i], kernels[i], 0.5);
+                #else
+                //convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 1, 0, 0.5);
+                convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 1, 1, 0.5);
+                #endif
+
             #endif
         }
     }
@@ -149,10 +166,12 @@ int main(int argc, char** argv) {
     if(mode == NAIVE) {
         for(i = 0; i < NUM_CONVOLUTIONS; i++) {
             write_pgm(output_images[i], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "naive.pgm");
+            write_float(output_images[i], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "naive.float");
         }
     } else if(mode == CPU) {
         for(i = 0; i < NUM_CONVOLUTIONS; i++) {
             write_pgm(output_images[i], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "cpu.pgm");
+            write_float(output_images[i], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "cpu.float");
         }
     }
     #endif
@@ -160,10 +179,12 @@ int main(int argc, char** argv) {
     free(input_image);
 
     for(i = 0; i < NUM_CONVOLUTIONS; i++) {
+        free(kernels[i]);
         free(output_images[i]);
     }
 
     free(output_images);
+    free(kernels);
 
     return 0;
 }
