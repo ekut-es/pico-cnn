@@ -348,7 +348,7 @@ void convolution2d_cpu_3x3_s1_same(const fp_t* original_image, const uint16_t he
 void convolution2d_cpu_5x5_s1_valid(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const fp_t bias) {
 
     /*
-    3 float_32x4 neon registers for kernel (last value will be ignored)
+    3 float_32x4 neon registers for kernel
                                     kernel_5 = 
     kernel_0 = [0,0][0,1][0,2][0,3]  [0,4]
     kernel_1 = [1,0][1,1][1,2][1,3]  [1,4]
@@ -628,6 +628,277 @@ void convolution2d_cpu_5x5_s1_same(const fp_t* original_image, const uint16_t he
     free(bigger_original_image);
 }
 
+/**
+ * @brief performs an CPU optimized 2D convolution on original_image with a 
+ * kernel 11x11 and stores the result to new_image
+ *
+ * stride = 4
+ * padding = valid
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param new_image 
+ * @param kernel (11x11)
+ * @param bias
+ */
+void convolution2d_cpu_11x11_s4_valid(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image, const fp_t* kernel, const fp_t bias) {
+
+    /*
+    3 float_32x4 neon registers for kernel (last value will be ignored)
+    kernel_0 =               kernel_1 =               kernel_2 =
+    [0,0][0,1][0,2][0,3]/    [0,4][0,5][0,6][0,7]/    [0,8][0,9][0,10][x]/
+    [5,0][5,1][5,2][5,3]/    [5,4][5,5][5,6][5,7]/    [5,8][5,9][5,10][x]/
+    [10,0][10,1][10,2][10,3] [10,4][10,5][10,6][10,7] [10,8][10,9][10,10][x]
+
+    kernel_3 =            kernel_4 =            kernel_5 =
+    [1,0][1,1][1,2][1,3]/ [1,4][1,5][1,6][1,7]/ [1,8][1,9][1,10][x]/
+    [6,0][6,1][6,2][6,3]  [6,4][6,5][6,6][6,7]  [6,8][6,9][6,10][x]
+    kernel_6 =            kernel_7 =            kernel_8 =
+    [2,0][2,1][2,2][2,3]/ [2,4][2,5][2,6][2,7]/ [2,8][2,9][2,10][x]/
+    [7,0][7,1][7,2][7,3]  [7,4][7,5][7,6][7,7]  [7,8][7,9][7,10][x]
+    kernel_9 =            kernel_10 =           kernel_11 =
+    [3,0][3,1][3,2][3,3]  [3,4][3,5][3,6][3,7]  [3,8][3,9][3,10][x]
+    [8,0][8,1][8,2][8,3]  [8,4][8,5][8,6][8,7]  [8,8][8,9][8,10][x]
+    kernel_12 =           kernel_13 =           kernel_14 =
+    [4,0][4,1][4,2][4,3]  [4,4][4,5][4,6][4,7]  [4,4][4,4][4,10][x]
+    [9,0][9,1][9,2][9,3]  [9,4][9,5][9,6][9,7]  [9,8][9,9][9,10][x]
+    */
+
+    uint16_t image_row, image_column;
+    uint16_t new_image_row, new_image_column;
+    uint16_t new_image_width = ((width-2*5)/4)+1;
+
+    // vectors for kernel
+    float32x4_t kernel_0;
+    float32x4_t kernel_1;
+    float32x4_t kernel_2;
+    float32x4_t kernel_3;
+    float32x4_t kernel_4;
+    float32x4_t kernel_5;
+    float32x4_t kernel_6;
+    float32x4_t kernel_7;
+    float32x4_t kernel_8;
+    float32x4_t kernel_9;
+    float32x4_t kernel_10;
+    float32x4_t kernel_11;
+    float32x4_t kernel_12;
+    float32x4_t kernel_13;
+    float32x4_t kernel_14;
+
+    kernel_0 = vld1q_f32(kernel);
+    kernel_1 = vld1q_f32(kernel+5);
+    kernel_2 = vld1q_f32(kernel+10);
+    kernel_3 = vld1q_f32(kernel+15);
+    kernel_4 = vld1q_f32(kernel+20);
+
+    // vectors for image
+    float32x4_t image_0_0;
+    float32x4_t image_1_0;
+    float32x4_t image_2_0;
+    float32x4_t image_3_0;
+    float32x4_t image_4_0;
+    float32x4_t image_5_0;
+    float32x4_t image_6_0;
+    float32x4_t image_7_0;
+    float32x4_t image_8_0;
+    float32x4_t image_9_0;
+    float32x4_t image_10_0;
+    float32x4_t image_11_0;
+    float32x4_t image_12_0;
+    float32x4_t image_13_0;
+    float32x4_t image_14_0;
+    
+    fp_t image_0[4];
+
+    fp_t pixel;
+
+    new_image_row = 0;
+    new_image_column = 0;
+
+    for(image_row = 0; image_row < height-10; image_row+=4) {
+        for(image_column = 0; image_column < width-10; image_column+=4) {
+
+            // load first part of kernel
+            kernel_0 = vld1q_f32(kernel);
+            kernel_1 = vld1q_f32(kernel+4);
+            kernel_2 = vld1q_f32(kernel+8);
+
+            kernel_3 = vld1q_f32(kernel+11);
+            kernel_4 = vld1q_f32(kernel+15);
+            kernel_5 = vld1q_f32(kernel+19);
+
+            kernel_6 = vld1q_f32(kernel+22);
+            kernel_7 = vld1q_f32(kernel+26);
+            kernel_8 = vld1q_f32(kernel+30);
+
+            kernel_9 = vld1q_f32(kernel+33);
+            kernel_10 = vld1q_f32(kernel+37);
+            kernel_11 = vld1q_f32(kernel+41);
+
+            kernel_12 = vld1q_f32(kernel+44);
+            kernel_13 = vld1q_f32(kernel+48);
+            kernel_14 = vld1q_f32(kernel+52);
+
+            // load first part of image
+            image_0_0 = vld1q_f32(original_image+(image_row+0)*width+image_column);
+            image_1_0 = vld1q_f32(original_image+(image_row+0)*width+image_column+4);
+            image_2_0 = vld1q_f32(original_image+(image_row+0)*width+image_column+8);
+
+            image_3_0 = vld1q_f32(original_image+(image_row+1)*width+image_column);
+            image_4_0 = vld1q_f32(original_image+(image_row+1)*width+image_column+4);
+            image_5_0 = vld1q_f32(original_image+(image_row+1)*width+image_column+8);
+
+            image_6_0 = vld1q_f32(original_image+(image_row+2)*width+image_column);
+            image_7_0 = vld1q_f32(original_image+(image_row+2)*width+image_column+4);
+            image_8_0 = vld1q_f32(original_image+(image_row+2)*width+image_column+8);
+
+            image_9_0  = vld1q_f32(original_image+(image_row+3)*width+image_column);
+            image_10_0 = vld1q_f32(original_image+(image_row+3)*width+image_column+4);
+            image_11_0 = vld1q_f32(original_image+(image_row+3)*width+image_column+8);
+
+            image_12_0 = vld1q_f32(original_image+(image_row+4)*width+image_column);
+            image_13_0 = vld1q_f32(original_image+(image_row+4)*width+image_column+4);
+            image_14_0 = vld1q_f32(original_image+(image_row+4)*width+image_column+8);
+
+            // apply kernel
+            image_0_0 = vmulq_f32(image_0_0, kernel_0);
+            image_1_0 = vmlaq_f32(image_0_0, image_1_0, kernel_1);
+
+            image_3_0 = vmlaq_f32(image_1_0, image_3_0, kernel_3);
+            image_4_0 = vmlaq_f32(image_3_0, image_4_0, kernel_4);
+
+            image_6_0 = vmlaq_f32(image_4_0, image_6_0, kernel_6);
+            image_7_0 = vmlaq_f32(image_6_0, image_7_0, kernel_7);
+
+            image_9_0 = vmlaq_f32(image_7_0, image_9_0, kernel_9);
+            image_10_0 = vmlaq_f32(image_9_0, image_10_0, kernel_10);
+
+            image_12_0 = vmlaq_f32(image_10_0, image_12_0, kernel_12);
+            image_13_0 = vmlaq_f32(image_12_0, image_13_0, kernel_13);
+           
+            vst1q_f32(image_0, image_13_0);
+
+            pixel = image_0[0] + image_0[1] + image_0[2] + image_0[3];
+            
+
+            image_2_0 = vmulq_f32(image_2_0, kernel_2);
+            image_5_0 = vmlaq_f32(image_2_0, image_5_0, kernel_5);
+            image_8_0 = vmlaq_f32(image_5_0, image_8_0, kernel_8);
+            image_11_0 = vmlaq_f32(image_8_0, image_11_0, kernel_11);
+            image_14_0 = vmlaq_f32(image_11_0, image_14_0, kernel_14);
+            
+            vst1q_f32(image_0, image_14_0);
+
+            pixel += image_0[0] + image_0[1] + image_0[2];
+
+
+            // load second part of kernel
+            kernel_0 = vld1q_f32(kernel+55);
+            kernel_1 = vld1q_f32(kernel+59);
+            kernel_2 = vld1q_f32(kernel+63);
+
+            kernel_3 = vld1q_f32(kernel+66);
+            kernel_4 = vld1q_f32(kernel+70);
+            kernel_5 = vld1q_f32(kernel+74);
+
+            kernel_6 = vld1q_f32(kernel+77);
+            kernel_7 = vld1q_f32(kernel+81);
+            kernel_8 = vld1q_f32(kernel+85);
+
+            kernel_9 = vld1q_f32(kernel+88);
+            kernel_10 = vld1q_f32(kernel+92);
+            kernel_11 = vld1q_f32(kernel+96);
+
+            kernel_12 = vld1q_f32(kernel+99);
+            kernel_13 = vld1q_f32(kernel+103);
+            kernel_14 = vld1q_f32(kernel+107);
+
+            // load second part of image
+            image_0_0 = vld1q_f32(original_image+(image_row+5)*width+image_column);
+            image_1_0 = vld1q_f32(original_image+(image_row+5)*width+image_column+4);
+            image_2_0 = vld1q_f32(original_image+(image_row+5)*width+image_column+8);
+
+            image_3_0 = vld1q_f32(original_image+(image_row+6)*width+image_column);
+            image_4_0 = vld1q_f32(original_image+(image_row+6)*width+image_column+4);
+            image_5_0 = vld1q_f32(original_image+(image_row+6)*width+image_column+8);
+
+            image_6_0 = vld1q_f32(original_image+(image_row+7)*width+image_column);
+            image_7_0 = vld1q_f32(original_image+(image_row+7)*width+image_column+4);
+            image_8_0 = vld1q_f32(original_image+(image_row+7)*width+image_column+8);
+
+            image_9_0  = vld1q_f32(original_image+(image_row+8)*width+image_column);
+            image_10_0 = vld1q_f32(original_image+(image_row+8)*width+image_column+4);
+            image_11_0 = vld1q_f32(original_image+(image_row+8)*width+image_column+8);
+
+            image_12_0 = vld1q_f32(original_image+(image_row+9)*width+image_column);
+            image_13_0 = vld1q_f32(original_image+(image_row+9)*width+image_column+4);
+            image_14_0 = vld1q_f32(original_image+(image_row+9)*width+image_column+8);
+
+            // apply kernel
+            image_0_0 = vmulq_f32(image_0_0, kernel_0);
+            image_1_0 = vmlaq_f32(image_0_0, image_1_0, kernel_1);
+
+            image_3_0 = vmlaq_f32(image_1_0, image_3_0, kernel_3);
+            image_4_0 = vmlaq_f32(image_3_0, image_4_0, kernel_4);
+
+            image_6_0 = vmlaq_f32(image_4_0, image_6_0, kernel_6);
+            image_7_0 = vmlaq_f32(image_6_0, image_7_0, kernel_7);
+
+            image_9_0 = vmlaq_f32(image_7_0, image_9_0, kernel_9);
+            image_10_0 = vmlaq_f32(image_9_0, image_10_0, kernel_10);
+
+            image_12_0 = vmlaq_f32(image_10_0, image_12_0, kernel_12);
+            image_13_0 = vmlaq_f32(image_12_0, image_13_0, kernel_13);
+           
+            vst1q_f32(image_0, image_13_0);
+
+            pixel += image_0[0] + image_0[1] + image_0[2] + image_0[3];
+            
+
+            image_2_0 = vmulq_f32(image_2_0, kernel_2);
+            image_5_0 = vmlaq_f32(image_2_0, image_5_0, kernel_5);
+            image_8_0 = vmlaq_f32(image_5_0, image_8_0, kernel_8);
+            image_11_0 = vmlaq_f32(image_8_0, image_11_0, kernel_11);
+            image_14_0 = vmlaq_f32(image_11_0, image_14_0, kernel_14);
+            
+            vst1q_f32(image_0, image_14_0);
+
+            pixel += image_0[0] + image_0[1] + image_0[2];
+
+
+            // load third part of kernel
+            kernel_0 = vld1q_f32(kernel+110);
+            kernel_1 = vld1q_f32(kernel+114);
+            kernel_2 = vld1q_f32(kernel+118);
+
+            // load third part of image
+            image_0_0 = vld1q_f32(original_image+(image_row+10)*width+image_column);
+            image_1_0 = vld1q_f32(original_image+(image_row+10)*width+image_column+4);
+            image_2_0 = vld1q_f32(original_image+(image_row+10)*width+image_column+8);
+
+            // apply kernel
+            image_0_0 = vmulq_f32(image_0_0, kernel_0);
+            image_1_0 = vmlaq_f32(image_0_0, image_1_0, kernel_1);
+
+            vst1q_f32(image_0, image_1_0);
+
+            pixel += image_0[0] + image_0[1] + image_0[2] + image_0[3];
+
+            image_2_0 = vmulq_f32(image_2_0, kernel_2);
+
+            vst1q_f32(image_0, image_2_0);
+
+            pixel += image_0[0] + image_0[1] + image_0[2] + bias;
+
+            // store new image
+            new_image[new_image_row*new_image_width+new_image_column] = pixel;
+            new_image_column++;
+        }
+        new_image_row++;
+        new_image_column = 0;
+    }
+}
 
 /**
  * @brief adds image_a and image_b pixel by pixel and stores result in image_a optimized for CPU
