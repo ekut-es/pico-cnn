@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <omp.h>
 
-#define NUM_CONVOLUTIONS 256
+#define NUM_CONVOLUTIONS 1024
 
 #define KERNEL_SIZE 11
 #define KERNEL_CROP (KERNEL_SIZE/2)
@@ -158,10 +158,11 @@ int main(int argc, char** argv) {
             convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 1, 2, 0.5);
             #elif KERNEL_SIZE == 11
             convolution2d_naive(input_image, height, width, output_images[i], kernels[i], 11, 4, 0, 0.5);
+            add_image2d_naive(output_images[0], output_images[i], 55, 55);
             #endif
         }
     } else if(mode == CPU) {
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for(i = 0; i < NUM_CONVOLUTIONS; i++) {
             //printf("thread num %d\n", omp_get_thread_num());
             #if KERNEL_SIZE == 3
@@ -183,8 +184,10 @@ int main(int argc, char** argv) {
             #elif KERNEL_SIZE == 11
                 #ifdef __aarch64__
                 convolution2d_cpu_11x11_s4_valid(input_image, height, width, output_images[i], kernels[i], 0.5);
+                add_image2d_cpu(output_images[0], output_images[i], 55, 55);
                 #else
                 convolution2d_naive(input_image, height, width, output_images[i], kernels[i], KERNEL_SIZE, 4, 0, 0.5);
+                add_image2d_naive(output_images[0], output_images[i], 55, 55);
                 #endif
             #endif
         }
@@ -194,21 +197,21 @@ int main(int argc, char** argv) {
     if(mode == NAIVE) {
         for(i = 0; i < NUM_CONVOLUTIONS; i++) {
             #if KERNEL_SIZE == 3 ||  KERNEL_SIZE == 5
-            write_pgm(output_images[i], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "naive.pgm");
-            write_float(output_images[i], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "naive.float");
+            write_pgm(output_images[0], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "naive.pgm");
+            write_float(output_images[0], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "naive.float");
             #elif KERNEL_SIZE == 11
-            write_pgm(output_images[i], 55, 55, "naive.pgm");
-            write_float(output_images[i], 55, 55, "naive.float");
+            write_pgm(output_images[0], 55, 55, "naive.pgm");
+            write_float(output_images[0], 55, 55, "naive.float");
             #endif
         }
     } else if(mode == CPU) {
         for(i = 0; i < NUM_CONVOLUTIONS; i++) {
             #if KERNEL_SIZE == 3 ||  KERNEL_SIZE == 5
-            write_pgm(output_images[i], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "cpu.pgm");
-            write_float(output_images[i], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "cpu.float");
+            write_pgm(output_images[0], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "cpu.pgm");
+            write_float(output_images[0], (height-2*KERNEL_CROP), (width-2*KERNEL_CROP), "cpu.float");
             #elif KERNEL_SIZE == 11
-            write_pgm(output_images[i], 55, 55, "cpu.pgm");
-            write_float(output_images[i], 55, 55, "cpu.float");
+            write_pgm(output_images[0], 55, 55, "cpu.pgm");
+            write_float(output_images[0], 55, 55, "cpu.float");
             #endif
         }
     }

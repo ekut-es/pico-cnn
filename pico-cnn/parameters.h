@@ -14,4 +14,10 @@ extern fp_t min_float;
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
+
+#ifdef __aarch64__
+// L1 cache line size 64 Byte = 16 float_32 values
+#define BLOCK_SIZE 16
+#endif
+
 #endif // PARAMETERS_H

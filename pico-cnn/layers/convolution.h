@@ -112,7 +112,7 @@ void convolution2d_naive(const fp_t* original_image, const uint16_t height, cons
  * @param width
  */
 void add_image2d_naive(fp_t* image_a, const fp_t* image_b, const uint16_t height, const uint16_t width) {
-    uint16_t row, column;
+    uint32_t row, column;
 
     for(row = 0; row < height; row++) {
         for(column = 0; column < width; column++) {
@@ -909,12 +909,43 @@ void convolution2d_cpu_11x11_s4_valid(const fp_t* original_image, const uint16_t
  * @param width
  */
 void add_image2d_cpu(fp_t* image_a, const fp_t* image_b, const uint16_t height, const uint16_t width) {
-    uint16_t row, column;
+    uint32_t i;
 
-    for(row = 0; row < height; row++) {
-        for(column = 0; column < width; column++) {
-            image_a[row*width+column] = (image_a[row*width+column] + image_b[row*width+column]);
-        }
+    float32x4_t image_a_0;
+    float32x4_t image_a_1;
+    float32x4_t image_a_2;
+    float32x4_t image_a_3;
+
+    float32x4_t image_b_0;
+    float32x4_t image_b_1;
+    float32x4_t image_b_2;
+    float32x4_t image_b_3;
+
+    for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
+        image_a_0 = vld1q_f32(image_a+i);
+        image_a_1 = vld1q_f32(image_a+i+4);
+        image_a_2 = vld1q_f32(image_a+i+8);
+        image_a_3 = vld1q_f32(image_a+i+12);
+
+        image_b_0 = vld1q_f32(image_b+i);
+        image_b_1 = vld1q_f32(image_b+i+4);
+        image_b_2 = vld1q_f32(image_b+i+8);
+        image_b_3 = vld1q_f32(image_b+i+12);
+
+        image_a_0 = vaddq_f32(image_a_0, image_b_0);
+        image_a_1 = vaddq_f32(image_a_1, image_b_1);
+        image_a_2 = vaddq_f32(image_a_2, image_b_2);
+        image_a_3 = vaddq_f32(image_a_3, image_b_3);
+
+        vst1q_f32(image_a+i, image_a_0);
+        vst1q_f32(image_a+i+4, image_a_1);
+        vst1q_f32(image_a+i+8, image_a_2);
+        vst1q_f32(image_a+i+12, image_a_3);
+    }
+
+    // residual pixels
+    for(i = i; i < height*width; i++) {
+        image_a[i] = image_a[i] + image_b[i];
     }
 }
 #endif
