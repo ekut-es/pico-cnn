@@ -904,6 +904,7 @@ void add_image2d_cpu(fp_t* image_a, const fp_t* image_b, const uint16_t height, 
     float32x4_t image_b_3;
 
     for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
+		// load images into vector
         image_a_0 = vld1q_f32(image_a+i);
         image_a_1 = vld1q_f32(image_a+i+4);
         image_a_2 = vld1q_f32(image_a+i+8);
@@ -914,11 +915,13 @@ void add_image2d_cpu(fp_t* image_a, const fp_t* image_b, const uint16_t height, 
         image_b_2 = vld1q_f32(image_b+i+8);
         image_b_3 = vld1q_f32(image_b+i+12);
 
+		// add vectors
         image_a_0 = vaddq_f32(image_a_0, image_b_0);
         image_a_1 = vaddq_f32(image_a_1, image_b_1);
         image_a_2 = vaddq_f32(image_a_2, image_b_2);
         image_a_3 = vaddq_f32(image_a_3, image_b_3);
 
+		// store vectors in image a
         vst1q_f32(image_a+i, image_a_0);
         vst1q_f32(image_a+i+4, image_a_1);
         vst1q_f32(image_a+i+8, image_a_2);
