@@ -184,7 +184,7 @@ void relu_cpu(const fp_t* original_image, const uint16_t height, const uint16_t 
  * @param width
  * @param new_image (height x width)
  */
-void softmax_cpu(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
+void softmax_cpu_single(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
 
     uint16_t i;
 

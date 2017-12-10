@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
                 #if FUNCTION == 0
                 relu_cpu(input_image, height, width, output_images[i]);
                 #elif FUNCTION == 1
-                softmax_cpu(input_image, height, width, output_images[i]);
+                softmax_cpu_single(input_image, height, width, output_images[i]);
                 #elif FUNCTION == 2
                 #endif
             #else
