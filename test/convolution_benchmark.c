@@ -132,9 +132,11 @@ int main(int argc, char** argv) {
         input_image = input_image_jpg[0];
         free(input_image_jpg[1]);
         free(input_image_jpg[2]);
-
-        write_pgm(input_image, height, width, "input.pgm");
     }
+
+    #ifdef DEBUG
+    write_pgm(input_image, height, width, "input.pgm");
+    #endif
 
     int i; 
 
