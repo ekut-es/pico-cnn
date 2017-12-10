@@ -7,12 +7,12 @@
 #define JPEG
 #define DEBUG
 
-#define NUM_ACTIVATIONS 256
+#define NUM_ACTIVATIONS 32
 
 // 0 = relu
 // 1 = softmax
 // 2 = lrn
-#define FUNCTION 1
+#define FUNCTION 2
 
 #include "pico-cnn/pico-cnn.h"
 #include <stdio.h>
@@ -86,6 +86,14 @@ int main(int argc, char** argv) {
 
     int i;
 
+    #if FUNCTION == 2
+    fp_t** input_images = (fp_t**) malloc(NUM_ACTIVATIONS*height*width*sizeof(fp_t*));
+
+    for(i = 0; i < NUM_ACTIVATIONS; i++) {
+        input_images[i] = (fp_t*) malloc(height*width*sizeof(fp_t));
+    }
+    #endif
+
     // multiply every second pixel with -1.0
     for(i = 0; i < height*width; i+=2) {
         input_image[i] = input_image[i]*-1.0;
@@ -98,45 +106,84 @@ int main(int argc, char** argv) {
     }
 
     if(mode == NAIVE) {
+        #if FUNCTION == 0
         for(i = 0; i < NUM_ACTIVATIONS; i++) {
-            #if FUNCTION == 0
             relu_naive(input_image, height, width, output_images[i]);
-            #elif FUNCTION == 1
-            softmax_naive(input_image, height, width, output_images[i]);
-            #elif FUNCTION == 2
-            #endif
         }
-    } else if(mode == CPU) {
+        #elif FUNCTION == 1
         for(i = 0; i < NUM_ACTIVATIONS; i++) {
-            #ifdef __aarch64__
-                #if FUNCTION == 0
-                relu_cpu(input_image, height, width, output_images[i]);
-                #elif FUNCTION == 1
-                softmax_cpu_single(input_image, height, width, output_images[i]);
-                #elif FUNCTION == 2
-                #endif
-            #else
-                #if FUNCTION == 0
-                relu_naive(input_image, height, width, output_images[i]);
-                #elif FUNCTION == 1
-                softmax_naive(input_image, height, width, output_images[i]);
-                #elif FUNCTION == 2
-                #endif
-            #endif
+            softmax_naive(input_image, height, width, output_images[i]);
         }
+        #elif FUNCTION == 2
+        local_response_normalization_naive(input_images, height, width, NUM_ACTIVATIONS, output_images, 0.0001, 0.75, 5);
+        #endif
+    } else if(mode == CPU) {
+        #ifdef __aarch64__
+            #if FUNCTION == 0
+            for(i = 0; i < NUM_ACTIVATIONS; i++) {
+                relu_cpu(input_image, height, width, output_images[i]);
+            }
+            #elif FUNCTION == 1
+            for(i = 0; i < NUM_ACTIVATIONS; i++) {
+                softmax_cpu_single(input_image, height, width, output_images[i]);
+            }
+            #elif FUNCTION == 2
+            local_response_normalization_cpu_single(input_images, height, width, NUM_ACTIVATIONS, output_images, 0.0001, 0.75, 5);
+            #endif
+        #else
+            #if FUNCTION == 0
+            for(i = 0; i < NUM_ACTIVATIONS; i++) {
+                relu_naive(input_image, height, width, output_images[i]);
+            }
+            #elif FUNCTION == 1
+            for(i = 0; i < NUM_ACTIVATIONS; i++) {
+                softmax_naive(input_image, height, width, output_images[i]);
+            }
+            #elif FUNCTION == 2
+            local_response_normalization_naive(input_images, height, width, NUM_ACTIVATIONS, output_images, 0.0001, 0.75, 5);
+            #endif
+        #endif
     }
 
     #ifdef DEBUG
     if(mode == NAIVE) {
+        #if FUNCTION == 0 || FUNCTION == 1
         write_pgm(output_images[0], height, width, "naive.pgm");
         write_float(output_images[0], height, width, "naive.float");
+        #elif FUNCTION == 2
+        fp_t* file_content = (fp_t*) malloc(height*width*NUM_ACTIVATIONS*sizeof(fp_t));
+        for(i = 0; i < NUM_ACTIVATIONS; i++) {
+            memcpy(&file_content[i*height*width], output_images[i], height*width*sizeof(fp_t));
+        }
+        write_pgm(file_content, NUM_ACTIVATIONS*height, width, "naive.pgm");
+        write_float(file_content, NUM_ACTIVATIONS*height, width, "naive.float");
+        free(file_content);
+        #endif
     } else if(mode == CPU) {
+        #if FUNCTION == 0 || FUNCTION == 1
         write_pgm(output_images[0], height, width, "cpu.pgm");
         write_float(output_images[0], height, width, "cpu.float");
+        #elif FUNCTION == 2
+        fp_t* file_content = (fp_t*) malloc(height*width*NUM_ACTIVATIONS*sizeof(fp_t));
+        for(i = 0; i < NUM_ACTIVATIONS; i++) {
+            memcpy(&file_content[i*height*width], output_images[i], height*width*sizeof(fp_t));
+        }
+        write_pgm(file_content, NUM_ACTIVATIONS*height, width, "cpu.pgm");
+        write_float(file_content, NUM_ACTIVATIONS*height, width, "cpu.float");
+        free(file_content);
+        #endif
     }
     #endif
 
     free(input_image);
+
+    #if FUNCTION == 2
+    for(i = 0; i < NUM_ACTIVATIONS; i++) {
+        free(input_images[i]);
+    }
+    free(input_images);
+    #endif
+
     for(i = 0; i < NUM_ACTIVATIONS; i++) {
         free(output_images[i]);
     }

@@ -257,6 +257,133 @@ void softmax_cpu_single(const fp_t* original_image, const uint16_t height, const
     }
 }
 
+/**
+ * @brief performs a local response normalization (across channels) on original 
+ * image and stores the result in new_image optimized for single CPU
+ *
+ * Formula (Paper):
+ * https://stats.stackexchange.com/questions/145768/importance-of-local-response-normalization-in-cnn/252343#252343
+ * Formula (Implemented):
+ * http://caffe.berkeleyvision.org/tutorial/layers/lrn.html
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param depth
+ * @param new_image
+ * @param alpha
+ * @param beta
+ * @param n
+ */
+void local_response_normalization_cpu_single(fp_t** original_image, const uint16_t height, const uint16_t width, const uint16_t depth, fp_t** new_image, const fp_t alpha, const fp_t beta, const uint16_t n) {
+    int32_t channel, row, column, i;
+    int32_t from;
+    int32_t to;
+
+    fp_t sum_0;
+    fp_t sum_1;
+    fp_t sum_2;
+    fp_t sum_3;
+
+    float32x4_t denominator_0;
+    float32x4_t sums_0 = {0.0, 0.0, 0.0, 0.0};
+    float32x4_t original_image_0 = {0.0, 0.0, 0.0, 0.0};
+    float32x4_t new_image_0;
+
+    float32x4_t one = {1.0, 1.0, 1.0, 1.0};
+
+    fp_t denominator_temp[4];
+    fp_t new_image_temp[4];
+
+    for(channel = 0; channel < depth; channel++) {
+        from = MAX(0,channel-(n/2));
+        to = MIN(depth-1,channel+(n/2));
+
+        for(row = 0; row < height; row++) {
+            for(column = 0; column < width-4; column+=4) {
+
+                sum_0 = 0.0;
+                for(i = from; i <= to; i++) {
+                    sum_0 += original_image[i][row*width+column]*original_image[i][row*width+column];
+                }
+
+                sum_1 = 0.0;
+                for(i = from; i <= to; i++) {
+                    sum_1 += original_image[i][row*width+column+1]*original_image[i][row*width+column+1];
+                }
+
+                sum_2 = 0.0;
+                for(i = from; i <= to; i++) {
+                    sum_2 += original_image[i][row*width+column+2]*original_image[i][row*width+column+2];
+                }
+
+                sum_3 = 0.0;
+                for(i = from; i <= to; i++) {
+                    sum_3 += original_image[i][row*width+column+3]*original_image[i][row*width+column+3];
+                }
+
+
+                const fp_t alpha_n = alpha/n;
+
+                // load vector with sums
+                sums_0 = vsetq_lane_f32(sum_0, sums_0, 0);
+                sums_0 = vsetq_lane_f32(sum_1, sums_0, 1);
+                sums_0 = vsetq_lane_f32(sum_2, sums_0, 2);
+                sums_0 = vsetq_lane_f32(sum_3, sums_0, 3);
+
+                // sums multiply with alpha/n
+                denominator_0 = vmulq_n_f32(sums_0, alpha_n);
+                // add 1
+                denominator_0 = vaddq_f32(denominator_0, one);
+                // store denominator vector in array
+                vst1q_f32(denominator_temp, denominator_0);
+
+                denominator_temp[0] = powf(denominator_temp[0],beta);
+                denominator_temp[1] = powf(denominator_temp[1],beta);
+                denominator_temp[2] = powf(denominator_temp[2],beta);
+                denominator_temp[3] = powf(denominator_temp[3],beta);
+
+                // load array back into vector
+                denominator_0 = vld1q_f32(denominator_temp);
+
+                // denominator = 1/denomniator
+                denominator_0 = vrecpeq_f32(denominator_0);
+
+                // store denominator vector in array
+                vst1q_f32(denominator_temp, denominator_0);
+
+                // load original image into vector
+                original_image_0 = vsetq_lane_f32(original_image[channel][row*width+column],   original_image_0, 0);
+                original_image_0 = vsetq_lane_f32(original_image[channel][row*width+column+1], original_image_0, 1);
+                original_image_0 = vsetq_lane_f32(original_image[channel][row*width+column+2], original_image_0, 2);
+                original_image_0 = vsetq_lane_f32(original_image[channel][row*width+column+3], original_image_0, 3);
+
+                // new_image = original_image * (1/denominator)
+                new_image_0 = vmulq_f32(original_image_0, denominator_0);
+
+                // store new_image vector into array
+                vst1q_f32(new_image_temp, new_image_0);
+
+                new_image[channel][row*width+column] =   new_image_temp[0]; 
+                new_image[channel][row*width+column+1] = new_image_temp[1];
+                new_image[channel][row*width+column+2] = new_image_temp[2];
+                new_image[channel][row*width+column+3] = new_image_temp[3];
+            }
+
+            // residual columns
+            for(column = column; column < width; column++) {
+                sum_0 = 0.0;
+
+                for(i = from; i <= to; i++) {
+                    sum_0 += original_image[i][row*width+column]*original_image[i][row*width+column];
+                }
+
+                new_image[channel][row*width+column] = original_image[channel][row*width+column] / powf((1+(alpha/n)*sum_0),beta);
+            }
+        }
+    }
+}
+
 
 #endif
 
