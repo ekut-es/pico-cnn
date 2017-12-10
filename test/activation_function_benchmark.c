@@ -21,7 +21,7 @@
 enum mode_t {NAIVE, CPU, CGRA, GPU};
 
 void usage() {
-    printf("./convolution_benchmark MODE PATH_TO_INPUT_IMAGE\n");
+    printf("./activation_function_benchmark MODE PATH_TO_INPUT_IMAGE\n");
     printf("\tMODE: naive, cpu, cgra, gpu\n");
     printf("\tPATH_TO_INPUT_IMAGE: *.pgm, *.{jpg,jpeg,JPG,JPEG}\n");
 }
