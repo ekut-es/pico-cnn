@@ -7,11 +7,12 @@
 #define JPEG
 #define DEBUG
 
-#define NUM_ACTIVATIONS 1 
+#define NUM_ACTIVATIONS 256
 
 // 0 = relu
 // 1 = softmax
-#define FUNCTION 0
+// 2 = lrn
+#define FUNCTION 1
 
 #include "pico-cnn/pico-cnn.h"
 #include <stdio.h>
@@ -98,14 +99,29 @@ int main(int argc, char** argv) {
 
     if(mode == NAIVE) {
         for(i = 0; i < NUM_ACTIVATIONS; i++) {
+            #if FUNCTION == 0
             relu_naive(input_image, height, width, output_images[i]);
+            #elif FUNCTION == 1
+            softmax_naive(input_image, height, width, output_images[i]);
+            #elif FUNCTION == 2
+            #endif
         }
     } else if(mode == CPU) {
         for(i = 0; i < NUM_ACTIVATIONS; i++) {
             #ifdef __aarch64__
-            relu_cpu(input_image, height, width, output_images[i]);
+                #if FUNCTION == 0
+                relu_cpu(input_image, height, width, output_images[i]);
+                #elif FUNCTION == 1
+                softmax_cpu(input_image, height, width, output_images[i]);
+                #elif FUNCTION == 2
+                #endif
             #else
-            relu_naive(input_image, height, width, output_images[i]);
+                #if FUNCTION == 0
+                relu_naive(input_image, height, width, output_images[i]);
+                #elif FUNCTION == 1
+                softmax_naive(input_image, height, width, output_images[i]);
+                #elif FUNCTION == 2
+                #endif
             #endif
         }
     }

@@ -13,7 +13,7 @@
 #include <math.h>
 
 #ifdef __aarch64__
-//#include "../driver/neon_mathfun.h"
+#include "../driver/neon_mathfun.h"
 #include "arm_neon.h"
 #endif
 
@@ -175,7 +175,9 @@ void relu_cpu(const fp_t* original_image, const uint16_t height, const uint16_t 
 
 /**
  * @brief applies softmax to all pixel of original_image and stores it in
- * new_image
+ * new_image optimzed of CPU
+ * Only single core optimization since softmax is usually performed on a small
+ * dataset and a multi core solution would impose a large overhead
  *
  * @param original_image (height x width)
  * @param height
@@ -188,12 +190,70 @@ void softmax_cpu(const fp_t* original_image, const uint16_t height, const uint16
 
     fp_t denominator = 0.0;
 
-    for(i = 0; i < height*width; i++) {
-        denominator += expf(original_image[i]);
+    float32x4_t original_image_0;
+    float32x4_t original_image_1;
+    float32x4_t original_image_2;
+    float32x4_t original_image_3;
+
+    // calculate denominator
+    for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
+        // load image into vectors
+        original_image_0 = vld1q_f32(original_image+i);
+        original_image_1 = vld1q_f32(original_image+i+4);
+        original_image_2 = vld1q_f32(original_image+i+8);
+        original_image_3 = vld1q_f32(original_image+i+12);
+
+		// apply exponential function to vectors
+        original_image_0 = exp_ps(original_image_0);
+        original_image_1 = exp_ps(original_image_1);
+        original_image_2 = exp_ps(original_image_2);
+        original_image_3 = exp_ps(original_image_3);
+
+        // add vectors together
+        original_image_1 = vaddq_f32(original_image_1, original_image_0);
+        original_image_2 = vaddq_f32(original_image_2, original_image_1);
+        original_image_3 = vaddq_f32(original_image_3, original_image_2);
+
+        // sum up whole vector
+        denominator += vaddvq_f32(original_image_3);
     }
 
-    for(i = 0; i < height*width; i++) {
-        new_image[i] = expf(original_image[i]) / denominator;
+    // residual pixels
+    for(i = i; i < height*width; i++) {
+        denominator += expf(original_image[i]);
+    }
+   
+    const fp_t inv_denominator = 1.0/denominator;
+    // apply softmax
+    for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
+        // load image into vectors
+        original_image_0 = vld1q_f32(original_image+i);
+        original_image_1 = vld1q_f32(original_image+i+4);
+        original_image_2 = vld1q_f32(original_image+i+8);
+        original_image_3 = vld1q_f32(original_image+i+12);
+
+        // apply exponential function to vectors 
+        original_image_0 = exp_ps(original_image_0);
+        original_image_1 = exp_ps(original_image_1);
+        original_image_2 = exp_ps(original_image_2);
+        original_image_3 = exp_ps(original_image_3);
+
+        // multiply vectors scalar with inverted denominator
+        original_image_0 = vmulq_n_f32(original_image_0, inv_denominator);
+        original_image_1 = vmulq_n_f32(original_image_1, inv_denominator);
+        original_image_2 = vmulq_n_f32(original_image_2, inv_denominator);
+        original_image_3 = vmulq_n_f32(original_image_3, inv_denominator);
+
+        // store vectors in new image
+        vst1q_f32(new_image+i, original_image_0);
+        vst1q_f32(new_image+i+4, original_image_1);
+        vst1q_f32(new_image+i+8, original_image_2);
+        vst1q_f32(new_image+i+12, original_image_3);
+    }
+
+    // residual pixels
+    for(i = i; i < height*width; i++) {
+        new_image[i] = expf(original_image[i]) * inv_denominator;
     }
 }
 
