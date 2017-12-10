@@ -9,7 +9,13 @@
 
 #include "../parameters.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <math.h>
+
+#ifdef __aarch64__
+//#include "../driver/neon_mathfun.h"
+#include "arm_neon.h"
+#endif
 
 /**
  * @brief applies tanh(x) to all pixel of original_image and stores it in
@@ -119,7 +125,7 @@ void local_response_normalization_naive(fp_t** original_image, const uint16_t he
 #ifdef __aarch64__ 
 /**
  * @brief applies relu(x) to all pixel of original_image and stores it in
- * new_image
+ * new_image optimzed of CPU
  *
  * @param original_image (height x width)
  * @param height
@@ -128,12 +134,70 @@ void local_response_normalization_naive(fp_t** original_image, const uint16_t he
  */
 void relu_cpu(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
 
-    uint16_t i;
+    float32x4_t original_image_0;
+    float32x4_t original_image_1;
+    float32x4_t original_image_2;
+    float32x4_t original_image_3;
 
-    for(i = 0; i < height*width; i++) {
+    float32x4_t new_image_0;
+    float32x4_t new_image_1;
+    float32x4_t new_image_2;
+    float32x4_t new_image_3;
+
+    float32x4_t zero = {0.0, 0.0, 0.0, 0.0};
+
+    uint32_t i;
+
+    for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
+
+        // load image into vectors
+        original_image_0 = vld1q_f32(original_image+i);
+        original_image_1 = vld1q_f32(original_image+i+4);
+        original_image_2 = vld1q_f32(original_image+i+8);
+        original_image_3 = vld1q_f32(original_image+i+12);
+
+        new_image_0 = vmaxq_f32(original_image_0, zero);
+        new_image_1 = vmaxq_f32(original_image_1, zero);
+        new_image_2 = vmaxq_f32(original_image_2, zero);
+        new_image_3 = vmaxq_f32(original_image_3, zero);
+
+        vst1q_f32(new_image+i, new_image_0);
+        vst1q_f32(new_image+i+4, new_image_1);
+        vst1q_f32(new_image+i+8, new_image_2);
+        vst1q_f32(new_image+i+12, new_image_3);
+    }
+
+    // residual pixels
+    for(i = i; i < height*width; i++) {
         new_image[i] = (original_image[i] < 0.0) ? 0.0 : original_image[i];
     }
 }
+
+/**
+ * @brief applies softmax to all pixel of original_image and stores it in
+ * new_image
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param new_image (height x width)
+ */
+void softmax_cpu(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
+
+    uint16_t i;
+
+    fp_t denominator = 0.0;
+
+    for(i = 0; i < height*width; i++) {
+        denominator += expf(original_image[i]);
+    }
+
+    for(i = 0; i < height*width; i++) {
+        new_image[i] = expf(original_image[i]) / denominator;
+    }
+}
+
+
 #endif
 
 #endif // ACTIVATION_FUNCTION_H

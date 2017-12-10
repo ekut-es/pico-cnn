@@ -7,7 +7,7 @@
 #define JPEG
 #define DEBUG
 
-#define NUM_ACTIVATIONS 1024
+#define NUM_ACTIVATIONS 1 
 
 // 0 = relu
 // 1 = softmax
@@ -90,24 +90,41 @@ int main(int argc, char** argv) {
         input_image[i] = input_image[i]*-1.0;
     }
 
-    fp_t** output_image = (fp_t**) malloc(NUM_ACTIVATIONS*height*width*sizeof(fp_t*));
+    fp_t** output_images = (fp_t**) malloc(NUM_ACTIVATIONS*height*width*sizeof(fp_t*));
 
     for(i = 0; i < NUM_ACTIVATIONS; i++) {
-        output_image[i] = (fp_t*) malloc(height*width*sizeof(fp_t));
+        output_images[i] = (fp_t*) malloc(height*width*sizeof(fp_t));
     }
 
     if(mode == NAIVE) {
         for(i = 0; i < NUM_ACTIVATIONS; i++) {
-            relu_naive(input_image, 55, 55, output_image[i]);
+            relu_naive(input_image, height, width, output_images[i]);
         }
     } else if(mode == CPU) {
         for(i = 0; i < NUM_ACTIVATIONS; i++) {
-            relu_cpu(input_image, 55, 55, output_image[i]);
+            #ifdef __aarch64__
+            relu_cpu(input_image, height, width, output_images[i]);
+            #else
+            relu_naive(input_image, height, width, output_images[i]);
+            #endif
         }
     }
 
+    #ifdef DEBUG
+    if(mode == NAIVE) {
+        write_pgm(output_images[0], height, width, "naive.pgm");
+        write_float(output_images[0], height, width, "naive.float");
+    } else if(mode == CPU) {
+        write_pgm(output_images[0], height, width, "cpu.pgm");
+        write_float(output_images[0], height, width, "cpu.float");
+    }
+    #endif
+
     free(input_image);
-    free(output_image);
+    for(i = 0; i < NUM_ACTIVATIONS; i++) {
+        free(output_images[i]);
+    }
+    free(output_images);
 
     return 0;
 }
