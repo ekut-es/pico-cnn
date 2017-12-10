@@ -14,8 +14,6 @@
 #include <string.h>
 #include <math.h>
 
-#include "../io/write_pgm.h"
-
 #ifdef __aarch64__
 #include "arm_neon.h"
 #endif

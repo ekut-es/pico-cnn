@@ -11,7 +11,6 @@
 #include <stdint.h>
 #include <math.h>
 
-
 /**
  * @brief applies tanh(x) to all pixel of original_image and stores it in
  * new_image
