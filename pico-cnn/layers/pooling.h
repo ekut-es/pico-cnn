@@ -13,6 +13,7 @@
 
 #ifdef __aarch64__
 #include "arm_neon.h"
+#include <float.h>
 #endif
 
 
@@ -250,36 +251,135 @@ void max_pooling2d_cpu_2x2_s2(const fp_t* original_image, const uint16_t height,
  */
 void max_pooling2d_cpu_3x3_s2(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
 
-    uint16_t kernel_size = 3;
     uint16_t stride = 2;
 
     uint16_t image_row, image_column;
     uint16_t new_image_row, new_image_column;
-    uint16_t new_image_height, new_image_width;
-
-    uint16_t kernel_row, kernel_column;
+    uint16_t new_image_width;
 
     new_image_row = 0;
     new_image_column = 0;
     
-    new_image_height = height/stride;
     new_image_width = width/stride;
 
-    for(image_row = 0; image_row < height && new_image_row < new_image_height; image_row += stride) {
-        for(image_column = 0; image_column < width && new_image_column < new_image_width; image_column += stride) {
-            fp_t pixel = original_image[image_row*width+image_column];
-    
-            for(kernel_row = image_row; kernel_row < image_row+kernel_size && kernel_row < height; kernel_row++) {
-                for(kernel_column = image_column; kernel_column < image_column+kernel_size && kernel_column < width; kernel_column++) {
-                    if(original_image[kernel_row*width+kernel_column] > pixel) {
-                        pixel = original_image[kernel_row*width+kernel_column];
-                    }
-                }
-            }
-            
-            new_image[new_image_row*new_image_width+new_image_column] = pixel;
+    float32x4_t original_image_0;
+    float32x4_t original_image_1;
+    float32x4_t original_image_2;
+
+    float32x4_t original_image_3;
+    float32x4_t original_image_4;
+    float32x4_t original_image_5;
+
+    float32x4_t original_image_6;
+    float32x4_t original_image_7;
+    float32x4_t original_image_8;
+
+    float32x4_t original_image_9;
+    float32x4_t original_image_10;
+    float32x4_t original_image_11;
+
+
+    float32x2_t temp_max_0;
+    float32x2_t temp_max_1;
+    float32x2_t temp_max_2;
+    float32x2_t temp_max_3;
+
+    fp_t pixel_0;
+    fp_t pixel_1;
+    fp_t pixel_2;
+    fp_t pixel_3;
+
+    for(image_row = 0; image_row < height-2; image_row += 2) {
+        for(image_column = 0; image_column < width-8; image_column += 8) {
+            // load image into vectors 
+            original_image_0 = vld1q_f32(original_image+(image_row*width)+image_column);
+            original_image_1 = vld1q_f32(original_image+((image_row+1)*width)+image_column);
+            original_image_2 = vld1q_f32(original_image+((image_row+2)*width)+image_column);
+
+            original_image_3 = vld1q_f32(original_image+(image_row*width)+image_column+2);
+            original_image_4 = vld1q_f32(original_image+((image_row+1)*width)+image_column+2);
+            original_image_5 = vld1q_f32(original_image+((image_row+2)*width)+image_column+2);
+
+            original_image_6 = vld1q_f32(original_image+(image_row*width)+image_column+4);
+            original_image_7 = vld1q_f32(original_image+((image_row+1)*width)+image_column+4);
+            original_image_8 = vld1q_f32(original_image+((image_row+2)*width)+image_column+4);
+
+            original_image_9 = vld1q_f32(original_image+(image_row*width)+image_column+6);
+            original_image_10 = vld1q_f32(original_image+((image_row+1)*width)+image_column+6);
+            original_image_11 = vld1q_f32(original_image+((image_row+2)*width)+image_column+6);
+
+
+            // determine element wise max 
+            original_image_0 = vmaxq_f32(original_image_0, original_image_1);
+            original_image_0 = vmaxq_f32(original_image_0, original_image_2);
+
+            original_image_3 = vmaxq_f32(original_image_3, original_image_4);
+            original_image_3 = vmaxq_f32(original_image_3, original_image_5);
+
+            original_image_6 = vmaxq_f32(original_image_6, original_image_7);
+            original_image_6 = vmaxq_f32(original_image_6, original_image_8);
+
+            original_image_9 = vmaxq_f32(original_image_9, original_image_10);
+            original_image_9 = vmaxq_f32(original_image_9, original_image_11);
+
+
+            // set last element to FLT_MIN
+            original_image_0 = vsetq_lane_f32(-FLT_MAX, original_image_0, 3);
+            original_image_3 = vsetq_lane_f32(-FLT_MAX, original_image_3, 3);
+            original_image_6 = vsetq_lane_f32(-FLT_MAX, original_image_6, 3);
+            original_image_9 = vsetq_lane_f32(-FLT_MAX, original_image_9, 3);
+
+            // determine max
+            temp_max_0 = vpmax_f32(vget_low_f32(original_image_0), vget_high_f32(original_image_0));
+            temp_max_0 = vpmax_f32(temp_max_0, temp_max_0);
+
+            temp_max_1 = vpmax_f32(vget_low_f32(original_image_3), vget_high_f32(original_image_3));
+            temp_max_1 = vpmax_f32(temp_max_1, temp_max_1);
+
+            temp_max_2 = vpmax_f32(vget_low_f32(original_image_6), vget_high_f32(original_image_6));
+            temp_max_2 = vpmax_f32(temp_max_2, temp_max_2);
+
+            temp_max_3 = vpmax_f32(vget_low_f32(original_image_9), vget_high_f32(original_image_9));
+            temp_max_3 = vpmax_f32(temp_max_3, temp_max_3);
+
+
+            pixel_0 = vget_lane_f32(temp_max_0, 0); 
+            pixel_1 = vget_lane_f32(temp_max_1, 0); 
+            pixel_2 = vget_lane_f32(temp_max_2, 0); 
+            pixel_3 = vget_lane_f32(temp_max_3, 0); 
+
+            new_image[new_image_row*new_image_width+new_image_column] = pixel_0;
+            new_image[new_image_row*new_image_width+new_image_column+1] = pixel_1;
+            new_image[new_image_row*new_image_width+new_image_column+2] = pixel_2;
+            new_image[new_image_row*new_image_width+new_image_column+3] = pixel_3;
+            new_image_column+=4;
+        }
+
+        // residual columns
+        for(image_column = image_column; image_column < width; image_column+=2) {
+
+            // load image into vectors 
+            original_image_0 = vld1q_f32(original_image+(image_row*width)+image_column);
+            original_image_1 = vld1q_f32(original_image+((image_row+1)*width)+image_column);
+            original_image_2 = vld1q_f32(original_image+((image_row+2)*width)+image_column);
+
+            // determine element wise max 
+            original_image_0 = vmaxq_f32(original_image_0, original_image_1);
+            original_image_0 = vmaxq_f32(original_image_0, original_image_2);
+
+            // set last element to FLT_MIN
+            original_image_0 = vsetq_lane_f32(FLT_MIN, original_image_0, 3);
+
+            // determine max
+            temp_max_0 = vpmax_f32(vget_low_f32(original_image_0), vget_high_f32(original_image_0));
+            temp_max_0 = vpmax_f32(temp_max_0, temp_max_0);
+
+            pixel_0 = vget_lane_f32(temp_max_0, 0); 
+            new_image[new_image_row*new_image_width+new_image_column] = pixel_0;
             new_image_column++;
         }
+
+
         new_image_row++;
         new_image_column = 0;
     }
