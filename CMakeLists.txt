@@ -23,6 +23,9 @@ if(BUILD_TESTS)
 
     add_executable(activation_function_benchmark ${PROJECT_SOURCE_DIR}/test/activation_function_benchmark.c)
     target_link_libraries(activation_function_benchmark ${LINK_LIBS} jpeg)
+
+    add_executable(pooling_benchmark ${PROJECT_SOURCE_DIR}/test/pooling_benchmark.c)
+    target_link_libraries(pooling_benchmark ${LINK_LIBS} jpeg)
 endif()
 
 if(BUILD_UTILS)

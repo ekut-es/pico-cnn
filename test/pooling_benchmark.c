@@ -7,7 +7,7 @@
 #define JPEG
 #define DEBUG
 
-#define NUM_POOLINGS 128
+#define NUM_POOLINGS 512
 #define SIZE 2
 #define STRIDE 2
 
@@ -83,11 +83,18 @@ int main(int argc, char** argv) {
 
     int i;
 
+    fp_t** output_images = (fp_t**) malloc(NUM_POOLINGS*height/STRIDE*width/STRIDE*sizeof(fp_t*));
+
+    for(i = 0; i < NUM_POOLINGS; i++) {
+        output_images[i] = (fp_t*) malloc(height/STRIDE*width/STRIDE*sizeof(fp_t));
+    }
+
     if(mode == NAIVE) {
         for(i = 0; i < NUM_POOLINGS; i++) {
             max_pooling2d_naive(input_image, height, width, output_images[i], SIZE, STRIDE);
         }
     } else if(mode == CPU) {
+        //#pragma omp parallel for
         for(i = 0; i < NUM_POOLINGS; i++) {
             #ifdef __aarch64__
                 #if SIZE == 2 && STRIDE == 2
@@ -103,17 +110,17 @@ int main(int argc, char** argv) {
 
     #ifdef DEBUG
     if(mode == NAIVE) {
-        write_pgm(output_images[0], height, width, "naive.pgm");
-        write_float(output_images[0], height, width, "naive.float");
+        write_pgm(output_images[0], height/STRIDE, width/STRIDE, "naive.pgm");
+        write_float(output_images[0], height/STRIDE, width/STRIDE, "naive.float");
     } else if(mode == CPU) {
-        write_pgm(output_images[0], height, width, "cpu.pgm");
-        write_float(output_images[0], height, width, "cpu.float");
+        write_pgm(output_images[0], height/STRIDE, width/STRIDE, "cpu.pgm");
+        write_float(output_images[0], height/STRIDE, width/STRIDE, "cpu.float");
     }
     #endif
 
     free(input_image);
 
-    for(i = 0; i < NUM_ACTIVATIONS; i++) {
+    for(i = 0; i < NUM_POOLINGS; i++) {
         free(output_images[i]);
     }
     free(output_images);
