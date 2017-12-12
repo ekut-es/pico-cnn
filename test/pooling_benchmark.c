@@ -7,8 +7,8 @@
 #define JPEG
 #define DEBUG
 
-#define NUM_POOLINGS 512
-#define SIZE 2
+#define NUM_POOLINGS 1024
+#define SIZE 3
 #define STRIDE 2
 
 #include "pico-cnn/pico-cnn.h"
