@@ -120,26 +120,48 @@ void max_pooling2d_cpu_2x2_s2(const fp_t* original_image, const uint16_t height,
     float32x4_t original_image_1;
     float32x4_t original_image_2;
     float32x4_t original_image_3;
+    float32x4_t original_image_4;
+    float32x4_t original_image_5;
+    float32x4_t original_image_6;
+    float32x4_t original_image_7;
 
     float32x2_t temp_max_0;
     float32x2_t temp_max_1;
     float32x2_t temp_max_2;
     float32x2_t temp_max_3;
+    float32x2_t temp_max_4;
+    float32x2_t temp_max_5;
+    float32x2_t temp_max_6;
+    float32x2_t temp_max_7;
 
     fp_t pixel_0;
     fp_t pixel_1;
     fp_t pixel_2;
     fp_t pixel_3;
+    fp_t pixel_4;
+    fp_t pixel_5;
+    fp_t pixel_6;
+    fp_t pixel_7;
 
 
     for(image_row = 0; image_row < height-4; image_row += 4) {
-        for(image_column = 0; image_column < width-4; image_column += 4) {
-             
+        for(image_column = 0; image_column < width-8; image_column += 8) {
+           
+            const uint32_t source_0 = (image_row*width)+image_column;
+            const uint32_t source_1 = ((image_row+1)*width)+image_column;
+            const uint32_t source_2 = ((image_row+2)*width)+image_column;
+            const uint32_t source_3 = ((image_row+3)*width)+image_column;
+
             // load image into vectors 
-            original_image_0 = vld1q_f32(original_image+(image_row*width)+image_column);
-            original_image_1 = vld1q_f32(original_image+((image_row+1)*width)+image_column);
-            original_image_2 = vld1q_f32(original_image+((image_row+2)*width)+image_column);
-            original_image_3 = vld1q_f32(original_image+((image_row+3)*width)+image_column);
+            original_image_0 = vld1q_f32(original_image+source_0);
+            original_image_1 = vld1q_f32(original_image+source_1);
+            original_image_2 = vld1q_f32(original_image+source_2);
+            original_image_3 = vld1q_f32(original_image+source_3);
+
+            original_image_4 = vld1q_f32(original_image+source_0+4);
+            original_image_5 = vld1q_f32(original_image+source_1+4);
+            original_image_6 = vld1q_f32(original_image+source_2+4);
+            original_image_7 = vld1q_f32(original_image+source_3+4);
 
             // determine max of halfs
             temp_max_0 = vpmax_f32(vget_low_f32(original_image_0), vget_low_f32(original_image_1));
@@ -147,24 +169,47 @@ void max_pooling2d_cpu_2x2_s2(const fp_t* original_image, const uint16_t height,
             temp_max_2 = vpmax_f32(vget_low_f32(original_image_2), vget_low_f32(original_image_3));
             temp_max_3 = vpmax_f32(vget_high_f32(original_image_2), vget_high_f32(original_image_3));
 
+            temp_max_4 = vpmax_f32(vget_low_f32(original_image_4), vget_low_f32(original_image_5));
+            temp_max_5 = vpmax_f32(vget_high_f32(original_image_4), vget_high_f32(original_image_5));
+            temp_max_6 = vpmax_f32(vget_low_f32(original_image_6), vget_low_f32(original_image_7));
+            temp_max_7 = vpmax_f32(vget_high_f32(original_image_6), vget_high_f32(original_image_7));
+
+
             // determine max of temp_max_*
             temp_max_0 = vpmax_f32(temp_max_0, temp_max_0);
             temp_max_1 = vpmax_f32(temp_max_1, temp_max_1);
             temp_max_2 = vpmax_f32(temp_max_2, temp_max_2);
             temp_max_3 = vpmax_f32(temp_max_3, temp_max_3);
 
+            temp_max_4 = vpmax_f32(temp_max_4, temp_max_4);
+            temp_max_5 = vpmax_f32(temp_max_5, temp_max_5);
+            temp_max_6 = vpmax_f32(temp_max_6, temp_max_6);
+            temp_max_7 = vpmax_f32(temp_max_7, temp_max_7);
+
             pixel_0 = vget_lane_f32(temp_max_0, 0);
             pixel_1 = vget_lane_f32(temp_max_1, 0);
             pixel_2 = vget_lane_f32(temp_max_2, 0);
             pixel_3 = vget_lane_f32(temp_max_3, 0);
 
+            pixel_4 = vget_lane_f32(temp_max_4, 0);
+            pixel_5 = vget_lane_f32(temp_max_5, 0);
+            pixel_6 = vget_lane_f32(temp_max_6, 0);
+            pixel_7 = vget_lane_f32(temp_max_7, 0);
 
-            new_image[new_image_row*new_image_width+new_image_column] = pixel_0;
-            new_image[new_image_row*new_image_width+new_image_column+1] = pixel_1;
-            new_image[(new_image_row+1)*new_image_width+new_image_column] = pixel_2;
-            new_image[(new_image_row+1)*new_image_width+new_image_column+1] = pixel_3;
+            const uint32_t target_0 = new_image_row*new_image_width+new_image_column;
+            const uint32_t target_1 = (new_image_row+1)*new_image_width+new_image_column;
 
-            new_image_column+=2;
+            new_image[target_0] = pixel_0;
+            new_image[target_0+1] = pixel_1;
+            new_image[target_1] = pixel_2;
+            new_image[target_1+1] = pixel_3;
+
+            new_image[target_0+2] = pixel_4;
+            new_image[target_0+3] = pixel_5;
+            new_image[target_1+2] = pixel_6;
+            new_image[target_1+3] = pixel_7;
+
+            new_image_column+=4;
         }
 
         // residual columns
