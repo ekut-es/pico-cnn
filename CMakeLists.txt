@@ -26,6 +26,9 @@ if(BUILD_TESTS)
 
     add_executable(pooling_benchmark ${PROJECT_SOURCE_DIR}/test/pooling_benchmark.c)
     target_link_libraries(pooling_benchmark ${LINK_LIBS} jpeg)
+
+    add_executable(fully_connected_benchmark ${PROJECT_SOURCE_DIR}/test/fully_connected_benchmark.c)
+    target_link_libraries(fully_connected_benchmark ${LINK_LIBS} jpeg)
 endif()
 
 if(BUILD_UTILS)
