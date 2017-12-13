@@ -45,6 +45,9 @@ if(BUILD_EXAMPLES)
     add_executable(caffe_lenet_naive ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_naive.c)
     target_link_libraries(caffe_lenet_naive ${LINK_LIBS})
 
+    add_executable(caffe_lenet_cpu ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_cpu.c)
+    target_link_libraries(caffe_lenet_cpu ${LINK_LIBS})
+
 	add_executable(es_alexnet_naive ${PROJECT_SOURCE_DIR}/examples/es_alexnet_naive.c)
     target_link_libraries(es_alexnet_naive ${LINK_LIBS} jpeg)
 endif()
