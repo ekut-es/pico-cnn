@@ -6,8 +6,8 @@ LeNet-5 implementation as proposed by Yann LeCun <a id="cit_LeCun1998">[[LeCun19
 mkdir build
 cd build
 cmake ..
-make lenet_tanh
-./lenet_tanh PATH_TO_MNIST_DATASET PATH_TO_WEIGHT_FILE
+make caffe_lenet
+./caffe_lenet PATH_TO_MNIST_DATASET ../data/caffe_lenet.weights 
 ``` 
 
 ## Build Everything

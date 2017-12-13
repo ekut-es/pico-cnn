@@ -42,11 +42,8 @@ if(BUILD_UTILS)
 endif()
 
 if(BUILD_EXAMPLES)
-	#add_executable(lenet_tanh ${PROJECT_SOURCE_DIR}/examples/lenet_tanh.c)
-	#target_link_libraries(lenet_tanh ${LINK_LIBS})
-
-    add_executable(lenet_caffe ${PROJECT_SOURCE_DIR}/examples/lenet_caffe.c)
-    target_link_libraries(lenet_caffe ${LINK_LIBS})
+    add_executable(caffe_lenet ${PROJECT_SOURCE_DIR}/examples/caffe_lenet.c)
+    target_link_libraries(caffe_lenet ${LINK_LIBS})
 
 	add_executable(es_alexnet ${PROJECT_SOURCE_DIR}/examples/es_alexnet.c)
     target_link_libraries(es_alexnet ${LINK_LIBS} jpeg)

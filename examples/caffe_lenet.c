@@ -13,7 +13,7 @@
 #include "pico-cnn/pico-cnn.h"
 
 void usage() {
-    printf("./lenet_caffe PATH_TO_MNIST_DATASET PATH_TO_WEIGHTS_FILE\n");
+    printf("./caffe_lenet PATH_TO_MNIST_DATASET PATH_TO_WEIGHTS_FILE\n");
 }
 
 /**
