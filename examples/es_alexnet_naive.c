@@ -7,7 +7,17 @@
 
 #define JPEG
 #define IMAGENET
+#define NUM 10
 //#define DEBUG
+
+// used to read the validation images
+#define IMAGE_PREFIX "ILSVRC2012_val_"
+#define NUMBER_LENGTH 8
+#define IMAGE_SUFFIX ".JPEG"
+#define START_NUMBER 1
+
+// The first image will be read from:
+// PATH_TO_IMAGE_NET_VAL_IMAGES/IMAGE_PREFIX_00000001.JPEG
 
 #include "pico-cnn/pico-cnn.h"
 #include <stdio.h>
@@ -17,7 +27,77 @@ void usage() {
     printf("PATH_TO_ES_ALEXNET_WEIGHTS.weights \\\n");
     printf("PATH_TO_MEANS_FILE.means \\\n");
     printf("PATH_TO_IMAGE_NET_LABELS.txt \\\n");
-    printf("PATH_TO_IMAGE.jpg\n");
+    printf("PATH_TO_IMAGE_NET_VAL_LABELS.txt \\\n");
+    printf("PATH_TO_IMAGE_NET_VAL_IMAGES\n");
+}
+
+/**
+ * @brief reads a jpeg image from path_to_input_image substracts the means from
+ * all channels and stores it in input_image
+ *
+ * @param path_to_input_image
+ * @param input_image
+ */
+int read_input_image(const char* path_to_input_image, fp_t*** input_image, fp_t* means) {
+    fp_t** pre_mean_input;
+
+    uint16_t height;
+    uint16_t width;
+
+    if(read_jpeg(&pre_mean_input, path_to_input_image, 0.0, 255.0, &height, &width) != 0) {
+        return 1;
+    }
+
+    // make pgm of pre mean input image
+    #ifdef DEBUG
+    float* pre_mean_input_file_content = (fp_t*) malloc(227*227*3*sizeof(fp_t));
+    for(j = 0; j < 3; j++) {
+        memcpy(&pre_mean_input_file_content[j*227*227], pre_mean_input[j], 227*227*sizeof(fp_t));
+    }
+    
+    write_pgm(pre_mean_input_file_content, 3*227, 227, "pre_mean_input.pgm");
+    write_float(pre_mean_input_file_content, 3*227, 227, "pre_mean_input.float");
+    free(pre_mean_input_file_content);
+    #endif
+
+    // substract mean from each channel
+    (*input_image) = (fp_t**) malloc(3*sizeof(fp_t*));
+    (*input_image)[0] = (fp_t*) malloc(227*227*sizeof(fp_t));
+    (*input_image)[1] = (fp_t*) malloc(227*227*sizeof(fp_t));
+    (*input_image)[2] = (fp_t*) malloc(227*227*sizeof(fp_t));
+        
+    uint16_t row;
+    uint16_t column;
+
+    int i;
+
+    for(i = 0; i < 3; i++) {
+        for(row = 0; row < height; row++) {
+            for(column = 0; column < height; column++) {
+                (*input_image)[i][row*width+column] = pre_mean_input[i][row*width+column] - means[i];
+            }
+        }
+    }
+
+    // free pre mean input image
+    for(i = 0; i < 3; i++) {
+        free(pre_mean_input[i]);
+    }
+    free(pre_mean_input);
+
+    // make pgm of input image
+    #ifdef DEBUG
+    float* input_file_content = (fp_t*) malloc(227*227*3*sizeof(fp_t));
+    for(j = 0; j < 3; j++) {
+        memcpy(&input_file_content[j*227*227], input[j], 227*227*sizeof(fp_t));
+    }
+    
+    write_pgm(input_file_content, 3*227, 227, "input.pgm");
+    write_float(input_file_content, 3*227, 227, "input.float");
+    free(input_file_content);
+    #endif
+
+    return 0;
 }
 
 /**
@@ -53,7 +133,7 @@ void sort_prediction(fp_t* prediction, uint16_t* labels_pos, const uint16_t leng
 
 int main(int argc, char** argv) {
 
-    if(argc != 5) {
+    if(argc != 6) {
         fprintf(stderr, "too few or to many arguments!\n");
         usage();
         return 1;
@@ -62,14 +142,16 @@ int main(int argc, char** argv) {
     char weights_path[1024];
     char means_path[1024];
     char labels_path[1024];
-    char jpeg_path[1024];
+    char labels_val_path[1024];
+    char images_val_path[1024];
 
     strcpy(weights_path, argv[1]);
     strcpy(means_path, argv[2]);
     strcpy(labels_path, argv[3]);
-    strcpy(jpeg_path, argv[4]);
+    strcpy(labels_val_path, argv[4]);
+    strcpy(images_val_path, argv[5]);
 
-    unsigned int i, j;
+    unsigned int i, j, k;
 
     // read kernels and biasses
     fp_t*** kernels;
@@ -81,7 +163,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "could not read weights from '%s'\n", weights_path);
         return 1;
     }
-
 
     // read means
     printf("reading means from '%s'\n", means_path);
@@ -107,66 +188,34 @@ int main(int argc, char** argv) {
     }
 
 
-    // read input image
-    printf("reading input image '%s'\n", jpeg_path);
+    // read validation labels
+    printf("reading validation labels from '%s'\n", labels_val_path);
 
-    fp_t** pre_mean_input;
-
-    uint16_t height;
-    uint16_t width;
-
-    read_jpeg(&pre_mean_input, jpeg_path, 0.0, 255.0, &height, &width);
-
-    // make pgm of pre mean input image
-    #ifdef DEBUG
-    float* pre_mean_input_file_content = (fp_t*) malloc(227*227*3*sizeof(fp_t));
-    for(j = 0; j < 3; j++) {
-        memcpy(&pre_mean_input_file_content[j*227*227], pre_mean_input[j], 227*227*sizeof(fp_t));
-    }
+    uint32_t* validation_labels;
+    int num_validation_labels;
     
-    write_pgm(pre_mean_input_file_content, 3*227, 227, "pre_mean_input.pgm");
-    write_float(pre_mean_input_file_content, 3*227, 227, "pre_mean_input.float");
-    free(pre_mean_input_file_content);
-    #endif
-
-    // substract mean from each channel
-    fp_t** input = (fp_t**) malloc(3*sizeof(fp_t*));
-    input[0] = (fp_t*) malloc(227*227*sizeof(fp_t));
-    input[1] = (fp_t*) malloc(227*227*sizeof(fp_t));
-    input[2] = (fp_t*) malloc(227*227*sizeof(fp_t));
-        
-    uint16_t row;
-    uint16_t column;
-
-    for(i = 0; i < 3; i++) {
-        for(row = 0; row < height; row++) {
-            for(column = 0; column < height; column++) {
-                input[i][row*width+column] = pre_mean_input[i][row*width+column] - means[i];
-            }
-        }
+    num_validation_labels = read_imagenet_validation_labels(labels_val_path, &validation_labels, NUM);
+   
+    if(num_validation_labels != NUM) {
+        fprintf(stderr, "could not read imagenet validation labels '%s'\n", labels_val_path);
+        return 1;
     }
 
-    // free pre mean input image
-    for(i = 0; i < 3; i++) {
-        free(pre_mean_input[i]);
-    }
-    free(pre_mean_input);
+    // read input images
+    fp_t** input;
+    char path_to_input_image[1024];
 
-    // free means
-    free(means);
-    
-    // make pgm of input image
-    #ifdef DEBUG
-    float* input_file_content = (fp_t*) malloc(227*227*3*sizeof(fp_t));
-    for(j = 0; j < 3; j++) {
-        memcpy(&input_file_content[j*227*227], input[j], 227*227*sizeof(fp_t));
+    for(i = START_NUMBER; i <= NUM; i++) {
+        // NUMBER_LENGTH -------------------|
+        //                                  \/
+        sprintf(path_to_input_image, "%s/%s%08d%s",  images_val_path, IMAGE_PREFIX, i, IMAGE_SUFFIX);
+        printf("%s\n", path_to_input_image);
     }
-    
-    write_pgm(input_file_content, 3*227, 227, "input.pgm");
-    write_float(input_file_content, 3*227, 227, "input.float");
-    free(input_file_content);
-    #endif
 
+    if(read_input_image("/home/konze/usb/imagenet_dataset/227x227/val/ILSVRC2012_val_00000002.JPEG", &input, means) != 0) {
+        fprintf(stderr, "could not read input image '%s'\n", "test");
+        return 1;
+    }
 
     printf("starting CNN\n");
 
@@ -174,8 +223,8 @@ int main(int argc, char** argv) {
     fp_t** conv1_output;
     conv1_output = (fp_t**) malloc(96*sizeof(fp_t*));
 
-    for(i = 0; i < 96; i++) {
-        conv1_output[i] = (fp_t*) malloc(55*55*sizeof(fp_t));
+    for(j = 0; j < 96; j++) {
+        conv1_output[j] = (fp_t*) malloc(55*55*sizeof(fp_t));
     }
 
     fp_t* conv1_intermediate = (fp_t*) malloc(55*55*sizeof(fp_t));
@@ -185,24 +234,24 @@ int main(int argc, char** argv) {
 
     uint16_t kernel_number = 0;
 
-    for(i = 0; i < 96; i++) {
-        convolution2d_naive(input[0], 227, 227, conv1_output[i], conv1_kernels[kernel_number], 11, 4, 0, 0.0);
+    for(j = 0; j < 96; j++) {
+        convolution2d_naive(input[0], 227, 227, conv1_output[j], conv1_kernels[kernel_number], 11, 4, 0, 0.0);
         kernel_number++;
 
         convolution2d_naive(input[1], 227, 227, conv1_intermediate, conv1_kernels[kernel_number], 11, 4, 0, 0.0);
-        add_image2d_naive(conv1_output[i], conv1_intermediate, 55, 55);
+        add_image2d_naive(conv1_output[j], conv1_intermediate, 55, 55);
         kernel_number++;
 
-        convolution2d_naive(input[2], 227, 227, conv1_intermediate, conv1_kernels[kernel_number], 11, 4, 0, conv1_bias[i]);
-        add_image2d_naive(conv1_output[i], conv1_intermediate, 55, 55);
+        convolution2d_naive(input[2], 227, 227, conv1_intermediate, conv1_kernels[kernel_number], 11, 4, 0, conv1_bias[j]);
+        add_image2d_naive(conv1_output[j], conv1_intermediate, 55, 55);
         kernel_number++;
     }
 
     // make pgm of input image
     #ifdef DEBUG
     fp_t* conv1_file_content = (fp_t*) malloc(55*55*96*sizeof(fp_t));
-    for(i = 0; i < 96; i++) {
-        memcpy(&conv1_file_content[i*55*55], conv1_output[i], 55*55*sizeof(fp_t));
+    for(j = 0; j < 96; j++) {
+        memcpy(&conv1_file_content[j*55*55], conv1_output[j], 55*55*sizeof(fp_t));
     }
     
     write_pgm(conv1_file_content, 96*55, 55, "conv1_output.pgm");
@@ -221,15 +270,15 @@ int main(int argc, char** argv) {
 
 
     // relu1
-    for(i = 0; i < 96; i++) {
-        relu_naive(conv1_output[i], 55, 55, conv1_output[i]);
+    for(j = 0; j < 96; j++) {
+        relu_naive(conv1_output[j], 55, 55, conv1_output[j]);
     }
 
     // make pgm of relu1 output
     #ifdef DEBUG
     fp_t* relu1_file_content = (fp_t*) malloc(55*55*96*sizeof(fp_t));
-    for(i = 0; i < 96; i++) {
-        memcpy(&relu1_file_content[i*55*55], conv1_output[i], 55*55*sizeof(fp_t));
+    for(j = 0; j < 96; j++) {
+        memcpy(&relu1_file_content[j*55*55], conv1_output[j], 55*55*sizeof(fp_t));
     }
     write_pgm(relu1_file_content, 96*55, 55, "relu1_output.pgm");
     write_float(relu1_file_content, 96*55, 55, "relu1_output.float");
@@ -241,8 +290,8 @@ int main(int argc, char** argv) {
     fp_t** norm1_output;
     norm1_output = (fp_t**) malloc(96*sizeof(fp_t*));
     
-    for(i = 0; i < 96; i++) {
-        norm1_output[i] = (fp_t*) malloc(55*55*sizeof(fp_t));
+    for(j = 0; j < 96; j++) {
+        norm1_output[j] = (fp_t*) malloc(55*55*sizeof(fp_t));
     }
 
     local_response_normalization_naive(conv1_output, 55, 55, 96, norm1_output, 0.0001, 0.75, 5);
@@ -250,8 +299,8 @@ int main(int argc, char** argv) {
     // make pgm of norm1 output
     #ifdef DEBUG
     fp_t* norm1_file_content = (fp_t*) malloc(55*55*96*sizeof(fp_t));
-    for(i = 0; i < 96; i++) {
-        memcpy(&norm1_file_content[i*55*55], norm1_output[i], 55*55*sizeof(fp_t));
+    for(j = 0; j < 96; j++) {
+        memcpy(&norm1_file_content[j*55*55], norm1_output[j], 55*55*sizeof(fp_t));
     }
     write_pgm(norm1_file_content, 96*55, 55, "norm1_output.pgm");
     write_float(norm1_file_content, 96*55, 55, "norm1_output.float");
@@ -259,8 +308,8 @@ int main(int argc, char** argv) {
     #endif
 
     // free conv1 output
-    for(i = 0; i < 96; i++) {
-        free(conv1_output[i]);
+    for(j = 0; j < 96; j++) {
+        free(conv1_output[j]);
     }
     free(conv1_output);
 
@@ -269,19 +318,19 @@ int main(int argc, char** argv) {
     fp_t** pool1_output;
     pool1_output = (fp_t**) malloc(96*sizeof(fp_t*));
     
-    for(i = 0; i < 96; i++) {
-        pool1_output[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
+    for(j = 0; j < 96; j++) {
+        pool1_output[j] = (fp_t*) malloc(27*27*sizeof(fp_t));
     }
 
-    for(i = 0; i < 96; i++) {
-        max_pooling2d_naive(norm1_output[i], 55, 55, pool1_output[i], 3, 2);
+    for(j = 0; j < 96; j++) {
+        max_pooling2d_naive(norm1_output[j], 55, 55, pool1_output[j], 3, 2);
     }
 
     // make pgm of pool1 output
     #ifdef DEBUG
     fp_t* pool1_file_content = (fp_t*) malloc(27*27*96*sizeof(fp_t));
-    for(i = 0; i < 96; i++) {
-        memcpy(&pool1_file_content[i*27*27], pool1_output[i], 27*27*sizeof(fp_t));
+    for(j = 0; j < 96; j++) {
+        memcpy(&pool1_file_content[j*27*27], pool1_output[j], 27*27*sizeof(fp_t));
     }
     write_pgm(pool1_file_content, 96*27, 27, "pool1_output.pgm");
     write_float(pool1_file_content, 96*27, 27, "pool1_output.float");
@@ -289,8 +338,8 @@ int main(int argc, char** argv) {
     #endif
 
     // free norm1 output
-    for(i = 0; i < 96; i++) {
-        free(norm1_output[i]);
+    for(j = 0; j < 96; j++) {
+        free(norm1_output[j]);
     }
     free(norm1_output);
 
@@ -299,8 +348,8 @@ int main(int argc, char** argv) {
     fp_t** conv2_output;
     conv2_output = (fp_t**) malloc(256*sizeof(fp_t*));
 
-    for(i = 0; i < 256; i++) {
-        conv2_output[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        conv2_output[j] = (fp_t*) malloc(27*27*sizeof(fp_t));
     }
 
 
@@ -309,15 +358,15 @@ int main(int argc, char** argv) {
     fp_t** conv2_kernels = kernels[1];
     fp_t* conv2_bias = biasses[1];
 
-    for(i = 0; i < 256; i++) {
-        convolution2d_naive(pool1_output[0], 27, 27, conv2_output[i], conv2_kernels[i*96], 5, 1, 2, 0.0);
+    for(j = 0; j < 256; j++) {
+        convolution2d_naive(pool1_output[0], 27, 27, conv2_output[j], conv2_kernels[j*96], 5, 1, 2, 0.0);
 
-        for(j = 1; j < 95; j++) {
-            convolution2d_naive(pool1_output[j], 27, 27, conv2_intermediate, conv2_kernels[i*96+j], 5, 1, 2, 0.0);
-            add_image2d_naive(conv2_output[i], conv2_intermediate, 27, 27);
+        for(k = 1; k < 95; k++) {
+            convolution2d_naive(pool1_output[k], 27, 27, conv2_intermediate, conv2_kernels[j*96+k], 5, 1, 2, 0.0);
+            add_image2d_naive(conv2_output[j], conv2_intermediate, 27, 27);
         }
-        convolution2d_naive(pool1_output[95], 27, 27, conv2_intermediate, conv2_kernels[i*96+95], 5, 1, 2, conv2_bias[i]);
-        add_image2d_naive(conv2_output[i], conv2_intermediate, 27, 27);
+        convolution2d_naive(pool1_output[95], 27, 27, conv2_intermediate, conv2_kernels[j*96+95], 5, 1, 2, conv2_bias[j]);
+        add_image2d_naive(conv2_output[j], conv2_intermediate, 27, 27);
     }
 
     // free conv2_intermediate
@@ -326,8 +375,8 @@ int main(int argc, char** argv) {
     // make pgm of conv2 output
     #ifdef DEBUG
     fp_t* conv2_file_content = (fp_t*) malloc(27*27*256*sizeof(fp_t));
-    for(i = 0; i < 256; i++) {
-        memcpy(&conv2_file_content[i*27*27], conv2_output[i], 27*27*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        memcpy(&conv2_file_content[j*27*27], conv2_output[j], 27*27*sizeof(fp_t));
     }
     write_pgm(conv2_file_content, 256*27, 27, "conv2_output.pgm");
     write_float(conv2_file_content, 256*27, 27, "conv2_output.float");
@@ -335,22 +384,22 @@ int main(int argc, char** argv) {
     #endif
 
     // free pool1 output
-    for(i = 0; i < 96; i++) {
-        free(pool1_output[i]);
+    for(j = 0; j < 96; j++) {
+        free(pool1_output[j]);
     }
     free(pool1_output);
 
 
     // relu2
-    for(i = 0; i < 256; i++) {
-        relu_naive(conv2_output[i], 27, 27, conv2_output[i]);
+    for(j = 0; j < 256; j++) {
+        relu_naive(conv2_output[j], 27, 27, conv2_output[j]);
     }
 
     // make pgm of relu1 output
     #ifdef DEBUG
     fp_t* relu2_file_content = (fp_t*) malloc(27*27*256*sizeof(fp_t));
-    for(i = 0; i < 256; i++) {
-        memcpy(&relu2_file_content[i*27*27], conv2_output[i], 27*27*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        memcpy(&relu2_file_content[j*27*27], conv2_output[j], 27*27*sizeof(fp_t));
     }
     write_pgm(relu2_file_content, 256*27, 27, "relu2_output.pgm");
     write_float(relu2_file_content, 256*27, 27, "relu2_output.float");
@@ -362,8 +411,8 @@ int main(int argc, char** argv) {
     fp_t** norm2_output;
     norm2_output = (fp_t**) malloc(256*sizeof(fp_t*));
     
-    for(i = 0; i < 256; i++) {
-        norm2_output[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        norm2_output[j] = (fp_t*) malloc(27*27*sizeof(fp_t));
     }
 
     local_response_normalization_naive(conv2_output, 27, 27, 256, norm2_output, 0.0001, 0.75, 5);
@@ -371,8 +420,8 @@ int main(int argc, char** argv) {
     // make pgm of norm2 output
     #ifdef DEBUG
     fp_t* norm2_file_content = (fp_t*) malloc(27*27*256*sizeof(fp_t));
-    for(i = 0; i < 256; i++) {
-        memcpy(&norm2_file_content[i*27*27], norm2_output[i], 27*27*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        memcpy(&norm2_file_content[j*27*27], norm2_output[j], 27*27*sizeof(fp_t));
     }
     write_pgm(norm2_file_content, 256*27, 27, "norm2_output.pgm");
     write_float(norm2_file_content, 256*27, 27, "norm2_output.float");
@@ -381,8 +430,8 @@ int main(int argc, char** argv) {
 
 
     // free conv2 output
-    for(i = 0; i < 256; i++) {
-        free(conv2_output[i]);
+    for(j = 0; j < 256; j++) {
+        free(conv2_output[j]);
     }
     free(conv2_output);
 
@@ -391,19 +440,19 @@ int main(int argc, char** argv) {
     fp_t** pool2_output;
     pool2_output = (fp_t**) malloc(256*sizeof(fp_t*));
     
-    for(i = 0; i < 256; i++) {
-        pool2_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        pool2_output[j] = (fp_t*) malloc(13*13*sizeof(fp_t));
     }
 
-    for(i = 0; i < 256; i++) {
-        max_pooling2d_naive(norm2_output[i], 27, 27, pool2_output[i], 3, 2);
+    for(j = 0; j < 256; j++) {
+        max_pooling2d_naive(norm2_output[j], 27, 27, pool2_output[j], 3, 2);
     }
 
     // make pgm of pool2 output
     #ifdef DEBUG
     fp_t* pool2_file_content = (fp_t*) malloc(13*13*256*sizeof(fp_t));
-    for(i = 0; i < 256; i++) {
-        memcpy(&pool2_file_content[i*13*13], pool2_output[i], 13*13*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        memcpy(&pool2_file_content[j*13*13], pool2_output[j], 13*13*sizeof(fp_t));
     }
     write_pgm(pool2_file_content, 256*13, 13, "pool2_output.pgm");
     write_float(pool2_file_content, 256*13, 13, "pool2_output.float");
@@ -411,8 +460,8 @@ int main(int argc, char** argv) {
     #endif
 
     // free norm2 output
-    for(i = 0; i < 256; i++) {
-        free(norm2_output[i]);
+    for(j = 0; j < 256; j++) {
+        free(norm2_output[j]);
     }
     free(norm2_output);
 
@@ -421,8 +470,8 @@ int main(int argc, char** argv) {
     fp_t** conv3_output;
     conv3_output = (fp_t**) malloc(384*sizeof(fp_t*));
 
-    for(i = 0; i < 384; i++) {
-        conv3_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
+    for(j = 0; j < 384; j++) {
+        conv3_output[j] = (fp_t*) malloc(13*13*sizeof(fp_t));
     }
 
 
@@ -431,15 +480,15 @@ int main(int argc, char** argv) {
     fp_t** conv3_kernels = kernels[2];
     fp_t* conv3_bias = biasses[2];
 
-    for(i = 0; i < 384; i++) {
-        convolution2d_naive(pool2_output[0], 13, 13, conv3_output[i], conv3_kernels[i*256], 3, 1, 1, 0.0);
+    for(j = 0; j < 384; j++) {
+        convolution2d_naive(pool2_output[0], 13, 13, conv3_output[j], conv3_kernels[j*256], 3, 1, 1, 0.0);
 
-        for(j = 1; j < 255; j++) {
-            convolution2d_naive(pool2_output[j], 13, 13, conv3_intermediate, conv3_kernels[i*256+j], 3, 1, 1, 0.0);
-            add_image2d_naive(conv3_output[i], conv3_intermediate, 13, 13);
+        for(k = 1; k < 255; k++) {
+            convolution2d_naive(pool2_output[k], 13, 13, conv3_intermediate, conv3_kernels[j*256+k], 3, 1, 1, 0.0);
+            add_image2d_naive(conv3_output[j], conv3_intermediate, 13, 13);
         }
-        convolution2d_naive(pool2_output[255], 13, 13, conv3_intermediate, conv3_kernels[i*256+255], 3, 1, 1, conv3_bias[i]);
-        add_image2d_naive(conv3_output[i], conv3_intermediate, 13, 13);
+        convolution2d_naive(pool2_output[255], 13, 13, conv3_intermediate, conv3_kernels[j*256+255], 3, 1, 1, conv3_bias[j]);
+        add_image2d_naive(conv3_output[j], conv3_intermediate, 13, 13);
     }
 
     // free conv3_intermediate
@@ -448,8 +497,8 @@ int main(int argc, char** argv) {
     // make pgm of conv2 output
     #ifdef DEBUG
     fp_t* conv3_file_content = (fp_t*) malloc(13*13*384*sizeof(fp_t));
-    for(i = 0; i < 384; i++) {
-        memcpy(&conv3_file_content[i*13*13], conv3_output[i], 13*13*sizeof(fp_t));
+    for(j = 0; j < 384; j++) {
+        memcpy(&conv3_file_content[j*13*13], conv3_output[j], 13*13*sizeof(fp_t));
     }
     write_pgm(conv3_file_content, 256*13, 13, "conv3_output.pgm");
     write_float(conv3_file_content, 256*13, 13, "conv3_output.float");
@@ -458,22 +507,22 @@ int main(int argc, char** argv) {
 
 
     // free pool2 output
-    for(i = 0; i < 256; i++) {
-        free(pool2_output[i]);
+    for(j = 0; j < 256; j++) {
+        free(pool2_output[j]);
     }
     free(pool2_output);
 
 
     // relu3
-    for(i = 0; i < 384; i++) {
-        relu_naive(conv3_output[i], 13, 13, conv3_output[i]);
+    for(j = 0; j < 384; j++) {
+        relu_naive(conv3_output[j], 13, 13, conv3_output[j]);
     }
 
     // make pgm of relu1 output
     #ifdef DEBUG
     fp_t* relu3_file_content = (fp_t*) malloc(13*13*384*sizeof(fp_t));
-    for(i = 0; i < 384; i++) {
-        memcpy(&relu3_file_content[i*13*13], conv3_output[i], 13*13*sizeof(fp_t));
+    for(j = 0; j < 384; j++) {
+        memcpy(&relu3_file_content[j*13*13], conv3_output[j], 13*13*sizeof(fp_t));
     }
     write_pgm(relu3_file_content, 384*13, 13, "relu3_output.pgm");
     write_float(relu3_file_content, 384*13, 13, "relu3_output.float");
@@ -485,8 +534,8 @@ int main(int argc, char** argv) {
     fp_t** conv4_output;
     conv4_output = (fp_t**) malloc(384*sizeof(fp_t*));
 
-    for(i = 0; i < 384; i++) {
-        conv4_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
+    for(j = 0; j < 384; j++) {
+        conv4_output[j] = (fp_t*) malloc(13*13*sizeof(fp_t));
     }
 
 
@@ -495,15 +544,15 @@ int main(int argc, char** argv) {
     fp_t** conv4_kernels = kernels[3];
     fp_t* conv4_bias = biasses[3];
 
-    for(i = 0; i < 384; i++) {
-        convolution2d_naive(conv3_output[0], 13, 13, conv4_output[i], conv4_kernels[i*384], 3, 1, 1, 0.0);
+    for(j = 0; j < 384; j++) {
+        convolution2d_naive(conv3_output[0], 13, 13, conv4_output[j], conv4_kernels[j*384], 3, 1, 1, 0.0);
 
-        for(j = 1; j < 383; j++) {
-            convolution2d_naive(conv3_output[j], 13, 13, conv4_intermediate, conv4_kernels[i*384+j], 3, 1, 1, 0.0);
-            add_image2d_naive(conv4_output[i], conv4_intermediate, 13, 13);
+        for(k = 1; k < 383; k++) {
+            convolution2d_naive(conv3_output[k], 13, 13, conv4_intermediate, conv4_kernels[j*384+k], 3, 1, 1, 0.0);
+            add_image2d_naive(conv4_output[j], conv4_intermediate, 13, 13);
         }
-        convolution2d_naive(conv3_output[383], 13, 13, conv4_intermediate, conv4_kernels[i*384+383], 3, 1, 1, conv4_bias[i]);
-        add_image2d_naive(conv4_output[i], conv4_intermediate, 13, 13);
+        convolution2d_naive(conv3_output[383], 13, 13, conv4_intermediate, conv4_kernels[j*384+383], 3, 1, 1, conv4_bias[j]);
+        add_image2d_naive(conv4_output[j], conv4_intermediate, 13, 13);
     }
 
     // free conv4_intermediate
@@ -512,8 +561,8 @@ int main(int argc, char** argv) {
     // make pgm of conv4 output
     #ifdef DEBUG
     fp_t* conv4_file_content = (fp_t*) malloc(13*13*384*sizeof(fp_t));
-    for(i = 0; i < 384; i++) {
-        memcpy(&conv4_file_content[i*13*13], conv4_output[i], 13*13*sizeof(fp_t));
+    for(j = 0; j < 384; j++) {
+        memcpy(&conv4_file_content[j*13*13], conv4_output[j], 13*13*sizeof(fp_t));
     }
     write_pgm(conv4_file_content, 384*13, 13, "conv4_output.pgm");
     write_float(conv4_file_content, 384*13, 13, "conv4_output.float");
@@ -521,22 +570,22 @@ int main(int argc, char** argv) {
     #endif
 
     // free conv3 output
-    for(i = 0; i < 384; i++) {
-        free(conv3_output[i]);
+    for(j = 0; j < 384; j++) {
+        free(conv3_output[j]);
     }
     free(conv3_output);
 
 
     // relu4
-    for(i = 0; i < 384; i++) {
-        relu_naive(conv4_output[i], 13, 13, conv4_output[i]);
+    for(j = 0; j < 384; j++) {
+        relu_naive(conv4_output[j], 13, 13, conv4_output[j]);
     }
 
     // make pgm of relu4 output
     #ifdef DEBUG
     fp_t* relu4_file_content = (fp_t*) malloc(13*13*384*sizeof(fp_t));
-    for(i = 0; i < 384; i++) {
-        memcpy(&relu4_file_content[i*13*13], conv4_output[i], 13*13*sizeof(fp_t));
+    for(j = 0; j < 384; j++) {
+        memcpy(&relu4_file_content[j*13*13], conv4_output[j], 13*13*sizeof(fp_t));
     }
     write_pgm(relu4_file_content, 384*13, 13, "relu4_output.pgm");
     write_float(relu4_file_content, 384*13, 13, "relu4_output.float");
@@ -548,8 +597,8 @@ int main(int argc, char** argv) {
     fp_t** conv5_output;
     conv5_output = (fp_t**) malloc(256*sizeof(fp_t*));
 
-    for(i = 0; i < 256; i++) {
-        conv5_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        conv5_output[j] = (fp_t*) malloc(13*13*sizeof(fp_t));
     }
 
     fp_t* conv5_intermediate = (fp_t*) malloc(13*13*sizeof(fp_t));
@@ -557,15 +606,15 @@ int main(int argc, char** argv) {
     fp_t** conv5_kernels = kernels[4];
     fp_t* conv5_bias = biasses[4];
 
-    for(i = 0; i < 256; i++) {
-        convolution2d_naive(conv4_output[0], 13, 13, conv5_output[i], conv5_kernels[i*384], 3, 1, 1, 0.0);
+    for(j = 0; j < 256; j++) {
+        convolution2d_naive(conv4_output[0], 13, 13, conv5_output[j], conv5_kernels[j*384], 3, 1, 1, 0.0);
 
-        for(j = 1; j < 383; j++) {
-            convolution2d_naive(conv4_output[j], 13, 13, conv5_intermediate, conv5_kernels[i*384+j], 3, 1, 1, 0.0);
-            add_image2d_naive(conv5_output[i], conv5_intermediate, 13, 13);
+        for(k = 1; k < 383; k++) {
+            convolution2d_naive(conv4_output[k], 13, 13, conv5_intermediate, conv5_kernels[j*384+k], 3, 1, 1, 0.0);
+            add_image2d_naive(conv5_output[j], conv5_intermediate, 13, 13);
         }
-        convolution2d_naive(conv4_output[383], 13, 13, conv5_intermediate, conv5_kernels[i*384+383], 3, 1, 1, conv5_bias[i]);
-        add_image2d_naive(conv5_output[i], conv5_intermediate, 13, 13);
+        convolution2d_naive(conv4_output[383], 13, 13, conv5_intermediate, conv5_kernels[j*384+383], 3, 1, 1, conv5_bias[j]);
+        add_image2d_naive(conv5_output[j], conv5_intermediate, 13, 13);
     }
 
     // free conv5_intermediate
@@ -574,8 +623,8 @@ int main(int argc, char** argv) {
     // make pgm of conv5 output
     #ifdef DEBUG
     fp_t* conv5_file_content = (fp_t*) malloc(13*13*256*sizeof(fp_t));
-    for(i = 0; i < 256; i++) {
-        memcpy(&conv5_file_content[i*13*13], conv5_output[i], 13*13*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        memcpy(&conv5_file_content[j*13*13], conv5_output[j], 13*13*sizeof(fp_t));
     }
     write_pgm(conv5_file_content, 256*13, 13, "conv5_output.pgm");
     write_float(conv5_file_content, 256*13, 13, "conv5_output.float");
@@ -584,22 +633,22 @@ int main(int argc, char** argv) {
 
 
     // free conv4 output
-    for(i = 0; i < 384; i++) {
-        free(conv4_output[i]);
+    for(j = 0; j < 384; j++) {
+        free(conv4_output[j]);
     }
     free(conv4_output);
 
 
     // relu5
-    for(i = 0; i < 256; i++) {
-        relu_naive(conv5_output[i], 13, 13, conv5_output[i]);
+    for(j = 0; j < 256; j++) {
+        relu_naive(conv5_output[j], 13, 13, conv5_output[j]);
     }
 
     // make pgm of relu5 output
     #ifdef DEBUG
     fp_t* relu5_file_content = (fp_t*) malloc(13*13*256*sizeof(fp_t));
-    for(i = 0; i < 256; i++) {
-        memcpy(&relu5_file_content[i*13*13], conv5_output[i], 13*13*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        memcpy(&relu5_file_content[j*13*13], conv5_output[j], 13*13*sizeof(fp_t));
     }
     write_pgm(relu5_file_content, 256*13, 13, "relu5_output.pgm");
     write_float(relu5_file_content, 256*13, 13, "relu5_output.float");
@@ -611,19 +660,19 @@ int main(int argc, char** argv) {
     fp_t** pool5_output;
     pool5_output = (fp_t**) malloc(256*sizeof(fp_t*));
     
-    for(i = 0; i < 256; i++) {
-        pool5_output[i] = (fp_t*) malloc(6*6*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        pool5_output[j] = (fp_t*) malloc(6*6*sizeof(fp_t));
     }
 
-    for(i = 0; i < 256; i++) {
-        max_pooling2d_naive(conv5_output[i], 13, 13, pool5_output[i], 3, 2);
+    for(j = 0; j < 256; j++) {
+        max_pooling2d_naive(conv5_output[j], 13, 13, pool5_output[j], 3, 2);
     }
 
     // make pgm of pool2 output
     #ifdef DEBUG
     fp_t* pool5_file_content = (fp_t*) malloc(6*6*256*sizeof(fp_t));
-    for(i = 0; i < 256; i++) {
-        memcpy(&pool5_file_content[i*6*6], pool5_output[i], 6*6*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        memcpy(&pool5_file_content[j*6*6], pool5_output[j], 6*6*sizeof(fp_t));
     }
     write_pgm(pool5_file_content, 256*6, 6, "pool5_output.pgm");
     write_float(pool5_file_content, 256*6, 6, "pool5_output.float");
@@ -631,8 +680,8 @@ int main(int argc, char** argv) {
     #endif
 
     // free conv5 output
-    for(i = 0; i < 256; i++) {
-        free(conv5_output[i]);
+    for(j = 0; j < 256; j++) {
+        free(conv5_output[j]);
     }
     free(conv5_output);
 
@@ -640,13 +689,13 @@ int main(int argc, char** argv) {
     // fc6 6x6x256 = 1x9216 -> 1x4096
     // merge S4 output
     fp_t* pool5_output_merged = (fp_t*) malloc(6*6*256*sizeof(fp_t));
-    for(i = 0; i < 256; i++) {
-        memcpy(&pool5_output_merged[i*6*6], pool5_output[i], 6*6*sizeof(fp_t));
+    for(j = 0; j < 256; j++) {
+        memcpy(&pool5_output_merged[j*6*6], pool5_output[j], 6*6*sizeof(fp_t));
     }
 
     // free pool5 output
-    for(i = 0; i < 256; i++) {
-        free(pool5_output[i]);
+    for(j = 0; j < 256; j++) {
+        free(pool5_output[j]);
     }
     free(pool5_output);
 
@@ -743,7 +792,24 @@ int main(int argc, char** argv) {
     write_float(fc8_output, 1, 1000, "prob_output.float");
     #endif
 
+    // print prediction
+    uint16_t* labels_pos;
+    labels_pos = (uint16_t*) malloc(1000*sizeof(uint16_t));
 
+    for(j = 0; j < 1000; j++) {
+        labels_pos[j] = j;
+    }
+
+    sort_prediction(fc8_output, labels_pos, 1000);
+
+    printf("prediction:\n");
+
+    for(j = 0; j < 10; j++) {
+        printf("%d %f %s\n", j+1, fc8_output[j], labels[labels_pos[j]]);
+    }
+
+
+    // free memory
     for(i = 0; i < 288; i++) {
         free(kernels[0][i]);
     }
@@ -781,22 +847,12 @@ int main(int argc, char** argv) {
         free(biasses[i]);
     }
     free(biasses);
+ 
     
-    // print prediction
-    uint16_t* labels_pos;
-    labels_pos = (uint16_t*) malloc(1000*sizeof(uint16_t));
+    // free means
+    free(means);   
 
-    for(i = 0; i < 1000; i++) {
-        labels_pos[i] = i;
-    }
-
-    sort_prediction(fc8_output, labels_pos, 1000);
-
-    printf("prediction:\n");
-
-    for(i = 0; i < 10; i++) {
-        printf("%d %f %s\n", i+1, fc8_output[i], labels[labels_pos[i]]);
-    }
+    
 
     free(fc8_output);
 

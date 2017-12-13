@@ -28,6 +28,7 @@
 #ifdef IMAGENET
 #include "io/read_means.h"
 #include "io/read_imagenet_labels.h"
+#include "io/read_imagenet_validation_labels.h"
 #endif
 
 #ifdef DEBUG

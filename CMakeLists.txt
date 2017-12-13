@@ -50,6 +50,9 @@ if(BUILD_EXAMPLES)
 
 	add_executable(es_alexnet_naive ${PROJECT_SOURCE_DIR}/examples/es_alexnet_naive.c)
     target_link_libraries(es_alexnet_naive ${LINK_LIBS} jpeg)
+
+    add_executable(es_alexnet_cpu ${PROJECT_SOURCE_DIR}/examples/es_alexnet_cpu.c)
+    target_link_libraries(es_alexnet_cpu ${LINK_LIBS} jpeg)
 endif()
 
 # removes pgm and float files
