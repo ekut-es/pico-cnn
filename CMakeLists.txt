@@ -42,11 +42,11 @@ if(BUILD_UTILS)
 endif()
 
 if(BUILD_EXAMPLES)
-    add_executable(caffe_lenet ${PROJECT_SOURCE_DIR}/examples/caffe_lenet.c)
-    target_link_libraries(caffe_lenet ${LINK_LIBS})
+    add_executable(caffe_lenet_naive ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_naive.c)
+    target_link_libraries(caffe_lenet_naive ${LINK_LIBS})
 
-	add_executable(es_alexnet ${PROJECT_SOURCE_DIR}/examples/es_alexnet.c)
-    target_link_libraries(es_alexnet ${LINK_LIBS} jpeg)
+	add_executable(es_alexnet_naive ${PROJECT_SOURCE_DIR}/examples/es_alexnet_naive.c)
+    target_link_libraries(es_alexnet_naive ${LINK_LIBS} jpeg)
 endif()
 
 # removes pgm and float files

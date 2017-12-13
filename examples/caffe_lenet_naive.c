@@ -6,7 +6,7 @@
  */
 
 #define MNIST
-#define NUM 1000
+#define NUM 10000
 //#define DEBUG
 #define INDEX 0
 
