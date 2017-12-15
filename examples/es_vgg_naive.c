@@ -1185,7 +1185,6 @@ int main(int argc, char** argv) {
         }
         free(conv5_3_output);
 
-        /*
 
         // fc6 7x7x512 = 1x25088 -> 1x4096
         // merge pool5 output
@@ -1194,14 +1193,12 @@ int main(int argc, char** argv) {
             memcpy(&pool5_output_merged[j*7*7], pool5_output[j], 7*7*sizeof(fp_t));
         }
 
-        */
         // free pool5 output
         for(j = 0; j < 512; j++) {
             free(pool5_output[j]);
         }
         free(pool5_output);
 
-        /*
         fp_t* fc6_output;
         fc6_output = (fp_t*) malloc(4096*sizeof(fp_t));
 
@@ -1216,6 +1213,10 @@ int main(int argc, char** argv) {
         write_float(fc6_output, 1, 4096, "fc6_output.float");
         #endif
 
+        free(pool5_output_merged);
+
+        free(fc6_output);
+        /*
        
 
 
