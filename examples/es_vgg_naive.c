@@ -1280,11 +1280,19 @@ int main(int argc, char** argv) {
         // free fc7 output
         free(fc7_output);
 
-        
+
+        // loss
+        softmax_naive(fc8_output, 1, 1000, fc8_output);
+
+        // make pgm prob
+        #ifdef DEBUG
+        write_pgm(fc8_output, 1, 1000, "loss_output.pgm");
+        write_float(fc8_output, 1, 1000, "loss_output.float");
+        #endif
+
+
         // free fc8 output
         free(fc8_output);
-
-
 
 
 
