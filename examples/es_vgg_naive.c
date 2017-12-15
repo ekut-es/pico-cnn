@@ -487,6 +487,9 @@ int main(int argc, char** argv) {
         free(conv2_2_file_content);
         #endif
 
+        // free conv2_2_intermediate
+        free(conv2_2_intermediate);
+
         // free conv2_1 output
         for(j = 0; j < 128; j++) {
             free(conv2_1_output[j]);
@@ -578,6 +581,9 @@ int main(int argc, char** argv) {
         free(conv3_1_file_content);
         #endif
 
+        // free conv3_1_intermediate
+        free(conv3_1_intermediate);
+
         // free pool2 output
         for(j = 0; j < 128; j++) {
             free(pool2_output[j]);
@@ -638,6 +644,10 @@ int main(int argc, char** argv) {
         write_float(conv3_2_file_content, 256*56, 56, "conv3_2_output.float");
         free(conv3_2_file_content);
         #endif
+
+        // free conv3_1_intermediate
+        free(conv3_2_intermediate);
+
 
         // free conv3_1 output
         for(j = 0; j < 256; j++) {
@@ -700,6 +710,9 @@ int main(int argc, char** argv) {
         free(conv3_3_file_content);
         #endif
 
+        // free conv3_3_intermediate
+        free(conv3_3_intermediate);
+
         // free conv3_2 output
         for(j = 0; j < 256; j++) {
             free(conv3_2_output[j]);
@@ -723,14 +736,153 @@ int main(int argc, char** argv) {
         free(relu3_3_file_content);
         #endif
 
+        
+        // pool3 input 56x56x256 -> output 28x28x256
+        fp_t** pool3_output;
+        pool3_output = (fp_t**) malloc(256*sizeof(fp_t*));
+        
+        for(j = 0; j < 256; j++) {
+            pool3_output[j] = (fp_t*) malloc(28*28*sizeof(fp_t));
+        }
+
+        for(j = 0; j < 256; j++) {
+            max_pooling2d_naive(conv3_3_output[j], 56, 56, pool3_output[j], 2, 2);
+        }
+
+        // make pgm of pool3 output
+        #ifdef DEBUG
+        fp_t* pool3_file_content = (fp_t*) malloc(28*28*256*sizeof(fp_t));
+        for(j = 0; j < 256; j++) {
+            memcpy(&pool3_file_content[j*28*28], pool3_output[j], 28*28*sizeof(fp_t));
+        }
+        write_pgm(pool3_file_content, 256*28, 28, "pool3_output.pgm");
+        write_float(pool3_file_content, 256*28, 28, "pool3_output.float");
+        free(pool3_file_content);
+        #endif
+
         // free conv3_3 output
         for(j = 0; j < 256; j++) {
             free(conv3_3_output[j]);
         }
         free(conv3_3_output);
 
-        
+    /*
+        // conv4_1 input 56x56x256 -> output 56x56x256
+        fp_t** conv4_1_output;
+        conv4_1_output = (fp_t**) malloc(512*sizeof(fp_t*));
+
+        for(j = 0; j < 512; j++) {
+            conv4_1_output[j] = (fp_t*) malloc(28*28*sizeof(fp_t));
+        }
+
+        fp_t* conv4_1_intermediate = (fp_t*) malloc(28*28*sizeof(fp_t));
+
+        fp_t** conv4_1_kernels = kernels[7];
+        fp_t* conv4_1_bias = biasses[7];
+
+
+        for(j = 0; j < 512; j++) {
+            convolution2d_naive(pool3_output[0], 28, 28, conv4_1_output[j], conv4_1_kernels[j*256], 3, 1, 1, 0.0);
+
+            for(k = 1; k < 255; k++) {
+                convolution2d_naive(pool3_output[k], 28, 28, conv4_1_intermediate, conv4_1_kernels[j*256+k], 3, 1, 1, 0.0);
+                add_image2d_naive(conv4_1_output[j], conv4_1_intermediate, 28, 28);
+            }
+            convolution2d_naive(pool3_output[255], 28, 28, conv4_1_intermediate, conv4_1_kernels[j*256+255], 3, 1, 1, conv4_1_bias[j]);
+            add_image2d_naive(conv4_1_output[j], conv4_1_intermediate, 28, 28);
+        }
+
+        // make pgm of conv4_1 image
+        #ifdef DEBUG
+        fp_t* conv4_1_file_content = (fp_t*) malloc(28*28*512*sizeof(fp_t));
+        for(j = 0; j < 512; j++) {
+            memcpy(&conv4_1_file_content[j*28*28], conv4_1_output[j], 28*28*sizeof(fp_t));
+        }
+        write_pgm(conv4_1_file_content, 512*28, 28, "conv4_1_output.pgm");
+        write_float(conv4_1_file_content, 512*28, 28, "conv4_1_output.float");
+        free(conv4_1_file_content);
+        #endif
+
+        */
+        // free pool3 output
+        for(j = 0; j < 256; j++) {
+            free(pool3_output[j]);
+        }
+        free(pool3_output);
+
         /*
+        // relu4_1
+        for(j = 0; j < 512; j++) {
+            relu_naive(conv4_1_output[j], 28, 28, conv4_1_output[j]);
+        }
+
+        // make pgm of relu4_1 output
+        #ifdef DEBUG
+        fp_t* relu4_1_file_content = (fp_t*) malloc(28*28*512*sizeof(fp_t));
+        for(j = 0; j < 512; j++) {
+            memcpy(&relu4_1_file_content[j*28*28], conv4_1_output[j], 28*28*sizeof(fp_t));
+        }
+        write_pgm(relu4_1_file_content, 512*28, 28, "relu4_1_output.pgm");
+        write_float(relu3_3_file_content, 512*28, 28, "relu4_1_output.float");
+        free(relu4_1_file_content);
+        #endif
+
+        // conv4_2 input 28x28x512 -> output 28x28x512
+        fp_t** conv4_2_output;
+        conv4_2_output = (fp_t**) malloc(512*sizeof(fp_t*));
+
+        for(j = 0; j < 512; j++) {
+            conv4_2_output[j] = (fp_t*) malloc(28*28*sizeof(fp_t));
+        }
+
+        fp_t* conv4_2_intermediate = (fp_t*) malloc(28*28*sizeof(fp_t));
+
+        fp_t** conv4_2_kernels = kernels[8];
+        fp_t* conv4_2_bias = biasses[8];
+
+
+        for(j = 0; j < 512; j++) {
+            convolution2d_naive(conv4_1_output[0], 28, 28, conv4_2_output[j], conv4_2_kernels[j*512], 3, 1, 1, 0.0);
+
+            for(k = 1; k < 511; k++) {
+                convolution2d_naive(conv4_1_output[k], 28, 28, conv4_2_intermediate, conv4_1_kernels[j*256+k], 3, 1, 1, 0.0);
+                add_image2d_naive(conv4_1_output[j], conv4_1_intermediate, 28, 28);
+            }
+            convolution2d_naive(pool3_output[255], 28, 28, conv4_1_intermediate, conv4_1_kernels[j*256+255], 3, 1, 1, conv4_1_bias[j]);
+            add_image2d_naive(conv4_1_output[j], conv4_1_intermediate, 28, 28);
+        }
+
+        // make pgm of conv4_1 image
+        #ifdef DEBUG
+        fp_t* conv4_2_file_content = (fp_t*) malloc(28*28*512*sizeof(fp_t));
+        for(j = 0; j < 512; j++) {
+            memcpy(&conv4_2_file_content[j*28*28], conv4_2_output[j], 28*28*sizeof(fp_t));
+        }
+        
+        write_pgm(conv4_2_file_content, 512*28, 28, "conv4_2_output.pgm");
+        write_float(conv4_2_file_content, 512*28, 28, "conv4_2_output.float");
+        free(conv4_2_file_content);
+        #endif
+
+
+
+
+
+
+        // free conv4_1 output
+        for(j = 0; j < 512; j++) {
+            free(conv4_1_output[j]);
+        }
+        free(conv4_1_output);
+
+
+
+
+
+
+
+
+
         // conv1 input 227x227x3 -> output 55x55x96
         fp_t** conv1_output;
         conv1_output = (fp_t**) malloc(96*sizeof(fp_t*));
