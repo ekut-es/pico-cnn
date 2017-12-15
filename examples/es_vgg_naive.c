@@ -337,6 +337,23 @@ int main(int argc, char** argv) {
         // free conv1_intermediate
         free(conv1_2_intermediate);
 
+        
+        // relu1_2
+        for(j = 0; j < 64; j++) {
+            relu_naive(conv1_2_output[j], 224, 224, conv1_2_output[j]);
+        }
+
+        // make pgm of relu1_2 output
+        #ifdef DEBUG
+        fp_t* relu1_2_file_content = (fp_t*) malloc(224*224*64*sizeof(fp_t));
+        for(j = 0; j < 64; j++) {
+            memcpy(&relu1_2_file_content[j*224*224], conv1_2_output[j], 224*224*sizeof(fp_t));
+        }
+        write_pgm(relu1_2_file_content, 64*224, 224, "relu1_2_output.pgm");
+        write_float(relu1_2_file_content, 64*224, 224, "relu1_2_output.float");
+        free(relu1_2_file_content);
+        #endif
+
         // free conv1_2 output
         for(j = 0; j < 64; j++) {
             free(conv1_2_output[j]);
