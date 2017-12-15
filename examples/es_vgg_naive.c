@@ -1215,12 +1215,17 @@ int main(int argc, char** argv) {
 
         free(pool5_output_merged);
 
+        // relu6
+        relu_naive(fc6_output, 1, 4096, fc6_output);
+
+        // make pgm of relu5 output
+        #ifdef DEBUG
+        write_pgm(fc6_output, 1, 4096, "relu6_output.pgm");
+        write_float(fc6_output, 1, 4096, "relu6_output.float");
+        #endif
+
         free(fc6_output);
         /*
-       
-
-
-
        
 
         // fc6 6x6x256 = 1x9216 -> 1x4096
