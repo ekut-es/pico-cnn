@@ -601,11 +601,56 @@ int main(int argc, char** argv) {
         free(relu3_1_file_content);
         #endif
 
+
+        // conv3_2 input 56x56x256 -> output 56x56x256
+        fp_t** conv3_2_output;
+        conv3_2_output = (fp_t**) malloc(256*sizeof(fp_t*));
+
+        for(j = 0; j < 256; j++) {
+            conv3_2_output[j] = (fp_t*) malloc(56*56*sizeof(fp_t));
+        }
+
+        fp_t* conv3_2_intermediate = (fp_t*) malloc(56*56*sizeof(fp_t));
+
+        fp_t** conv3_2_kernels = kernels[5];
+        fp_t* conv3_2_bias = biasses[5];
+
+
+        for(j = 0; j < 256; j++) {
+            convolution2d_naive(conv3_1_output[0], 56, 56, conv3_2_output[j], conv3_2_kernels[j*256], 3, 1, 1, 0.0);
+
+            for(k = 1; k < 255; k++) {
+                convolution2d_naive(conv3_1_output[k], 56, 56, conv3_2_intermediate, conv3_2_kernels[j*256+k], 3, 1, 1, 0.0);
+                add_image2d_naive(conv3_2_output[j], conv3_2_intermediate, 56, 56);
+            }
+            convolution2d_naive(conv3_1_output[255], 56, 56, conv3_2_intermediate, conv3_2_kernels[j*256+255], 3, 1, 1, conv3_2_bias[j]);
+            add_image2d_naive(conv3_2_output[j], conv3_2_intermediate, 56, 56);
+        }
+
+        // make pgm of conv3_2 image
+        #ifdef DEBUG
+        fp_t* conv3_2_file_content = (fp_t*) malloc(56*56*256*sizeof(fp_t));
+        for(j = 0; j < 256; j++) {
+            memcpy(&conv3_2_file_content[j*56*56], conv3_2_output[j], 56*56*sizeof(fp_t));
+        }
+        
+        write_pgm(conv3_2_file_content, 256*56, 56, "conv3_2_output.pgm");
+        write_float(conv3_2_file_content, 256*56, 56, "conv3_2_output.float");
+        free(conv3_2_file_content);
+        #endif
+
         // free conv3_1 output
         for(j = 0; j < 256; j++) {
             free(conv3_1_output[j]);
         }
         free(conv3_1_output);
+
+
+        // free conv3_2 output
+        for(j = 0; j < 256; j++) {
+            free(conv3_2_output[j]);
+        }
+        free(conv3_2_output);
 
         /*
         // conv1 input 227x227x3 -> output 55x55x96
