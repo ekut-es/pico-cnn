@@ -1224,7 +1224,43 @@ int main(int argc, char** argv) {
         write_float(fc6_output, 1, 4096, "relu6_output.float");
         #endif
 
+
+        // drop6
+        // do nothing
+        
+
+        // fc7 1x4096 -> 1x4096
+        fp_t* fc7_output;
+        fc7_output = (fp_t*) malloc(4096*sizeof(fp_t));
+
+        fp_t* fc7_kernel = kernels[14][0];
+        fp_t* fc7_bias = biasses[14];
+        
+        fully_connected_naive(fc6_output, 4096, fc7_output, 4096, fc7_kernel, fc7_bias);
+
+        // make pgm fc7 output
+        #ifdef DEBUG
+        write_pgm(fc7_output, 1, 4096, "fc7_output.pgm");
+        write_float(fc7_output, 1, 4096, "fc7_output.float");
+        #endif
+
+        // free fc6 output
         free(fc6_output);
+
+
+        // relu7
+        relu_naive(fc7_output, 1, 4096, fc7_output);
+
+        // make pgm of relu7 output
+        #ifdef DEBUG
+        write_pgm(fc7_output, 1, 4096, "relu7_output.pgm");
+        write_float(fc7_output, 1, 4096, "relu7_output.float");
+        #endif
+        
+        // free fc7 output
+        free(fc7_output);
+
+        
         /*
        
 
