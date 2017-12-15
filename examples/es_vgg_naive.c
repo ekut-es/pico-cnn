@@ -767,7 +767,7 @@ int main(int argc, char** argv) {
         free(conv3_3_output);
 
 
-        // conv4_1 input 56x56x256 -> output 56x56x256
+        // conv4_1 input 28x28x512 -> output 28x28x512
         fp_t** conv4_1_output;
         conv4_1_output = (fp_t**) malloc(512*sizeof(fp_t*));
 
@@ -894,7 +894,6 @@ int main(int argc, char** argv) {
         #endif
 
 
-        /*
         // conv4_3 input 28x28x512 -> output 28x28x512
         fp_t** conv4_3_output;
         conv4_3_output = (fp_t**) malloc(512*sizeof(fp_t*));
@@ -935,7 +934,6 @@ int main(int argc, char** argv) {
         // free conv4_3 intermediate
         free(conv4_3_intermediate);
 
-        */
 
         // free conv4_2 output
         for(j = 0; j < 512; j++) {
@@ -984,7 +982,7 @@ int main(int argc, char** argv) {
         free(pool4_file_content);
         #endif
 
-
+        */
 
         // free conv4_3 output
         for(j = 0; j < 512; j++) {
@@ -992,6 +990,44 @@ int main(int argc, char** argv) {
         }
         free(conv4_3_output);
 
+        /*
+
+        // conv5_1 input 14x14x512 -> output 14x14x512
+        fp_t** conv5_1_output;
+        conv5_1_output = (fp_t**) malloc(512*sizeof(fp_t*));
+
+        for(j = 0; j < 512; j++) {
+            conv5_1_output[j] = (fp_t*) malloc(14*14*sizeof(fp_t));
+        }
+
+        fp_t* conv5_1_intermediate = (fp_t*) malloc(14*14*sizeof(fp_t));
+
+        fp_t** conv5_1_kernels = kernels[10];
+        fp_t* conv5_1_bias = biasses[10];
+
+
+        for(j = 0; j < 512; j++) {
+            convolution2d_naive(pool4_output[0], 14, 14, conv5_1_output[j], conv5_1_kernels[j*512], 3, 1, 1, 0.0);
+
+            for(k = 1; k < 511; k++) {
+                convolution2d_naive(pool4_output[k], 14, 14, conv5_1_intermediate, conv5_1_kernels[j*512+k], 3, 1, 1, 0.0);
+                add_image2d_naive(conv5_1_output[j], conv5_1_intermediate, 14, 14);
+            }
+            convolution2d_naive(pool4_output[255], 14, 14, conv5_1_intermediate, conv5_1_kernels[j*512+511], 3, 1, 1, conv5_1_bias[j]);
+            add_image2d_naive(conv5_1_output[j], conv5_1_intermediate, 14, 14);
+        }
+
+
+        // make pgm of conv5_1 image
+        #ifdef DEBUG
+        fp_t* conv5_1_file_content = (fp_t*) malloc(14*14*512*sizeof(fp_t));
+        for(j = 0; j < 512; j++) {
+            memcpy(&conv5_1_file_content[j*14*14], conv5_1_output[j], 14*14*sizeof(fp_t));
+        }
+        write_pgm(conv5_1_file_content, 512*14, 14, "conv5_1_output.pgm");
+        write_float(conv5_1_file_content, 512*14, 14, "conv5_1_output.float");
+        free(conv5_1_file_content);
+        #endif
 
         // free pool4 output
         for(j = 0; j < 512; j++) {
