@@ -511,7 +511,7 @@ int main(int argc, char** argv) {
         #endif
 
         
-        // pool2 input 224x224x64 -> output 112x112x64
+        // pool2 input 112x112x128 -> output 56x56x128
         fp_t** pool2_output;
         pool2_output = (fp_t**) malloc(128*sizeof(fp_t*));
         
@@ -707,12 +707,29 @@ int main(int argc, char** argv) {
         free(conv3_2_output);
 
 
+        // relu3_3
+        for(j = 0; j < 256; j++) {
+            relu_naive(conv3_3_output[j], 56, 56, conv3_3_output[j]);
+        }
+
+        // make pgm of relu3_3 output
+        #ifdef DEBUG
+        fp_t* relu3_3_file_content = (fp_t*) malloc(56*56*256*sizeof(fp_t));
+        for(j = 0; j < 256; j++) {
+            memcpy(&relu3_3_file_content[j*56*56], conv3_3_output[j], 56*56*sizeof(fp_t));
+        }
+        write_pgm(relu3_3_file_content, 256*56, 56, "relu3_3_output.pgm");
+        write_float(relu3_3_file_content, 256*56, 56, "relu3_3_output.float");
+        free(relu3_3_file_content);
+        #endif
+
         // free conv3_3 output
         for(j = 0; j < 256; j++) {
             free(conv3_3_output[j]);
         }
         free(conv3_3_output);
 
+        
         /*
         // conv1 input 227x227x3 -> output 55x55x96
         fp_t** conv1_output;
