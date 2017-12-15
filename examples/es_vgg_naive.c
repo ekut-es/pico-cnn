@@ -355,7 +355,7 @@ int main(int argc, char** argv) {
         #endif
 
         
-        // pool input 224x224x64 -> output 112x112x64
+        // pool1 input 224x224x64 -> output 112x112x64
         fp_t** pool1_output;
         pool1_output = (fp_t**) malloc(64*sizeof(fp_t*));
         
@@ -510,11 +510,41 @@ int main(int argc, char** argv) {
         free(relu2_2_file_content);
         #endif
 
+        
+        // pool2 input 224x224x64 -> output 112x112x64
+        fp_t** pool2_output;
+        pool2_output = (fp_t**) malloc(128*sizeof(fp_t*));
+        
+        for(j = 0; j < 128; j++) {
+            pool2_output[j] = (fp_t*) malloc(56*56*sizeof(fp_t));
+        }
+
+        for(j = 0; j < 128; j++) {
+            max_pooling2d_naive(conv2_2_output[j], 112, 112, pool2_output[j], 2, 2);
+        }
+
+        // make pgm of pool2 output
+        #ifdef DEBUG
+        fp_t* pool2_file_content = (fp_t*) malloc(56*56*128*sizeof(fp_t));
+        for(j = 0; j < 128; j++) {
+            memcpy(&pool2_file_content[j*56*56], pool2_output[j], 56*56*sizeof(fp_t));
+        }
+        write_pgm(pool2_file_content, 128*56, 56, "pool2_output.pgm");
+        write_float(pool2_file_content, 128*56, 56, "pool2_output.float");
+        free(pool2_file_content);
+        #endif
+
         // free conv2_2 output
         for(j = 0; j < 128; j++) {
             free(conv2_2_output[j]);
         }
         free(conv2_2_output);
+
+        // free pool1 output
+        for(j = 0; j < 128; j++) {
+            free(pool2_output[j]);
+        }
+        free(pool2_output);
 
         /*
         // conv1 input 227x227x3 -> output 55x55x96
