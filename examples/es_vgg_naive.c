@@ -829,7 +829,6 @@ int main(int argc, char** argv) {
         free(relu4_1_file_content);
         #endif
 
-        /*
 
         // conv4_2 input 28x28x512 -> output 28x28x512
         fp_t** conv4_2_output;
@@ -849,10 +848,10 @@ int main(int argc, char** argv) {
             convolution2d_naive(conv4_1_output[0], 28, 28, conv4_2_output[j], conv4_2_kernels[j*512], 3, 1, 1, 0.0);
 
             for(k = 1; k < 511; k++) {
-                convolution2d_naive(conv4_1_output[k], 28, 28, conv4_2_intermediate, conv4_1_kernels[j*512+k], 3, 1, 1, 0.0);
+                convolution2d_naive(conv4_1_output[k], 28, 28, conv4_2_intermediate, conv4_2_kernels[j*512+k], 3, 1, 1, 0.0);
                 add_image2d_naive(conv4_2_output[j], conv4_2_intermediate, 28, 28);
             }
-            convolution2d_naive(conv4_1_output[255], 28, 28, conv4_2_intermediate, conv4_1_kernels[j*512+511], 3, 1, 1, conv4_1_bias[j]);
+            convolution2d_naive(conv4_1_output[511], 28, 28, conv4_2_intermediate, conv4_2_kernels[j*512+511], 3, 1, 1, conv4_2_bias[j]);
             add_image2d_naive(conv4_2_output[j], conv4_2_intermediate, 28, 28);
         }
 
@@ -868,10 +867,8 @@ int main(int argc, char** argv) {
         free(conv4_2_file_content);
         #endif
 
-
-
-
-        */
+        // free conv4_2 intermediate
+        free(conv4_2_intermediate);
 
         // free conv4_1 output
         for(j = 0; j < 512; j++) {
@@ -917,24 +914,28 @@ int main(int argc, char** argv) {
 
             for(k = 1; k < 511; k++) {
                 convolution2d_naive(conv4_2_output[k], 28, 28, conv4_3_intermediate, conv4_3_kernels[j*512+k], 3, 1, 1, 0.0);
-                add_image2d_naive(conv4_3_output[j], conv4_1_intermediate, 28, 28);
+                add_image2d_naive(conv4_3_output[j], conv4_3_intermediate, 28, 28);
             }
-            convolution2d_naive(pool3_output[255], 28, 28, conv4_1_intermediate, conv4_1_kernels[j*512+511], 3, 1, 1, conv4_1_bias[j]);
-            add_image2d_naive(conv4_1_output[j], conv4_1_intermediate, 28, 28);
+            convolution2d_naive(conv4_2_output[511], 28, 28, conv4_3_intermediate, conv4_3_kernels[j*512+511], 3, 1, 1, conv4_3_bias[j]);
+            add_image2d_naive(conv4_3_output[j], conv4_3_intermediate, 28, 28);
         }
 
-        // make pgm of conv4_1 image
+        // make pgm of conv4_3 image
         #ifdef DEBUG
-        fp_t* conv4_2_file_content = (fp_t*) malloc(28*28*512*sizeof(fp_t));
+        fp_t* conv4_3_file_content = (fp_t*) malloc(28*28*512*sizeof(fp_t));
         for(j = 0; j < 512; j++) {
-            memcpy(&conv4_2_file_content[j*28*28], conv4_2_output[j], 28*28*sizeof(fp_t));
+            memcpy(&conv4_3_file_content[j*28*28], conv4_3_output[j], 28*28*sizeof(fp_t));
         }
         
-        write_pgm(conv4_2_file_content, 512*28, 28, "conv4_2_output.pgm");
-        write_float(conv4_2_file_content, 512*28, 28, "conv4_2_output.float");
-        free(conv4_2_file_content);
+        write_pgm(conv4_3_file_content, 512*28, 28, "conv4_3_output.pgm");
+        write_float(conv4_3_file_content, 512*28, 28, "conv4_3_output.float");
+        free(conv4_3_file_content);
         #endif
 
+        // free conv4_3 intermediate
+        free(conv4_3_intermediate);
+
+        */
 
         // free conv4_2 output
         for(j = 0; j < 512; j++) {
@@ -942,8 +943,28 @@ int main(int argc, char** argv) {
         }
         free(conv4_2_output);
 
+        /*
+        // relu4_3
+        for(j = 0; j < 512; j++) {
+            relu_naive(conv4_3_output[j], 28, 28, conv4_3_output[j]);
+        }
+
+        // make pgm of relu4_3 output
+        #ifdef DEBUG
+        fp_t* relu4_3_file_content = (fp_t*) malloc(28*28*512*sizeof(fp_t));
+        for(j = 0; j < 512; j++) {
+            memcpy(&relu4_3_file_content[j*28*28], conv4_3_output[j], 28*28*sizeof(fp_t));
+        }
+        write_pgm(relu4_3_file_content, 512*28, 28, "relu4_3_output.pgm");
+        write_float(relu4_3_file_content, 512*28, 28, "relu4_3_output.float");
+        free(relu4_3_file_content);
+        #endif
 
 
+        for(j = 0; j < 512; j++) {
+            free(conv4_3_output[j]);
+        }
+        free(conv4_3_output);
 
 
 
