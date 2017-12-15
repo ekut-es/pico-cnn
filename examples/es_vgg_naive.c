@@ -1074,7 +1074,7 @@ int main(int argc, char** argv) {
             add_image2d_naive(conv5_2_output[j], conv5_2_intermediate, 14, 14);
         }
 
-        // make pgm of conv5_1 image
+        // make pgm of conv5_2 image
         #ifdef DEBUG
         fp_t* conv5_2_file_content = (fp_t*) malloc(14*14*512*sizeof(fp_t));
         for(j = 0; j < 512; j++) {
@@ -1112,7 +1112,6 @@ int main(int argc, char** argv) {
         #endif
 
 
-        /*
         // conv5_3 input 14x14x512 -> output 14x14x512
         fp_t** conv5_3_output;
         conv5_3_output = (fp_t**) malloc(512*sizeof(fp_t*));
@@ -1130,28 +1129,28 @@ int main(int argc, char** argv) {
             convolution2d_naive(conv5_2_output[0], 14, 14, conv5_3_output[j], conv5_3_kernels[j*512], 3, 1, 1, 0.0);
 
             for(k = 1; k < 511; k++) {
-                convolution2d_naive(conv5_1_output[k], 14, 14, conv5_2_intermediate, conv5_2_kernels[j*512+k], 3, 1, 1, 0.0);
-                add_image2d_naive(conv5_2_output[j], conv5_2_intermediate, 14, 14);
+                convolution2d_naive(conv5_2_output[k], 14, 14, conv5_3_intermediate, conv5_3_kernels[j*512+k], 3, 1, 1, 0.0);
+                add_image2d_naive(conv5_3_output[j], conv5_3_intermediate, 14, 14);
             }
-            convolution2d_naive(conv5_1_output[511], 14, 14, conv5_2_intermediate, conv5_2_kernels[j*512+511], 3, 1, 1, conv5_2_bias[j]);
-            add_image2d_naive(conv5_2_output[j], conv5_2_intermediate, 14, 14);
+            convolution2d_naive(conv5_2_output[511], 14, 14, conv5_3_intermediate, conv5_3_kernels[j*512+511], 3, 1, 1, conv5_3_bias[j]);
+            add_image2d_naive(conv5_3_output[j], conv5_3_intermediate, 14, 14);
         }
 
-        // make pgm of conv5_1 image
+        // make pgm of conv5_3 image
         #ifdef DEBUG
-        fp_t* conv5_2_file_content = (fp_t*) malloc(14*14*512*sizeof(fp_t));
+        fp_t* conv5_3_file_content = (fp_t*) malloc(14*14*512*sizeof(fp_t));
         for(j = 0; j < 512; j++) {
-            memcpy(&conv5_2_file_content[j*14*14], conv5_2_output[j], 14*14*sizeof(fp_t));
+            memcpy(&conv5_3_file_content[j*14*14], conv5_3_output[j], 14*14*sizeof(fp_t));
         }
-        write_pgm(conv5_2_file_content, 512*14, 14, "conv5_2_output.pgm");
-        write_float(conv5_2_file_content, 512*14, 14, "conv5_2_output.float");
-        free(conv5_2_file_content);
+        write_pgm(conv5_3_file_content, 512*14, 14, "conv5_3_output.pgm");
+        write_float(conv5_3_file_content, 512*14, 14, "conv5_3_output.float");
+        free(conv5_3_file_content);
         #endif
 
-        // free conv5_2 intermediate
-        free(conv5_2_intermediate);
+        // free conv5_3 intermediate
+        free(conv5_3_intermediate);
 
-        */
+
         for(j = 0; j < 512; j++) {
             free(conv5_2_output[j]);
         }
@@ -1183,14 +1182,43 @@ int main(int argc, char** argv) {
         free(pool5_file_content);
         #endif
 
+        */
 
         for(j = 0; j < 512; j++) {
             free(conv5_3_output[j]);
         }
         free(conv5_3_output);
 
-        
+        /*
 
+        // fc6 7x7x512 = 1x25088 -> 1x4096
+        // merge pool5 output
+        fp_t* pool5_output_merged = (fp_t*) malloc(7*7*512*sizeof(fp_t));
+        for(j = 0; j < 512; j++) {
+            memcpy(&pool5_output_merged[j*7*7], pool5_output[j], 7*7*sizeof(fp_t));
+        }
+
+        // free pool5 output
+        for(j = 0; j < 512; j++) {
+            free(pool5_output[j]);
+        }
+        free(pool5_output);
+
+        fp_t* fc6_output;
+        fc6_output = (fp_t*) malloc(4096*sizeof(fp_t));
+
+        fp_t* fc6_kernel = kernels[13][0];
+        fp_t* fc6_bias = biasses[13];
+        
+        fully_connected_naive(pool5_output_merged, 25088, fc6_output, 4096, fc6_kernel, fc6_bias);
+
+        // make pgm fc6 output
+        #ifdef DEBUG
+        write_pgm(fc6_output, 1, 4096, "fc6_output.pgm");
+        write_float(fc6_output, 1, 4096, "fc6_output.float");
+        #endif
+
+       
 
 
 
