@@ -411,7 +411,7 @@ int main(int argc, char** argv) {
         }
 
 
-        // make pgm of conv1_2 image
+        // make pgm of conv2_2 image
         #ifdef DEBUG
         fp_t* conv2_2_file_content = (fp_t*) malloc(112*112*128*sizeof(fp_t));
         for(j = 0; j < 128; j++) {
@@ -423,7 +423,7 @@ int main(int argc, char** argv) {
         free(conv2_2_file_content);
         #endif
 
-        // free conv1_intermediate
+        // free conv2_2_intermediate
         free(conv2_2_intermediate);
 
         // free pool1 output
@@ -431,6 +431,24 @@ int main(int argc, char** argv) {
             free(pool1_output[j]);
         }
         free(pool1_output);
+
+
+        // relu2_2
+        for(j = 0; j < 128; j++) {
+            relu_naive(conv2_2_output[j], 112, 112, conv2_2_output[j]);
+        }
+
+        // make pgm of relu2_2 output
+        #ifdef DEBUG
+        fp_t* relu2_2_file_content = (fp_t*) malloc(112*112*128*sizeof(fp_t));
+        for(j = 0; j < 128; j++) {
+            memcpy(&relu2_2_file_content[j*112*112], conv2_2_output[j], 112*112*sizeof(fp_t));
+        }
+        write_pgm(relu2_2_file_content, 128*112, 112, "relu2_2_output.pgm");
+        write_float(relu2_2_file_content, 128*112, 112, "relu2_2_output.float");
+        free(relu2_2_file_content);
+        #endif
+
 
         // free conv2_2 output
         for(j = 0; j < 128; j++) {
