@@ -252,7 +252,7 @@ int main(int argc, char** argv) {
             kernel_number++;
         }
 
-        // make pgm of input image
+        // make pgm of conv1_1 image
         #ifdef DEBUG
         fp_t* conv1_1_file_content = (fp_t*) malloc(224*224*64*sizeof(fp_t));
         for(j = 0; j < 64; j++) {
@@ -272,6 +272,23 @@ int main(int argc, char** argv) {
         free(input[1]);
         free(input[2]);
         free(input);
+
+        
+        // relu1_1
+        for(j = 0; j < 64; j++) {
+            relu_naive(conv1_1_output[j], 224, 224, conv1_1_output[j]);
+        }
+
+        // make pgm of relu1_1 output
+        #ifdef DEBUG
+        fp_t* relu1_1_file_content = (fp_t*) malloc(224*224*64*sizeof(fp_t));
+        for(j = 0; j < 64; j++) {
+            memcpy(&relu1_1_file_content[j*224*224], conv1_1_output[j], 224*224*sizeof(fp_t));
+        }
+        write_pgm(relu1_1_file_content, 64*224, 224, "relu1_1_output.pgm");
+        write_float(relu1_1_file_content, 64*224, 224, "relu1_1_output.float");
+        free(relu1_1_file_content);
+        #endif
 
         // free conv1_1 output
         for(j = 0; j < 64; j++) {
