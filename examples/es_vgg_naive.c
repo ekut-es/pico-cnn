@@ -384,12 +384,59 @@ int main(int argc, char** argv) {
         }
         free(conv1_2_output);
 
+        
+        // conv2_2 input 112x112x64 -> output 112x112x128
+        fp_t** conv2_2_output;
+        conv2_2_output = (fp_t**) malloc(128*sizeof(fp_t*));
+
+        for(j = 0; j < 128; j++) {
+            conv2_2_output[j] = (fp_t*) malloc(112*112*sizeof(fp_t));
+        }
+
+        fp_t* conv2_2_intermediate = (fp_t*) malloc(112*112*sizeof(fp_t));
+
+        fp_t** conv2_2_kernels = kernels[2];
+        fp_t* conv2_2_bias = biasses[2];
+
+
+        for(j = 0; j < 128; j++) {
+            convolution2d_naive(pool1_output[0], 112, 112, conv2_2_output[j], conv2_2_kernels[j*64], 3, 1, 1, 0.0);
+
+            for(k = 1; k < 63; k++) {
+                convolution2d_naive(pool1_output[k], 112, 112, conv2_2_intermediate, conv2_2_kernels[j*64+k], 3, 1, 1, 0.0);
+                add_image2d_naive(conv2_2_output[j], conv2_2_intermediate, 112, 112);
+            }
+            convolution2d_naive(pool1_output[63], 112, 112, conv2_2_intermediate, conv2_2_kernels[j*64+63], 3, 1, 1, conv2_2_bias[j]);
+            add_image2d_naive(conv2_2_output[j], conv2_2_intermediate, 112, 112);
+        }
+
+
+        // make pgm of conv1_2 image
+        #ifdef DEBUG
+        fp_t* conv2_2_file_content = (fp_t*) malloc(112*112*128*sizeof(fp_t));
+        for(j = 0; j < 128; j++) {
+            memcpy(&conv2_2_file_content[j*112*112], conv2_2_output[j], 112*112*sizeof(fp_t));
+        }
+        
+        write_pgm(conv2_2_file_content, 128*112, 112, "conv2_2_output.pgm");
+        write_float(conv2_2_file_content, 128*112, 112, "conv2_2_output.float");
+        free(conv2_2_file_content);
+        #endif
+
+        // free conv1_intermediate
+        free(conv2_2_intermediate);
+
         // free pool1 output
         for(j = 0; j < 64; j++) {
             free(pool1_output[j]);
         }
         free(pool1_output);
 
+        // free conv2_2 output
+        for(j = 0; j < 128; j++) {
+            free(conv2_2_output[j]);
+        }
+        free(conv2_2_output);
 
         /*
         // conv1 input 227x227x3 -> output 55x55x96
@@ -1026,7 +1073,7 @@ int main(int argc, char** argv) {
     }
     free(kernels[1]);
 
-    for(i = 0; i < 8102; i++) {
+    for(i = 0; i < 8192; i++) {
         free(kernels[2][i]);
     }
     free(kernels[2]);
