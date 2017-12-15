@@ -449,12 +449,55 @@ int main(int argc, char** argv) {
         free(relu2_1_file_content);
         #endif
 
+        
+        // conv2_2 input 112x112x128 -> output 112x112x128
+        fp_t** conv2_2_output;
+        conv2_2_output = (fp_t**) malloc(128*sizeof(fp_t*));
+
+        for(j = 0; j < 128; j++) {
+            conv2_2_output[j] = (fp_t*) malloc(112*112*sizeof(fp_t));
+        }
+
+        fp_t* conv2_2_intermediate = (fp_t*) malloc(112*112*sizeof(fp_t));
+
+        fp_t** conv2_2_kernels = kernels[3];
+        fp_t* conv2_2_bias = biasses[3];
+
+
+        for(j = 0; j < 128; j++) {
+            convolution2d_naive(conv2_1_output[0], 112, 112, conv2_2_output[j], conv2_2_kernels[j*128], 3, 1, 1, 0.0);
+
+            for(k = 1; k < 127; k++) {
+                convolution2d_naive(conv2_1_output[k], 112, 112, conv2_2_intermediate, conv2_2_kernels[j*128+k], 3, 1, 1, 0.0);
+                add_image2d_naive(conv2_2_output[j], conv2_2_intermediate, 112, 112);
+            }
+            convolution2d_naive(conv2_1_output[127], 112, 112, conv2_2_intermediate, conv2_2_kernels[j*128+127], 3, 1, 1, conv2_2_bias[j]);
+            add_image2d_naive(conv2_2_output[j], conv2_2_intermediate, 112, 112);
+        }
+
+        // make pgm of conv2_2 image
+        #ifdef DEBUG
+        fp_t* conv2_2_file_content = (fp_t*) malloc(112*112*128*sizeof(fp_t));
+        for(j = 0; j < 128; j++) {
+            memcpy(&conv2_2_file_content[j*112*112], conv2_2_output[j], 112*112*sizeof(fp_t));
+        }
+        
+        write_pgm(conv2_2_file_content, 128*112, 112, "conv2_2_output.pgm");
+        write_float(conv2_2_file_content, 128*112, 112, "conv2_2_output.float");
+        free(conv2_2_file_content);
+        #endif
 
         // free conv2_1 output
         for(j = 0; j < 128; j++) {
             free(conv2_1_output[j]);
         }
         free(conv2_1_output);
+
+        // free conv2_2 output
+        for(j = 0; j < 128; j++) {
+            free(conv2_2_output[j]);
+        }
+        free(conv2_2_output);
 
         /*
         // conv1 input 227x227x3 -> output 55x55x96
