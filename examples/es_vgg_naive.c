@@ -1050,7 +1050,6 @@ int main(int argc, char** argv) {
         #endif
 
        
-        /*
         // conv5_2 input 14x14x512 -> output 14x14x512
         fp_t** conv5_2_output;
         conv5_2_output = (fp_t**) malloc(512*sizeof(fp_t*));
@@ -1071,7 +1070,7 @@ int main(int argc, char** argv) {
                 convolution2d_naive(conv5_1_output[k], 14, 14, conv5_2_intermediate, conv5_2_kernels[j*512+k], 3, 1, 1, 0.0);
                 add_image2d_naive(conv5_2_output[j], conv5_2_intermediate, 14, 14);
             }
-            convolution2d_naive(conv5_1_output[255], 14, 14, conv5_2_intermediate, conv5_2_kernels[j*512+511], 3, 1, 1, conv5_2_bias[j]);
+            convolution2d_naive(conv5_1_output[511], 14, 14, conv5_2_intermediate, conv5_2_kernels[j*512+511], 3, 1, 1, conv5_2_bias[j]);
             add_image2d_naive(conv5_2_output[j], conv5_2_intermediate, 14, 14);
         }
 
@@ -1089,7 +1088,6 @@ int main(int argc, char** argv) {
         // free conv5_2 intermediate
         free(conv5_2_intermediate);
 
-        */
         // free conv5_1 output
         for(j = 0; j < 512; j++) {
             free(conv5_1_output[j]);
@@ -1115,27 +1113,27 @@ int main(int argc, char** argv) {
         #endif
 
 
-        // conv5_2 input 14x14x512 -> output 14x14x512
-        fp_t** conv5_2_output;
-        conv5_2_output = (fp_t**) malloc(512*sizeof(fp_t*));
+        // conv5_3 input 14x14x512 -> output 14x14x512
+        fp_t** conv5_3_output;
+        conv5_3_output = (fp_t**) malloc(512*sizeof(fp_t*));
 
         for(j = 0; j < 512; j++) {
-            conv5_2_output[j] = (fp_t*) malloc(14*14*sizeof(fp_t));
+            conv5_3_output[j] = (fp_t*) malloc(14*14*sizeof(fp_t));
         }
 
-        fp_t* conv5_2_intermediate = (fp_t*) malloc(14*14*sizeof(fp_t));
+        fp_t* conv5_3_intermediate = (fp_t*) malloc(14*14*sizeof(fp_t));
 
-        fp_t** conv5_2_kernels = kernels[11];
-        fp_t* conv5_2_bias = biasses[11];
+        fp_t** conv5_3_kernels = kernels[12];
+        fp_t* conv5_3_bias = biasses[12];
 
         for(j = 0; j < 512; j++) {
-            convolution2d_naive(conv5_1_output[0], 14, 14, conv5_2_output[j], conv5_2_kernels[j*512], 3, 1, 1, 0.0);
+            convolution2d_naive(conv5_2_output[0], 14, 14, conv5_3_output[j], conv5_3_kernels[j*512], 3, 1, 1, 0.0);
 
             for(k = 1; k < 511; k++) {
                 convolution2d_naive(conv5_1_output[k], 14, 14, conv5_2_intermediate, conv5_2_kernels[j*512+k], 3, 1, 1, 0.0);
                 add_image2d_naive(conv5_2_output[j], conv5_2_intermediate, 14, 14);
             }
-            convolution2d_naive(conv5_1_output[255], 14, 14, conv5_2_intermediate, conv5_2_kernels[j*512+511], 3, 1, 1, conv5_2_bias[j]);
+            convolution2d_naive(conv5_1_output[511], 14, 14, conv5_2_intermediate, conv5_2_kernels[j*512+511], 3, 1, 1, conv5_2_bias[j]);
             add_image2d_naive(conv5_2_output[j], conv5_2_intermediate, 14, 14);
         }
 
@@ -1153,14 +1151,45 @@ int main(int argc, char** argv) {
         // free conv5_2 intermediate
         free(conv5_2_intermediate);
 
+        */
         for(j = 0; j < 512; j++) {
             free(conv5_2_output[j]);
         }
         free(conv5_2_output);
 
+        /*
 
 
+        // pool5 input 14x15x512 -> output 7x7x512
+        fp_t** pool5_output;
+        pool5_output = (fp_t**) malloc(512*sizeof(fp_t*));
+        
+        for(j = 0; j < 512; j++) {
+            pool5_output[j] = (fp_t*) malloc(7*7*sizeof(fp_t));
+        }
 
+        for(j = 0; j < 512; j++) {
+            max_pooling2d_naive(conv5_3_output[j], 14, 14, pool5_output[j], 2, 2);
+        }
+
+        // make pgm of pool5 output
+        #ifdef DEBUG
+        fp_t* pool5_file_content = (fp_t*) malloc(7*7*512*sizeof(fp_t));
+        for(j = 0; j < 512; j++) {
+            memcpy(&pool5_file_content[j*7*7], pool5_output[j], 7*7*sizeof(fp_t));
+        }
+        write_pgm(pool5_file_content, 512*7, 7, "pool5_output.pgm");
+        write_float(pool5_file_content, 512*7, 7, "pool5_output.float");
+        free(pool5_file_content);
+        #endif
+
+
+        for(j = 0; j < 512; j++) {
+            free(conv5_3_output[j]);
+        }
+        free(conv5_3_output);
+
+        
 
 
 
