@@ -540,11 +540,55 @@ int main(int argc, char** argv) {
         }
         free(conv2_2_output);
 
-        // free pool1 output
+        
+        // conv3_1 input 56x56x128 -> output 56x56x256
+        fp_t** conv3_1_output;
+        conv3_1_output = (fp_t**) malloc(256*sizeof(fp_t*));
+
+        for(j = 0; j < 256; j++) {
+            conv3_1_output[j] = (fp_t*) malloc(56*56*sizeof(fp_t));
+        }
+
+        fp_t* conv3_1_intermediate = (fp_t*) malloc(56*56*sizeof(fp_t));
+
+        fp_t** conv3_1_kernels = kernels[4];
+        fp_t* conv3_1_bias = biasses[4];
+
+
+        for(j = 0; j < 256; j++) {
+            convolution2d_naive(pool2_output[0], 56, 56, conv3_1_output[j], conv3_1_kernels[j*128], 3, 1, 1, 0.0);
+
+            for(k = 1; k < 127; k++) {
+                convolution2d_naive(pool2_output[k], 56, 56, conv3_1_intermediate, conv3_1_kernels[j*128+k], 3, 1, 1, 0.0);
+                add_image2d_naive(conv3_1_output[j], conv3_1_intermediate, 56, 56);
+            }
+            convolution2d_naive(pool2_output[127], 56, 56, conv3_1_intermediate, conv3_1_kernels[j*128+127], 3, 1, 1, conv3_1_bias[j]);
+            add_image2d_naive(conv3_1_output[j], conv3_1_intermediate, 56, 56);
+        }
+
+        // make pgm of conv3_1 image
+        #ifdef DEBUG
+        fp_t* conv3_1_file_content = (fp_t*) malloc(56*56*256*sizeof(fp_t));
+        for(j = 0; j < 256; j++) {
+            memcpy(&conv3_1_file_content[j*56*56], conv3_1_output[j], 56*56*sizeof(fp_t));
+        }
+        
+        write_pgm(conv3_1_file_content, 256*56, 56, "conv3_1_output.pgm");
+        write_float(conv3_1_file_content, 256*56, 56, "conv3_1_output.float");
+        free(conv3_1_file_content);
+        #endif
+
+        // free pool2 output
         for(j = 0; j < 128; j++) {
             free(pool2_output[j]);
         }
         free(pool2_output);
+
+        // free conv3_1 output
+        for(j = 0; j < 256; j++) {
+            free(conv3_1_output[j]);
+        }
+        free(conv3_1_output);
 
         /*
         // conv1 input 227x227x3 -> output 55x55x96
