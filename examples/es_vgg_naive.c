@@ -1291,120 +1291,6 @@ int main(int argc, char** argv) {
         #endif
 
 
-        // free fc8 output
-        free(fc8_output);
-
-
-
-        /*
-       
-
-        // fc6 6x6x256 = 1x9216 -> 1x4096
-        // merge S4 output
-        fp_t* pool5_output_merged = (fp_t*) malloc(6*6*256*sizeof(fp_t));
-        for(j = 0; j < 256; j++) {
-            memcpy(&pool5_output_merged[j*6*6], pool5_output[j], 6*6*sizeof(fp_t));
-        }
-
-        // free pool5 output
-        for(j = 0; j < 256; j++) {
-            free(pool5_output[j]);
-        }
-        free(pool5_output);
-
-        fp_t* fc6_output;
-        fc6_output = (fp_t*) malloc(4096*sizeof(fp_t));
-
-        fp_t* fc6_kernel = kernels[5][0];
-        fp_t* fc6_bias = biasses[5];
-        
-        fully_connected_naive(pool5_output_merged, 9216, fc6_output, 4096, fc6_kernel, fc6_bias);
-
-        // make pgm fc6 output
-        #ifdef DEBUG
-        write_pgm(fc6_output, 1, 4096, "fc6_output.pgm");
-        write_float(fc6_output, 1, 4096, "fc6_output.float");
-        #endif
-        
-        // free fc6_output
-        free(pool5_output_merged);
-
-
-        // relu6
-        relu_naive(fc6_output, 1, 4096, fc6_output);
-
-        // make pgm of relu5 output
-        #ifdef DEBUG
-        write_pgm(fc6_output, 1, 4096, "relu6_output.pgm");
-        write_float(fc6_output, 1, 4096, "relu6_output.float");
-        #endif
-
-
-        // drop6
-        // do nothing
-
-
-        // fc7 1x4096 -> 1x4096
-        fp_t* fc7_output;
-        fc7_output = (fp_t*) malloc(4096*sizeof(fp_t));
-
-        fp_t* fc7_kernel = kernels[6][0];
-        fp_t* fc7_bias = biasses[6];
-        
-        fully_connected_naive(fc6_output, 4096, fc7_output, 4096, fc7_kernel, fc7_bias);
-
-        // make pgm fc7 output
-        #ifdef DEBUG
-        write_pgm(fc7_output, 1, 4096, "fc7_output.pgm");
-        write_float(fc7_output, 1, 4096, "fc7_output.float");
-        #endif
-
-        // free fc6 output
-        free(fc6_output);
-
-
-        // relu7
-        relu_naive(fc7_output, 1, 4096, fc7_output);
-
-        // make pgm of relu7 output
-        #ifdef DEBUG
-        write_pgm(fc7_output, 1, 4096, "relu7_output.pgm");
-        write_float(fc7_output, 1, 4096, "relu7_output.float");
-        #endif
-
-        
-        // drop8
-        // do nothing
-
-
-        // fc7 1x4096 -> 1x1000
-        fp_t* fc8_output;
-        fc8_output = (fp_t*) malloc(1000*sizeof(fp_t));
-
-        fp_t* fc8_kernel = kernels[7][0];
-        fp_t* fc8_bias = biasses[7];
-        
-        fully_connected_naive(fc7_output, 4096, fc8_output, 1000, fc8_kernel, fc8_bias);
-
-        // make pgm fc8 output
-        #ifdef DEBUG
-        write_pgm(fc8_output, 1, 1000, "fc8_output.pgm");
-        write_float(fc8_output, 1, 1000, "fc8_output.float");
-        #endif
-
-        // free fc7 output
-        free(fc7_output);
-
-
-        // prob
-        softmax_naive(fc8_output, 1, 1000, fc8_output);
-
-        // make pgm prob
-        #ifdef DEBUG
-        write_pgm(fc8_output, 1, 1000, "prob_output.pgm");
-        write_float(fc8_output, 1, 1000, "prob_output.float");
-        #endif
-
         // print prediction
         uint16_t* labels_pos;
         labels_pos = (uint16_t*) malloc(1000*sizeof(uint16_t));
@@ -1445,16 +1331,13 @@ int main(int argc, char** argv) {
        
         free(labels_pos);
         free(fc8_output);
-        */
     }
 
-    /*
     // free memory
     for(i = 0; i < 1000; i++) {
         free(labels[i]);
     }
     free(labels);
-    */
 
     for(i = 0; i < 192; i++) {
         free(kernels[0][i]);
@@ -1542,13 +1425,11 @@ int main(int argc, char** argv) {
     // free means
     free(means);   
 
-    /*
     fp_t top1_error_rate = 1.0-((fp_t) top1_correct_predictions/((fp_t) NUM));
     fp_t top5_error_rate = 1.0-((fp_t) top5_correct_predictions/((fp_t) NUM));
 
     printf("top-1 error rate: %f (%d/%d)\n", top1_error_rate, top1_correct_predictions, NUM);
     printf("top-5 error rate: %f (%d/%d)\n", top5_error_rate, top5_correct_predictions, NUM);
-    */
 
     return 0;
 }
