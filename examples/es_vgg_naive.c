@@ -987,7 +987,6 @@ int main(int argc, char** argv) {
         }
         free(conv4_3_output);
 
-        /*
 
         // conv5_1 input 14x14x512 -> output 14x14x512
         fp_t** conv5_1_output;
@@ -1009,7 +1008,7 @@ int main(int argc, char** argv) {
                 convolution2d_naive(pool4_output[k], 14, 14, conv5_1_intermediate, conv5_1_kernels[j*512+k], 3, 1, 1, 0.0);
                 add_image2d_naive(conv5_1_output[j], conv5_1_intermediate, 14, 14);
             }
-            convolution2d_naive(pool4_output[255], 14, 14, conv5_1_intermediate, conv5_1_kernels[j*512+511], 3, 1, 1, conv5_1_bias[j]);
+            convolution2d_naive(pool4_output[511], 14, 14, conv5_1_intermediate, conv5_1_kernels[j*512+511], 3, 1, 1, conv5_1_bias[j]);
             add_image2d_naive(conv5_1_output[j], conv5_1_intermediate, 14, 14);
         }
 
@@ -1026,10 +1025,6 @@ int main(int argc, char** argv) {
 
         // free conv5_1 intermediate
         free(conv5_1_intermediate);
-
-        */
-         
-
 
         // free pool4 output
         for(j = 0; j < 512; j++) {
@@ -1094,7 +1089,15 @@ int main(int argc, char** argv) {
         // free conv5_2 intermediate
         free(conv5_2_intermediate);
 
+        */
+        // free conv5_1 output
+        for(j = 0; j < 512; j++) {
+            free(conv5_1_output[j]);
+        }
+        free(conv5_1_output);
 
+
+        /*
         // relu5_2
         for(j = 0; j < 512; j++) {
             relu_naive(conv5_2_output[j], 14, 14, conv5_2_output[j]);
