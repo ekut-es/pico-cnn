@@ -934,14 +934,13 @@ int main(int argc, char** argv) {
         // free conv4_3 intermediate
         free(conv4_3_intermediate);
 
-
         // free conv4_2 output
         for(j = 0; j < 512; j++) {
             free(conv4_2_output[j]);
         }
         free(conv4_2_output);
 
-        /*
+
         // relu4_3
         for(j = 0; j < 512; j++) {
             relu_naive(conv4_3_output[j], 28, 28, conv4_3_output[j]);
@@ -959,6 +958,7 @@ int main(int argc, char** argv) {
         #endif
 
         
+        /*
         // pool4 input 28x28x512 -> output 14x14x512
         fp_t** pool4_output;
         pool4_output = (fp_t**) malloc(256*sizeof(fp_t*));
@@ -1005,7 +1005,6 @@ int main(int argc, char** argv) {
         fp_t** conv5_1_kernels = kernels[10];
         fp_t* conv5_1_bias = biasses[10];
 
-
         for(j = 0; j < 512; j++) {
             convolution2d_naive(pool4_output[0], 14, 14, conv5_1_output[j], conv5_1_kernels[j*512], 3, 1, 1, 0.0);
 
@@ -1017,7 +1016,6 @@ int main(int argc, char** argv) {
             add_image2d_naive(conv5_1_output[j], conv5_1_intermediate, 14, 14);
         }
 
-
         // make pgm of conv5_1 image
         #ifdef DEBUG
         fp_t* conv5_1_file_content = (fp_t*) malloc(14*14*512*sizeof(fp_t));
@@ -1028,6 +1026,30 @@ int main(int argc, char** argv) {
         write_float(conv5_1_file_content, 512*14, 14, "conv5_1_output.float");
         free(conv5_1_file_content);
         #endif
+
+        // free conv5_1 intermediate
+        free(conv5_1_intermediate);
+
+
+        // relu5_1
+        for(j = 0; j < 512; j++) {
+            relu_naive(conv5_1_output[j], 14, 14, conv5_1_output[j]);
+        }
+
+        // make pgm of relu5_1 output
+        #ifdef DEBUG
+        fp_t* relu5_1_file_content = (fp_t*) malloc(14*14*512*sizeof(fp_t));
+        for(j = 0; j < 512; j++) {
+            memcpy(&relu5_1_file_content[j*14*14], conv5_1_output[j], 14*14*sizeof(fp_t));
+        }
+        write_pgm(relu5_1_file_content, 512*14, 14, "relu5_1_output.pgm");
+        write_float(relu5_1_file_content, 512*14, 14, "relu5_1_output.float");
+        free(relu5_1_file_content);
+        #endif
+
+
+         
+
 
         // free pool4 output
         for(j = 0; j < 512; j++) {
