@@ -645,7 +645,7 @@ int main(int argc, char** argv) {
         free(conv3_2_file_content);
         #endif
 
-        // free conv3_1_intermediate
+        // free conv3_2_intermediate
         free(conv3_2_intermediate);
 
 
@@ -767,7 +767,7 @@ int main(int argc, char** argv) {
         free(conv3_3_output);
 
 
-        // conv4_1 input 28x28x512 -> output 28x28x512
+        // conv4_1 input 28x28x256 -> output 28x28x512
         fp_t** conv4_1_output;
         conv4_1_output = (fp_t**) malloc(512*sizeof(fp_t*));
 
@@ -803,7 +803,7 @@ int main(int argc, char** argv) {
         free(conv4_1_file_content);
         #endif
 
-        // free conv3_3_intermediate
+        // free conv4_1_intermediate
         free(conv4_1_intermediate);
 
         // free pool3 output
@@ -1157,7 +1157,7 @@ int main(int argc, char** argv) {
         free(conv5_2_output);
 
 
-        // pool5 input 14x15x512 -> output 7x7x512
+        // pool5 input 14x14x512 -> output 7x7x512
         fp_t** pool5_output;
         pool5_output = (fp_t**) malloc(512*sizeof(fp_t*));
         
@@ -1218,7 +1218,7 @@ int main(int argc, char** argv) {
         // relu6
         relu_naive(fc6_output, 1, 4096, fc6_output);
 
-        // make pgm of relu5 output
+        // make pgm of relu6 output
         #ifdef DEBUG
         write_pgm(fc6_output, 1, 4096, "relu6_output.pgm");
         write_float(fc6_output, 1, 4096, "relu6_output.float");

@@ -470,7 +470,7 @@ int main(int argc, char** argv) {
         free(norm2_output);
 
         
-        // conv3
+        // conv3 13x13x256 -> 13x13x384
         fp_t** conv3_output;
         conv3_output = (fp_t**) malloc(384*sizeof(fp_t*));
 
@@ -534,7 +534,7 @@ int main(int argc, char** argv) {
         #endif
 
 
-        // conv4
+        // conv4 13x13x384 -> 13x13x384 
         fp_t** conv4_output;
         conv4_output = (fp_t**) malloc(384*sizeof(fp_t*));
 
@@ -597,7 +597,7 @@ int main(int argc, char** argv) {
         #endif
 
 
-        // conv5
+        // conv5 13x13x384 -> 13x13x256
         fp_t** conv5_output;
         conv5_output = (fp_t**) malloc(256*sizeof(fp_t*));
 
@@ -660,7 +660,7 @@ int main(int argc, char** argv) {
         #endif
 
 
-        // pool5
+        // pool5 13x13x256 -> 6x6x256
         fp_t** pool5_output;
         pool5_output = (fp_t**) malloc(256*sizeof(fp_t*));
         
@@ -768,7 +768,7 @@ int main(int argc, char** argv) {
         // do nothing
 
 
-        // fc7 1x4096 -> 1x1000
+        // fc8 1x4096 -> 1x1000
         fp_t* fc8_output;
         fc8_output = (fp_t*) malloc(1000*sizeof(fp_t));
 

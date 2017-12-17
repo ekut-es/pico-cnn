@@ -242,7 +242,7 @@ int main(int argc, char** argv) {
 
         free(s2_output);
 
-        // S4 input 8x8x50 -> output 8x8x50
+        // S4 input 8x8x50 -> output 4x4x50
         fp_t** s4_output;
         s4_output = (fp_t**) malloc(50*sizeof(fp_t*));
 
