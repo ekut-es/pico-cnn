@@ -7,7 +7,7 @@
 
 #define JPEG
 #define IMAGENET
-#define NUM 10
+#define NUM 1000
 //#define DEBUG
 
 // used to read the validation images
