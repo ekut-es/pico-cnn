@@ -24,7 +24,7 @@
 
 void usage() {
     printf("./es_vgg \\\n"); 
-    printf("PATH_TO_ES_ALEXNET_WEIGHTS.weights \\\n");
+    printf("PATH_TO_ES_VGG_WEIGHTS.weights \\\n");
     printf("PATH_TO_MEANS_FILE.means \\\n");
     printf("PATH_TO_IMAGE_NET_LABELS.txt \\\n");
     printf("PATH_TO_IMAGE_NET_VAL_LABELS.txt \\\n");
