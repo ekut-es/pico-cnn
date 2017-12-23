@@ -16,6 +16,10 @@
 #include <float.h>
 #endif
 
+#ifdef FIXED16
+#include "../driver/fixed16.h"
+#endif 
+
 
 /**
  * @brief applies max pooling of kernel_size x kernel_size to original_image 
@@ -437,6 +441,58 @@ void max_pooling2d_cpu_3x3_s2(const fp_t* original_image, const uint16_t height,
         new_image_column = 0;
     }
 }
+#endif
+
+#ifdef FIXED16
+/**
+ * @brief applies max pooling of kernel_size x kernel_size to original_image 
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param new_image (height/kernel_size x width/kernel_size)
+ * @param kernel_size
+ * @param stride
+*/
+void max_pooling2d_naive_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image, const uint16_t kernel_size, const uint16_t stride) {
+
+    uint16_t image_row, image_column;
+    uint16_t new_image_row, new_image_column;
+    uint16_t new_image_height, new_image_width;
+
+    uint16_t kernel_row, kernel_column;
+
+    new_image_row = 0;
+    new_image_column = 0;
+    
+    new_image_height = height/stride;
+    new_image_width = width/stride;
+
+    for(image_row = 0; image_row < height && new_image_row < new_image_height; image_row += stride) {
+        for(image_column = 0; image_column < width && new_image_column < new_image_width; image_column += stride) {
+            fp_t pixel = original_image[image_row*width+image_column];
+    
+            for(kernel_row = image_row; kernel_row < image_row+kernel_size && kernel_row < height; kernel_row++) {
+                for(kernel_column = image_column; kernel_column < image_column+kernel_size && kernel_column < width; kernel_column++) {
+                    if(original_image[kernel_row*width+kernel_column] > pixel) {
+                        pixel = original_image[kernel_row*width+kernel_column];
+                    }
+                }
+            }
+            
+            new_image[new_image_row*new_image_width+new_image_column] = pixel;
+            new_image_column++;
+        }
+        new_image_row++;
+        new_image_column = 0;
+    }
+}
+
+
+void max_pooling2d_cpu_2x2_s2_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image) {
+    max_pooling2d_naive_fixed16(original_image, height, width, new_image, 2, 2);
+}
+
 #endif
 
 #endif // POOLING_H

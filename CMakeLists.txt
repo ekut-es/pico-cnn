@@ -29,6 +29,9 @@ if(BUILD_TESTS AND AARCH64)
 
     add_executable(fully_connected_benchmark ${PROJECT_SOURCE_DIR}/test/fully_connected_benchmark.c)
     target_link_libraries(fully_connected_benchmark ${LINK_LIBS} jpeg)
+
+    add_executable(fixed16_test ${PROJECT_SOURCE_DIR}/test/fixed16_test.c)
+    target_link_libraries(fixed16_test ${LINK_LIBS})
 endif()
 
 if(BUILD_UTILS)

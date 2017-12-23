@@ -17,6 +17,10 @@
 #include "arm_neon.h"
 #endif
 
+#ifdef FIXED16
+#include "../driver/fixed16.h"
+#endif 
+
 /**
  * @brief applies tanh(x) to all pixel of original_image and stores it in
  * new_image
@@ -385,6 +389,54 @@ void local_response_normalization_cpu_single(fp_t** original_image, const uint16
 }
 
 
+#endif
+
+#ifdef FIXED16
+/**
+ * @brief applies relu(x) to all pixel of original_image and stores it in
+ * new_image
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param new_image (height x width)
+ */
+void relu_naive_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image) {
+
+    uint16_t i;
+
+    for(i = 0; i < height*width; i++) {
+        new_image[i] = ((original_image[i] & 0x8000) == 0x8000) ? 0 : original_image[i];
+    }
+}
+
+void relu_cpu_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image) {
+    relu_naive_fixed16(original_image, height, width, new_image);
+}
+
+/**
+ * @brief applies softmax to all pixel of original_image and stores it in
+ * new_image
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param new_image (height x width)
+ */
+void softmax_naive_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image) {
+
+    uint16_t i;
+
+    fp_t denominator = 0.0;
+
+    for(i = 0; i < height*width; i++) {
+        denominator += exp_fixed16(original_image[i]);
+    }
+
+    for(i = 0; i < height*width; i++) {
+        new_image[i] = div_fixed16(exp_fixed16(original_image[i]), denominator);
+    }
+}
 #endif
 
 #endif // ACTIVATION_FUNCTION_H
