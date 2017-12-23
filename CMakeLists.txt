@@ -39,6 +39,8 @@ if(BUILD_UTILS)
 
     add_executable(jpeg_to_rgb_pgms ${PROJECT_SOURCE_DIR}/util/jpeg_to_rgb_pgms.c)
 	target_link_libraries(jpeg_to_rgb_pgms ${LINK_LIBS} jpeg)
+
+    add_executable(find_max_min_weight ${PROJECT_SOURCE_DIR}/util/find_max_min_weight.c)
 endif()
 
 if(BUILD_EXAMPLES)
@@ -48,6 +50,9 @@ if(BUILD_EXAMPLES)
     if(AARCH64)
         add_executable(caffe_lenet_cpu ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_cpu.c)
         target_link_libraries(caffe_lenet_cpu ${LINK_LIBS})
+
+        add_executable(caffe_lenet_fixed16 ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_fixed16.c)
+        target_link_libraries(caffe_lenet_fixed16 ${LINK_LIBS})
     endif()
 
 	add_executable(es_alexnet_naive ${PROJECT_SOURCE_DIR}/examples/es_alexnet_naive.c)
