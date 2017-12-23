@@ -1,14 +1,13 @@
 /** 
- * @brief AlexNet implementation as provided in the BVLC model zoo:
- * https://github.com/BVLC/caffe/tree/master/models/bvlc_alexnet
+ * @brief VGG-16 implementation
  *
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  */
 
 #define JPEG
 #define IMAGENET
-#define NUM 1
-#define DEBUG
+#define NUM 100
+//#define DEBUG
 
 // used to read the validation images
 #define IMAGE_PREFIX "ILSVRC2012_val_"
