@@ -14,7 +14,7 @@ include_directories("${PROJECT_SOURCE_DIR}")
 
 list(APPEND LINK_LIBS m)
 
-if(BUILD_TESTS)
+if(BUILD_TESTS AND AARCH64)
     add_executable(max_pooling_test ${PROJECT_SOURCE_DIR}/test/max_pooling_test.c)
     target_link_libraries(max_pooling_test ${LINK_LIBS})
 
@@ -45,20 +45,26 @@ if(BUILD_EXAMPLES)
     add_executable(caffe_lenet_naive ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_naive.c)
     target_link_libraries(caffe_lenet_naive ${LINK_LIBS})
 
-    add_executable(caffe_lenet_cpu ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_cpu.c)
-    target_link_libraries(caffe_lenet_cpu ${LINK_LIBS})
+    if(AARCH64)
+        add_executable(caffe_lenet_cpu ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_cpu.c)
+        target_link_libraries(caffe_lenet_cpu ${LINK_LIBS})
+    endif()
 
 	add_executable(es_alexnet_naive ${PROJECT_SOURCE_DIR}/examples/es_alexnet_naive.c)
     target_link_libraries(es_alexnet_naive ${LINK_LIBS} jpeg)
 
-    add_executable(es_alexnet_cpu ${PROJECT_SOURCE_DIR}/examples/es_alexnet_cpu.c)
-    target_link_libraries(es_alexnet_cpu ${LINK_LIBS} jpeg)
+    if(AARCH64)
+        add_executable(es_alexnet_cpu ${PROJECT_SOURCE_DIR}/examples/es_alexnet_cpu.c)
+        target_link_libraries(es_alexnet_cpu ${LINK_LIBS} jpeg)
+    endif()
 
 	add_executable(es_vgg_naive ${PROJECT_SOURCE_DIR}/examples/es_vgg_naive.c)
     target_link_libraries(es_vgg_naive ${LINK_LIBS} jpeg)
 
-	add_executable(es_vgg_cpu ${PROJECT_SOURCE_DIR}/examples/es_vgg_cpu.c)
-    target_link_libraries(es_vgg_cpu ${LINK_LIBS} jpeg)
+    if(AARCH64)
+	    add_executable(es_vgg_cpu ${PROJECT_SOURCE_DIR}/examples/es_vgg_cpu.c)
+        target_link_libraries(es_vgg_cpu ${LINK_LIBS} jpeg)
+    endif()
 endif()
 
 # removes pgm and float files
