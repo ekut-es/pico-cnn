@@ -7,8 +7,8 @@
 
 #define FIXED16
 #define MNIST
-#define NUM 100
-#define DEBUG
+#define NUM 10000
+//#define DEBUG
 #define INDEX 0
 
 #include "pico-cnn/pico-cnn.h"
@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
         kernels[0][i] = (fixed16_t*) malloc(25*sizeof(fixed16_t));
 
         for(j = 0; j < 5*5; j++) {
-            kernels[0][i][j] = float_to_fixed16(kernels[0][i][j]);
+            kernels[0][i][j] = float_to_fixed16(kernels_float[0][i][j]);
         }
     }
 
@@ -174,7 +174,7 @@ int main(int argc, char** argv) {
         kernels[1][i] = (fixed16_t*) malloc(25*sizeof(fixed16_t));
 
         for(j = 0; j < 5*5; j++) {
-            kernels[1][i][j] = float_to_fixed16(kernels[1][i][j]);
+            kernels[1][i][j] = float_to_fixed16(kernels_float[1][i][j]);
         }
     }
 
@@ -323,6 +323,7 @@ int main(int argc, char** argv) {
     printf("starting CNN\n");
 
     for(i = 0; i < NUM; i++) {
+
         // C1 input 28x28x1 -> output 24x24x20
         #pragma omp parallel for private(j) num_threads(1)
         for(j = 0; j < 20; j++) {
@@ -359,17 +360,24 @@ int main(int argc, char** argv) {
 
         // make pgm S2
         #ifdef DEBUG
-        /*
         if(i == INDEX) {
-            float* s2_file_content = (fp_t*) malloc(12*12*20*sizeof(fp_t));
+            fixed16_t* s2_file_content = (fixed16_t*) malloc(12*12*20*sizeof(fixed16_t));
             for(j = 0; j < 20; j++) {
-                memcpy(&s2_file_content[j*12*12], s2_output[j], 12*12*sizeof(fp_t));
+                memcpy(&s2_file_content[j*12*12], s2_output[j], 12*12*sizeof(fixed16_t));
             }
-            write_pgm(s2_file_content, 20*12, 12, "s2_output.pgm");
-            write_float(s2_file_content, 20*12, 12, "s2_output.float");
+
+            fp_t* s2_file_content_float = (fp_t*) malloc(12*12*20*sizeof(fp_t));
+
+            for(j = 0; j < 12*12*20; j++) {
+				s2_file_content_float[j] = fixed16_to_float(s2_file_content[j]);
+			}
+
             free(s2_file_content);
+
+            write_pgm(s2_file_content_float, 20*12, 12, "s2_output_fixed16.pgm");
+            write_float(s2_file_content_float, 20*12, 12, "s2_output_fixed16.float");
+            free(s2_file_content_float);
         }
-        */
         #endif
 
         // C3 input 12x12x20 -> output 8x8x50
@@ -385,17 +393,24 @@ int main(int argc, char** argv) {
 
         // make pgm C3
         #ifdef DEBUG
-        /*
         if(i == INDEX) {
-            float* c3_file_content = (fp_t*) malloc(8*8*50*sizeof(fp_t));
+            fixed16_t* c3_file_content = (fixed16_t*) malloc(8*8*50*sizeof(fixed16_t));
             for(j = 0; j < 50; j++) {
-                memcpy(&c3_file_content[j*8*8], c3_output[j], 8*8*sizeof(fp_t));
+                memcpy(&c3_file_content[j*8*8], c3_output[j], 8*8*sizeof(fixed16_t));
             }
-            write_pgm(c3_file_content, 50*8, 8, "c3_output.pgm");
-            write_float(c3_file_content, 50*8, 8, "c3_output.float");
+
+            fp_t* c3_file_content_float = (fp_t*) malloc(8*8*50*sizeof(fp_t));
+
+            for(j = 0; j < 8*8*50; j++) {
+				c3_file_content_float[j] = fixed16_to_float(c3_file_content[j]);
+            }
+
             free(c3_file_content);
+
+            write_pgm(c3_file_content_float, 50*8, 8, "c3_output_fixed16.pgm");
+            write_float(c3_file_content_float, 50*8, 8, "c3_output_fixed16.float");
+            free(c3_file_content_float);
         }
-        */
         #endif
 
         // S4 input 8x8x50 -> output 8x8x50 
@@ -406,17 +421,24 @@ int main(int argc, char** argv) {
 
         // make pgm S4
         #ifdef DEBUG
-        /*
         if(i == INDEX) {
-            float* s4_file_content = (fp_t*) malloc(4*4*50*sizeof(fp_t));
+            fixed16_t* s4_file_content = (fixed16_t*) malloc(4*4*50*sizeof(fixed16_t));
             for(j = 0; j < 50; j++) {
-                memcpy(&s4_file_content[j*4*4], s4_output[j], 4*4*sizeof(fp_t));
+                memcpy(&s4_file_content[j*4*4], s4_output[j], 4*4*sizeof(fixed16_t));
             }
-            write_pgm(s4_file_content, 50*4, 4, "s4_output.pgm");
-            write_float(s4_file_content, 50*4, 4, "s4_output.float");
+
+            fp_t* s4_file_content_float = (fp_t*) malloc(4*4*50*sizeof(fp_t));
+
+            for(j = 0; j < 4*4*50; j++) {
+				s4_file_content_float[j] = fixed16_to_float(s4_file_content[j]);
+            }
+
             free(s4_file_content);
+
+            write_pgm(s4_file_content_float, 50*4, 4, "s4_output_fixed16.pgm");
+            write_float(s4_file_content_float, 50*4, 4, "s4_output_fixed16.float");
+            free(s4_file_content_float);
         }
-        */
         #endif
 
         // F5 input 50x4x4 = 1x800 -> output 1x500
@@ -432,12 +454,18 @@ int main(int argc, char** argv) {
 
         // make pgm F5
         #ifdef DEBUG
-        /*
         if(i == INDEX) {
-            write_pgm(f5_output, 1, 500, "f5_output.pgm");
-            write_float(f5_output, 1, 500, "f5_output.float");
+            fp_t* f5_output_float = (fp_t*) malloc(500*sizeof(fp_t));
+
+            for(j = 0; j < 500; j++) {
+                f5_output_float[j] = fixed16_to_float(f5_output[j]);
+            }
+
+            write_pgm(f5_output_float, 1, 500, "f5_output_fixed16.pgm");
+            write_float(f5_output_float, 1, 500, "f5_output_fixed16.float");
+
+            free(f5_output_float);
         }
-        */
         #endif
 
         // ReLU
@@ -445,12 +473,18 @@ int main(int argc, char** argv) {
 
         // make pgm F5 ReLU
         #ifdef DEBUG
-		/*
         if(i == INDEX) {
-            write_pgm(f5_output, 1, 500, "f5_relu_output.pgm");
-            write_float(f5_output, 1, 500, "f5_relu_output.float");
+            fp_t* f5_output_float = (fp_t*) malloc(500*sizeof(fp_t));
+
+            for(j = 0; j < 500; j++) {
+                f5_output_float[j] = fixed16_to_float(f5_output[j]);
+            }
+
+            write_pgm(f5_output_float, 1, 500, "f5_relu_output_fixed16.pgm");
+            write_float(f5_output_float, 1, 500, "f5_relu_output_fixed16.float");
+
+            free(f5_output_float);
         }
-		*/
         #endif
 
         // F6 input 1x500 -> 1x10
@@ -458,12 +492,19 @@ int main(int argc, char** argv) {
 
         // make pgm F6
         #ifdef DEBUG
-		/*
         if(i == INDEX) {
-            write_pgm(f6_output, 1, 10, "f6_output.pgm");
-            write_float(f6_output, 1, 10, "f6_output.float");
+            fp_t* f6_output_float = (fp_t*) malloc(10*sizeof(fp_t));
+
+            for(j = 0; j < 10; j++) {
+                f6_output_float[j] = fixed16_to_float(f6_output[j]);
+            }
+
+
+            write_pgm(f6_output_float, 1, 10, "f6_output_fixed16.pgm");
+            write_float(f6_output_float, 1, 10, "f6_output_fixed16.float");
+
+            free(f6_output_float);
         }
-		*/
         #endif
 
         // softmax
@@ -471,12 +512,20 @@ int main(int argc, char** argv) {
 
         // make pgm F6 softmax
         #ifdef DEBUG
-		/*
         if(i == INDEX) {
-            write_pgm(f6_output, 1, 10, "f6_softmax_output.pgm");
-            write_float(f6_output, 1, 10, "f6_softmax_output.float");
+
+            fp_t* f6_output_float = (fp_t*) malloc(10*sizeof(fp_t));
+
+            for(j = 0; j < 10; j++) {
+                f6_output_float[j] = fixed16_to_float(f6_output[j]);
+            }
+
+
+            write_pgm(f6_output_float, 1, 10, "f6_softmax_output_fixed16.pgm");
+            write_float(f6_output_float, 1, 10, "f6_softmax_output_fixed16.float");
+
+            free(f6_output_float);
         }
-		*/
         #endif
 
         for(j = 0; j < 10; j++) {
@@ -486,14 +535,12 @@ int main(int argc, char** argv) {
         sort_prediction(f6_output, labels, 10);
 
         #ifdef DEBUG
-		/*
         if(i == INDEX) {
             printf("%d\n", t10k_labels[i]);
             for(j = 0; j < 10; j++) {
-                printf("%d: %f\n", labels[j], f6_output[j]);
+                printf("%d: %f\n", labels[j], fixed16_to_float(f6_output[j]));
             }
         }
-		*/
         #endif
 
         if(t10k_labels[i] == labels[0]) {

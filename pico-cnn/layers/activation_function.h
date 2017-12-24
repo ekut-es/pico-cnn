@@ -427,15 +427,16 @@ void softmax_naive_fixed16(const fixed16_t* original_image, const uint16_t heigh
 
     uint16_t i;
 
-    fp_t denominator = 0.0;
+    fixed16_t denominator = FIXED_ZERO;
 
     for(i = 0; i < height*width; i++) {
-        denominator += exp_fixed16(original_image[i]);
+        denominator += exp_int32(fixed16_to_int16(original_image[i]));
     }
 
     for(i = 0; i < height*width; i++) {
-        new_image[i] = div_fixed16(exp_fixed16(original_image[i]), denominator);
+        new_image[i] = div_fixed16(exp_int32(fixed16_to_int16(original_image[i])), denominator);
     }
+
 }
 #endif
 

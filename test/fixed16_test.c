@@ -140,27 +140,6 @@ int main(int argc, char** argv) {
 
     printf("%f / %f =\t%f;\t%f\n", a_float, b_float, a_float / b_float, fixed16_to_float(div_fixed16(a_fixed16, b_fixed16)));
 
-   
-    printf("exp\n");
-    int i;
-    fp_t start = -0.1;
-    fp_t step_size = 0.01;
-    a_float = start;
-
-    for(i = 0; i < 20; i++) {
-        a_fixed16 = float_to_fixed16(a_float);
-        printf("exp(%f)  =\t%f;\t%f\n", a_float, expf(a_float), fixed16_to_float(exp_fixed16(a_fixed16)));
-        a_float += step_size;
-    }
-
-    a_float = -7.5;
-    a_fixed16 = float_to_fixed16(a_float);
-    printf("exp(%f)  =\t%f;\t%f\n", a_float, expf(a_float), fixed16_to_float(exp_fixed16(a_fixed16)));
-
-    a_float = 3.4657;
-    a_fixed16 = float_to_fixed16(a_float);
-    printf("exp(%f)  =\t%f;\t%f\n", a_float, expf(a_float), fixed16_to_float(exp_fixed16(a_fixed16)));
-
 
     return 0;
 }

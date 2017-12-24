@@ -6,8 +6,8 @@
  */
 
 #define MNIST
-#define NUM 100
-#define DEBUG
+#define NUM 10000
+//#define DEBUG
 #define INDEX 0
 
 #include "pico-cnn/pico-cnn.h"
