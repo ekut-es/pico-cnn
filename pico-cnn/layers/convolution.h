@@ -1026,7 +1026,216 @@ void convolution2d_naive_fixed16(const fixed16_t* original_image, const uint16_t
 }
 
 void convolution2d_cpu_5x5_s1_valid_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image, const fixed16_t* kernel, const fixed16_t bias) {
-	convolution2d_naive_fixed16(original_image, height, width, new_image, kernel, 5, 1, 0, bias);
+	
+	uint16_t image_row, image_column;
+    const uint8_t padding = 2;
+
+    // vectors for kernel
+    fixed16x4_t kernel_0;
+    fixed16x4_t kernel_1;
+    fixed16x4_t kernel_2;
+    fixed16x4_t kernel_3;
+    fixed16x4_t kernel_4;
+    fixed16x4_t kernel_5;
+    fixed16_t kernel_6;
+
+    fixed16_t kernel_temp[4];
+
+    kernel_0 = vld1_s16(kernel);
+    kernel_1 = vld1_s16(kernel+5);
+    kernel_2 = vld1_s16(kernel+10);
+    kernel_3 = vld1_s16(kernel+15);
+    kernel_4 = vld1_s16(kernel+20);
+
+    kernel_temp[0] = kernel[4];
+    kernel_temp[1] = kernel[9];
+    kernel_temp[2] = kernel[14];
+    kernel_temp[3] = kernel[19];
+    kernel_5 = vld1_s16(kernel_temp);
+
+    kernel_6 = kernel[24];
+
+    // vectors for image
+    fixed16x4_t image_0_0;
+    fixed16x4_t image_1_0;
+    fixed16x4_t image_2_0;
+    fixed16x4_t image_3_0;
+    fixed16x4_t image_4_0;
+    fixed16x4_t image_5_0;
+    fixed16_t image_6_0;
+
+    fixed16x4_t image_0_1;
+    fixed16x4_t image_1_1;
+    fixed16x4_t image_2_1;
+    fixed16x4_t image_3_1;
+    fixed16x4_t image_4_1;
+    fixed16x4_t image_5_1;
+    fixed16_t image_6_1;
+
+    fixed16x4_t image_0_2;
+    fixed16x4_t image_1_2;
+    fixed16x4_t image_2_2;
+    fixed16x4_t image_3_2;
+    fixed16x4_t image_4_2;
+    fixed16x4_t image_5_2;
+    fixed16_t image_6_2;
+
+    fixed16x4_t image_0_3;
+    fixed16x4_t image_1_3;
+    fixed16x4_t image_2_3;
+    fixed16x4_t image_3_3;
+    fixed16x4_t image_4_3;
+    fixed16x4_t image_5_3;
+    fixed16_t image_6_3;
+
+    fixed16_t image_temp[4];
+
+    for(image_row = 0; image_row < height-4; image_row++) {
+        for(image_column = 0; image_column < width-4-4; image_column+=4) {
+
+            // load image into vectors
+            const uint32_t source_0 = (image_row+0)*width+image_column;
+            const uint32_t source_1 = (image_row+1)*width+image_column;
+            const uint32_t source_2 = (image_row+2)*width+image_column;
+            const uint32_t source_3 = (image_row+3)*width+image_column;
+            const uint32_t source_4 = (image_row+4)*width+image_column;
+
+            image_0_0 = vld1_s16(original_image+source_0);
+            image_1_0 = vld1_s16(original_image+source_1);
+            image_2_0 = vld1_s16(original_image+source_2);
+            image_3_0 = vld1_s16(original_image+source_3);
+            image_4_0 = vld1_s16(original_image+source_4);
+
+            image_temp[0] = original_image[source_0+4];
+            image_temp[1] = original_image[source_1+4];
+            image_temp[2] = original_image[source_2+4];
+            image_temp[3] = original_image[source_3+4];
+            image_5_0 = vld1_s16(image_temp);
+
+            image_6_0 = original_image[source_4+4]; 
+
+
+            image_0_1 = vld1_s16(original_image+source_0+1);
+            image_1_1 = vld1_s16(original_image+source_1+1);
+            image_2_1 = vld1_s16(original_image+source_2+1);
+            image_3_1 = vld1_s16(original_image+source_3+1);
+            image_4_1 = vld1_s16(original_image+source_4+1);
+
+            image_temp[0] = original_image[source_0+4+1];
+            image_temp[1] = original_image[source_1+4+1];
+            image_temp[2] = original_image[source_2+4+1];
+            image_temp[3] = original_image[source_3+4+1];
+            image_5_1 = vld1_s16(image_temp);
+
+            image_6_1 = original_image[source_4+4+1];
+
+
+            image_0_2 = vld1_s16(original_image+source_0+2);
+            image_1_2 = vld1_s16(original_image+source_1+2);
+            image_2_2 = vld1_s16(original_image+source_2+2);
+            image_3_2 = vld1_s16(original_image+source_3+2);
+            image_4_2 = vld1_s16(original_image+source_4+2);
+
+            image_temp[0] = original_image[source_0+4+2];
+            image_temp[1] = original_image[source_1+4+2];
+            image_temp[2] = original_image[source_2+4+2];
+            image_temp[3] = original_image[source_3+4+2];
+            image_5_2 = vld1_s16(image_temp);
+
+            image_6_2 = original_image[source_4+4+2];
+
+
+            image_0_3 = vld1_s16(original_image+source_0+3);
+            image_1_3 = vld1_s16(original_image+source_1+3);
+            image_2_3 = vld1_s16(original_image+source_2+3);
+            image_3_3 = vld1_s16(original_image+source_3+3);
+            image_4_3 = vld1_s16(original_image+source_4+3);
+
+            image_temp[0] = original_image[source_0+4+3];
+            image_temp[1] = original_image[source_1+4+3];
+            image_temp[2] = original_image[source_2+4+3];
+            image_temp[3] = original_image[source_3+4+3];
+            image_5_3 = vld1_s16(image_temp);
+
+            image_6_3 = original_image[source_4+4+3];
+
+
+            // apply kernel
+            image_0_0 = vmul_fixed16(image_0_0, kernel_0);
+            image_1_0 = vmla_fixed16(image_0_0, image_1_0, kernel_1);
+            image_2_0 = vmla_fixed16(image_1_0, image_2_0, kernel_2);
+            image_3_0 = vmla_fixed16(image_2_0, image_3_0, kernel_3);
+            image_4_0 = vmla_fixed16(image_3_0, image_4_0, kernel_4);
+            image_5_0 = vmla_fixed16(image_4_0, image_5_0, kernel_5);
+
+            image_0_1 = vmul_fixed16(image_0_1, kernel_0);
+            image_1_1 = vmla_fixed16(image_0_1, image_1_1, kernel_1);
+            image_2_1 = vmla_fixed16(image_1_1, image_2_1, kernel_2);
+            image_3_1 = vmla_fixed16(image_2_1, image_3_1, kernel_3);
+            image_4_1 = vmla_fixed16(image_3_1, image_4_1, kernel_4);
+            image_5_1 = vmla_fixed16(image_4_1, image_5_1, kernel_5);
+
+            image_0_2 = vmul_fixed16(image_0_2, kernel_0);
+            image_1_2 = vmla_fixed16(image_0_2, image_1_2, kernel_1);
+            image_2_2 = vmla_fixed16(image_1_2, image_2_2, kernel_2);
+            image_3_2 = vmla_fixed16(image_2_2, image_3_2, kernel_3);
+            image_4_2 = vmla_fixed16(image_3_2, image_4_2, kernel_4);
+            image_5_2 = vmla_fixed16(image_4_2, image_5_2, kernel_5);
+
+            image_0_3 = vmul_fixed16(image_0_3, kernel_0);
+            image_1_3 = vmla_fixed16(image_0_3, image_1_3, kernel_1);
+            image_2_3 = vmla_fixed16(image_1_3, image_2_3, kernel_2);
+            image_3_3 = vmla_fixed16(image_2_3, image_3_3, kernel_3);
+            image_4_3 = vmla_fixed16(image_3_3, image_4_3, kernel_4);
+            image_5_3 = vmla_fixed16(image_4_3, image_5_3, kernel_5);
+
+            // store new image
+            const uint32_t target = image_row*(width-2*padding)+image_column;
+
+            new_image[target] =   add_fixed16(vaddv_s16(image_5_0), add_fixed16(mul_fixed16(image_6_0, kernel_6), bias));
+            new_image[target+1] = add_fixed16(vaddv_s16(image_5_1), add_fixed16(mul_fixed16(image_6_1, kernel_6), bias));
+            new_image[target+2] = add_fixed16(vaddv_s16(image_5_2), add_fixed16(mul_fixed16(image_6_2, kernel_6), bias));
+            new_image[target+3] = add_fixed16(vaddv_s16(image_5_3), add_fixed16(mul_fixed16(image_6_3, kernel_6), bias));
+        }
+
+        // residual columns
+        for(image_column = image_column; image_column < width-4; image_column++) {
+
+            // load image into vectors
+            const uint32_t source_0 = (image_row+0)*width+image_column;
+            const uint32_t source_1 = (image_row+1)*width+image_column;
+            const uint32_t source_2 = (image_row+2)*width+image_column;
+            const uint32_t source_3 = (image_row+3)*width+image_column;
+            const uint32_t source_4 = (image_row+4)*width+image_column;
+
+            image_0_0 = vld1_s16(original_image+source_0);
+            image_1_0 = vld1_s16(original_image+source_1);
+            image_2_0 = vld1_s16(original_image+source_2);
+            image_3_0 = vld1_s16(original_image+source_3);
+            image_4_0 = vld1_s16(original_image+source_4);
+
+            image_temp[0] = original_image[source_0+4];
+            image_temp[1] = original_image[source_1+4];
+            image_temp[2] = original_image[source_2+4];
+            image_temp[3] = original_image[source_3+4];
+            image_5_0 = vld1_s16(image_temp);
+
+            image_6_0 = original_image[source_4+4];
+
+            // apply kernel
+            image_0_0 = vmul_fixed16(image_0_0, kernel_0);
+            image_1_0 = vmla_fixed16(image_0_0, image_1_0, kernel_1);
+            image_2_0 = vmla_fixed16(image_1_0, image_2_0, kernel_2);
+            image_3_0 = vmla_fixed16(image_2_0, image_3_0, kernel_3);
+            image_4_0 = vmla_fixed16(image_3_0, image_4_0, kernel_4);
+            image_5_0 = vmla_fixed16(image_4_0, image_5_0, kernel_5);
+
+            // store new image
+            const uint32_t target = image_row*(width-2*padding)+image_column;
+
+            new_image[target] = add_fixed16(vaddv_s16(image_5_0), add_fixed16(mul_fixed16(image_6_0,kernel_6), bias));
+        }
+    }
 }
 
 /**
@@ -1048,29 +1257,7 @@ void add_image2d_naive_fixed16(fixed16_t* image_a, const fixed16_t* image_b, con
 }
 
 void add_image2d_cpu_fixed16(fixed16_t* image_a, const fixed16_t* image_b, const uint16_t height, const uint16_t width) {
-	//add_image2d_naive_fixed16(image_a, image_b, height, width);
-	/*
-	kernel_0 = [0,0][0,1][0,2][0,3][0,4][x,x][x,x][x,x]
-	kernel_1 = [1,0][1,1][1,2][1,3][1,4][x,x][x,x][x,x]
-	kernel_2 = [2,0][2,1][2,2][2,3][2,4][x,x][x,x][x,x]
-	kernel_3 = [3,0][3,1][3,2][3,3][3,4][x,x][x,x][x,x]
-	kernel_4 = [4,0][4,1][4,2][4,3][4,4][x,x][x,x][x,x]
-    */
-
-	/*
-	// vectors for kernel
-	int16x8_t kernel_0;
-	int16x8_t kernel_1;
-	int16x8_t kernel_2;
-	int16x8_t kernel_3;
-	int16x8_t kernel_4;
-
-	kernel_0 = vld1q_s16(kernel);
-	kernel_1 = vld1q_s16(kernel+5);
-	kernel_2 = vld1q_s16(kernel+10);
-	kernel_3 = vld1q_s16(kernel+15);
-	kernel_4 = vld1q_s16(kernel+20);
-	*/
+	add_image2d_naive_fixed16(image_a, image_b, height, width);	
 }
 #endif
 

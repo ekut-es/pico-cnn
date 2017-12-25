@@ -30,12 +30,10 @@ if(BUILD_TESTS AND AARCH64)
     add_executable(fully_connected_benchmark ${PROJECT_SOURCE_DIR}/test/fully_connected_benchmark.c)
     target_link_libraries(fully_connected_benchmark ${LINK_LIBS} jpeg)
 
-endif()
-
-if(BUILD_TESTS)
-	add_executable(fixed16_test ${PROJECT_SOURCE_DIR}/test/fixed16_test.c)
+    add_executable(fixed16_test ${PROJECT_SOURCE_DIR}/test/fixed16_test.c)
     target_link_libraries(fixed16_test ${LINK_LIBS})
 endif()
+
 
 if(BUILD_UTILS)
     add_executable(compare_float_files ${PROJECT_SOURCE_DIR}/util/compare_float_files.c)
@@ -56,12 +54,12 @@ if(BUILD_EXAMPLES)
     if(AARCH64)
         add_executable(caffe_lenet_cpu ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_cpu.c)
         target_link_libraries(caffe_lenet_cpu ${LINK_LIBS})
+
+        add_executable(caffe_lenet_fixed16 ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_fixed16.c)
+        target_link_libraries(caffe_lenet_fixed16 ${LINK_LIBS})
     endif()
 
-	add_executable(caffe_lenet_fixed16 ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_fixed16.c)
-    target_link_libraries(caffe_lenet_fixed16 ${LINK_LIBS})
-
-	add_executable(es_alexnet_naive ${PROJECT_SOURCE_DIR}/examples/es_alexnet_naive.c)
+    add_executable(es_alexnet_naive ${PROJECT_SOURCE_DIR}/examples/es_alexnet_naive.c)
     target_link_libraries(es_alexnet_naive ${LINK_LIBS} jpeg)
 
     if(AARCH64)

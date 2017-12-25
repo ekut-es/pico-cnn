@@ -7,7 +7,7 @@
 
 #define FIXED16
 #define MNIST
-#define NUM 10000
+#define NUM 100
 //#define DEBUG
 #define INDEX 0
 
