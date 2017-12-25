@@ -908,7 +908,8 @@ void add_image2d_cpu(fp_t* image_a, const fp_t* image_b, const uint16_t height, 
     float32x4_t image_b_2;
     float32x4_t image_b_3;
 
-    for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
+	// L1 block size is 64 Bytes = 16 floats
+    for(i = 0; i < height*width-16; i += 16) {
 		// load images into vector
         image_a_0 = vld1q_f32(image_a+i);
         image_a_1 = vld1q_f32(image_a+i+4);
@@ -1047,7 +1048,29 @@ void add_image2d_naive_fixed16(fixed16_t* image_a, const fixed16_t* image_b, con
 }
 
 void add_image2d_cpu_fixed16(fixed16_t* image_a, const fixed16_t* image_b, const uint16_t height, const uint16_t width) {
-	add_image2d_naive_fixed16(image_a, image_b, height, width);
+	//add_image2d_naive_fixed16(image_a, image_b, height, width);
+	/*
+	kernel_0 = [0,0][0,1][0,2][0,3][0,4][x,x][x,x][x,x]
+	kernel_1 = [1,0][1,1][1,2][1,3][1,4][x,x][x,x][x,x]
+	kernel_2 = [2,0][2,1][2,2][2,3][2,4][x,x][x,x][x,x]
+	kernel_3 = [3,0][3,1][3,2][3,3][3,4][x,x][x,x][x,x]
+	kernel_4 = [4,0][4,1][4,2][4,3][4,4][x,x][x,x][x,x]
+    */
+
+	/*
+	// vectors for kernel
+	int16x8_t kernel_0;
+	int16x8_t kernel_1;
+	int16x8_t kernel_2;
+	int16x8_t kernel_3;
+	int16x8_t kernel_4;
+
+	kernel_0 = vld1q_s16(kernel);
+	kernel_1 = vld1q_s16(kernel+5);
+	kernel_2 = vld1q_s16(kernel+10);
+	kernel_3 = vld1q_s16(kernel+15);
+	kernel_4 = vld1q_s16(kernel+20);
+	*/
 }
 #endif
 

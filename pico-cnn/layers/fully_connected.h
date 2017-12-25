@@ -104,7 +104,8 @@ void fully_connected_cpu(const fp_t* original_image, const uint16_t original_wid
 
         fp_t pixel = 0.0;
 
-        for(j = 0; j < original_width-BLOCK_SIZE; j+=BLOCK_SIZE) {
+		// L1 block size is 64 Bytes = 16 floats
+        for(j = 0; j < original_width-16; j+=16) {
             // load kernel into vectors
             /*
             kernel_0 = vsetq_lane_f32(kernel[j*new_width+i], kernel_0, 0);

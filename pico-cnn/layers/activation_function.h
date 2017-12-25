@@ -152,7 +152,8 @@ void relu_cpu(const fp_t* original_image, const uint16_t height, const uint16_t 
 
     uint32_t i;
 
-    for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
+	// L1 block size is 64 Bytes = 16 floats
+    for(i = 0; i < height*width-16; i += 16) {
 
         // load image into vectors
         original_image_0 = vld1q_f32(original_image+i);
@@ -200,7 +201,8 @@ void softmax_cpu_single(const fp_t* original_image, const uint16_t height, const
     float32x4_t original_image_3;
 
     // calculate denominator
-    for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
+	// L1 block size is 64 Bytes = 16 floats
+    for(i = 0; i < height*width-16; i += 16) {
         // load image into vectors
         original_image_0 = vld1q_f32(original_image+i);
         original_image_1 = vld1q_f32(original_image+i+4);
@@ -229,7 +231,8 @@ void softmax_cpu_single(const fp_t* original_image, const uint16_t height, const
    
     const fp_t inv_denominator = 1.0/denominator;
     // apply softmax
-    for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
+	// L1 block size is 64 Bytes = 16 floats
+    for(i = 0; i < height*width-16; i += 16) {
         // load image into vectors
         original_image_0 = vld1q_f32(original_image+i);
         original_image_1 = vld1q_f32(original_image+i+4);
