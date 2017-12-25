@@ -1257,7 +1257,48 @@ void add_image2d_naive_fixed16(fixed16_t* image_a, const fixed16_t* image_b, con
 }
 
 void add_image2d_cpu_fixed16(fixed16_t* image_a, const fixed16_t* image_b, const uint16_t height, const uint16_t width) {
-	add_image2d_naive_fixed16(image_a, image_b, height, width);	
+	uint32_t i;
+
+    fixed16x8_t image_a_0;
+    fixed16x8_t image_a_1;
+    fixed16x8_t image_a_2;
+    fixed16x8_t image_a_3;
+
+    fixed16x8_t image_b_0;
+    fixed16x8_t image_b_1;
+    fixed16x8_t image_b_2;
+    fixed16x8_t image_b_3;
+
+	// L1 block size is 64 Bytes = 32 fixed16
+    for(i = 0; i < height*width-32; i += 32) {
+		// load images into vector
+        image_a_0 = vld1q_s16(image_a+i);
+        image_a_1 = vld1q_s16(image_a+i+8);
+        image_a_2 = vld1q_s16(image_a+i+16);
+        image_a_3 = vld1q_s16(image_a+i+24);
+
+        image_b_0 = vld1q_s16(image_b+i);
+        image_b_1 = vld1q_s16(image_b+i+8);
+        image_b_2 = vld1q_s16(image_b+i+16);
+        image_b_3 = vld1q_s16(image_b+i+24);
+
+		// add vectors
+        image_a_0 = vaddq_s16(image_a_0, image_b_0);
+        image_a_1 = vaddq_s16(image_a_1, image_b_1);
+        image_a_2 = vaddq_s16(image_a_2, image_b_2);
+        image_a_3 = vaddq_s16(image_a_3, image_b_3);
+
+		// store vectors in image a
+        vst1q_s16(image_a+i, image_a_0);
+        vst1q_s16(image_a+i+8, image_a_1);
+        vst1q_s16(image_a+i+16, image_a_2);
+        vst1q_s16(image_a+i+24, image_a_3);
+    }
+
+    // residual pixels
+    for(i = i; i < height*width; i++) {
+        image_a[i] = add_fixed16(image_a[i], image_b[i]);
+    }
 }
 #endif
 
