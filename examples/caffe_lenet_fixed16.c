@@ -8,7 +8,7 @@
 #define FIXED16
 #define MNIST
 #define NUM 100
-//#define DEBUG
+#define DEBUG
 #define INDEX 0
 
 #include "pico-cnn/pico-cnn.h"

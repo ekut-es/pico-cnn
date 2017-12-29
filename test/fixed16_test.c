@@ -153,10 +153,10 @@ int main(int argc, char** argv) {
     fixed16_t carr_fixed16[4];
     fixed16_t darr_fixed16[4];
 
-    int16x4_t av_fixed16;    
-    int16x4_t bv_fixed16;    
-    int16x4_t cv_fixed16; 
-    int16x4_t dv_fixed16; 
+    fixed16x4_t av_fixed16;    
+    fixed16x4_t bv_fixed16;    
+    fixed16x4_t cv_fixed16; 
+    fixed16x4_t dv_fixed16; 
 
     aarr_fixed16[0] = float_to_fixed16(-4.2515);
     aarr_fixed16[1] = float_to_fixed16(2.7914);
@@ -200,6 +200,73 @@ int main(int argc, char** argv) {
 
     printf("vaddv\n");
     printf("%f = %f + %f + %f + %f\n", fixed16_to_float(vaddv_s16(av_fixed16)), fixed16_to_float(aarr_fixed16[0]), fixed16_to_float(aarr_fixed16[1]), fixed16_to_float(aarr_fixed16[2]), fixed16_to_float(aarr_fixed16[3]));
+
+    printf("vmax\n");
+    fixed16_t aarrq_fixed16[8];
+    fixed16_t barrq_fixed16[8];
+    fixed16_t carrq_fixed16[8];
+
+    fixed16x8_t avq_fixed16;    
+    fixed16x8_t bvq_fixed16;    
+    fixed16x8_t cvq_fixed16; 
+
+    fixed16x4_t cvq_fixed16_0; 
+    fixed16x4_t cvq_fixed16_1; 
+
+    aarrq_fixed16[0] = float_to_fixed16(26.63937);
+    aarrq_fixed16[1] = float_to_fixed16(-14.34847);
+    aarrq_fixed16[2] = float_to_fixed16(-17.23117);
+    aarrq_fixed16[3] = float_to_fixed16(26.92824);
+    aarrq_fixed16[4] = float_to_fixed16(-24.45074);
+    aarrq_fixed16[5] = float_to_fixed16(-27.28157);
+    aarrq_fixed16[6] = float_to_fixed16(-26.42929);
+    aarrq_fixed16[7] = float_to_fixed16(24.35366);
+
+    barrq_fixed16[0] = float_to_fixed16(-21.946808);
+    barrq_fixed16[1] = float_to_fixed16(21.282504);
+    barrq_fixed16[2] = float_to_fixed16(21.159183);
+    barrq_fixed16[3] = float_to_fixed16(9.563920);
+    barrq_fixed16[4] = float_to_fixed16(-21.986626);
+    barrq_fixed16[5] = float_to_fixed16(-18.352482);
+    barrq_fixed16[6] = float_to_fixed16(-27.299869);
+    barrq_fixed16[7] = float_to_fixed16(7.459852);
+
+    avq_fixed16 = vld1q_s16(aarrq_fixed16);
+    bvq_fixed16 = vld1q_s16(barrq_fixed16);
+
+    cvq_fixed16 = vmaxq_s16(avq_fixed16, bvq_fixed16);
+
+    vst1q_s16(carrq_fixed16, cvq_fixed16); 
+
+
+    for(i = 0; i < 8; i++) {
+        printf("MAX(%f,%f) = %f\n", fixed16_to_float(aarrq_fixed16[i]), fixed16_to_float(barrq_fixed16[i]), fixed16_to_float(carrq_fixed16[i]));
+    }
+
+    printf("folding vmax\n");
+    
+    cvq_fixed16_0 = vget_low_s16(cvq_fixed16);
+    cvq_fixed16_1 = vget_high_s16(cvq_fixed16);
+
+    dv_fixed16 = vpmax_s16(cvq_fixed16_0, cvq_fixed16_0); 
+    
+    vst1_s16(darr_fixed16, dv_fixed16);
+    vst1_s16(aarr_fixed16, cvq_fixed16_0);
+    vst1_s16(barr_fixed16, cvq_fixed16_1);
+
+    printf("\n");
+    printf("MAX(%f, %f) = %f\n", fixed16_to_float(aarr_fixed16[0]), fixed16_to_float(aarr_fixed16[1]), fixed16_to_float(darr_fixed16[0]));
+    printf("MAX(%f, %f) = %f\n", fixed16_to_float(aarr_fixed16[2]), fixed16_to_float(aarr_fixed16[3]), fixed16_to_float(darr_fixed16[1]));
+
+    dv_fixed16 = vpmax_s16(cvq_fixed16_1, cvq_fixed16_1); 
+
+    vst1_s16(darr_fixed16, dv_fixed16);
+    vst1_s16(aarr_fixed16, cvq_fixed16_0);
+    vst1_s16(barr_fixed16, cvq_fixed16_1);
+
+    printf("\n");
+    printf("MAX(%f, %f) = %f\n", fixed16_to_float(aarr_fixed16[0]), fixed16_to_float(aarr_fixed16[1]), fixed16_to_float(darr_fixed16[0]));
+    printf("MAX(%f, %f) = %f\n", fixed16_to_float(aarr_fixed16[2]), fixed16_to_float(aarr_fixed16[3]), fixed16_to_float(darr_fixed16[1]));
 
     #endif 
 
