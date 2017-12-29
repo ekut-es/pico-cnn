@@ -195,6 +195,17 @@ void fully_connected_naive_fixed16(const fixed16_t* original_image, const uint16
     }
 }
 
+#ifdef __aarch64__
+/**
+ * @brief implementation of fully connected layer optimzed for CPU (fixed16_t)
+ *
+ * @param original_image (1 x original_width)
+ * @param original_width
+ * @param new_image (1 x new_width)
+ * @param new_width
+ * @param kernel
+ * @param bias
+ */
 void fully_connected_cpu_fixed16(const fixed16_t* original_image, const uint16_t original_width, fixed16_t* new_image, const uint16_t new_width, const fixed16_t* kernel, const fixed16_t* bias, const uint32_t from, const uint32_t to) {
 	fixed16x4_t kernel_0 = {0x0000, 0x0000, 0x0000, 0x0000};
     fixed16x4_t kernel_1 = {0x0000, 0x0000, 0x0000, 0x0000};
@@ -298,6 +309,7 @@ void fully_connected_cpu_fixed16(const fixed16_t* original_image, const uint16_t
 
 }
 
+#endif
 #endif
 
 #endif // FULLY_CONNECTED_H

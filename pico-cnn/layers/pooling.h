@@ -488,7 +488,17 @@ void max_pooling2d_naive_fixed16(const fixed16_t* original_image, const uint16_t
     }
 }
 
-
+#ifdef __aarch64__
+/**
+ * @brief applies max pooling of kernel_size x kernel_size to original_image (fixed16_t) 
+ *
+ * kernel_size = 2
+ * stride = 2
+ *
+ * @param original_image (height x width)
+ * @param new_image (height/kernel_size x width/kernel_size)
+ * @param kernel_size
+ */
 void max_pooling2d_cpu_2x2_s2_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image) {
 
 	uint16_t image_row, image_column;
@@ -562,6 +572,7 @@ void max_pooling2d_cpu_2x2_s2_fixed16(const fixed16_t* original_image, const uin
 	
 }
 
+#endif
 #endif
 
 #endif // POOLING_H

@@ -413,6 +413,16 @@ void relu_naive_fixed16(const fixed16_t* original_image, const uint16_t height, 
     }
 }
 
+#ifdef __aarch64__
+/**
+ * @brief applies relu(x) to all pixel of original_image and stores it in
+ * new_image optimzed of CPU (fixed16_t)
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param new_image (height x width)
+ */
 void relu_cpu_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image) {
 
 	fixed16x8_t original_image_0;
@@ -454,6 +464,7 @@ void relu_cpu_fixed16(const fixed16_t* original_image, const uint16_t height, co
         new_image[i] = (original_image[i] < 0x0000) ? 0x0000 : original_image[i];
     }
 }
+#endif
 
 /**
  * @brief applies softmax to all pixel of original_image and stores it in

@@ -1025,6 +1025,21 @@ void convolution2d_naive_fixed16(const fixed16_t* original_image, const uint16_t
     }
 }
 
+#ifdef __aarch64__
+/**
+ * @brief performs an CPU optimized (fixed16_t) 2D convolution on original_image 
+ * with a kernel 5x5 and stores the result to new_image
+ *
+ * stride = 1
+ * padding = same
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param new_image (height x width)
+ * @param kernel (5x5)
+ * @param bias
+ */
 void convolution2d_cpu_5x5_s1_valid_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image, const fixed16_t* kernel, const fixed16_t bias) {
 	
 	uint16_t image_row, image_column;
@@ -1237,6 +1252,7 @@ void convolution2d_cpu_5x5_s1_valid_fixed16(const fixed16_t* original_image, con
         }
     }
 }
+#endif
 
 /**
  * @brief adds image_a and image_b pixel by pixel and stores result in image_a
@@ -1256,6 +1272,16 @@ void add_image2d_naive_fixed16(fixed16_t* image_a, const fixed16_t* image_b, con
     }
 }
 
+#ifdef __aarch64__
+/**
+ * @brief adds image_a and image_b pixel by pixel and stores result in image_a 
+ * optimized for CPU (fixed16_t)
+ * 
+ * @param image_a (height x width)
+ * @param image_b (height x width)
+ * @param height
+ * @param width
+ */
 void add_image2d_cpu_fixed16(fixed16_t* image_a, const fixed16_t* image_b, const uint16_t height, const uint16_t width) {
 	uint32_t i;
 
@@ -1300,6 +1326,7 @@ void add_image2d_cpu_fixed16(fixed16_t* image_a, const fixed16_t* image_b, const
         image_a[i] = add_fixed16(image_a[i], image_b[i]);
     }
 }
+#endif
 #endif
 
 #endif // CONVOLUTION_H
