@@ -149,8 +149,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    //restructure_fully_connected_kernel(&kernels_float[2][0], 800, 500);
-    //restructure_fully_connected_kernel(&kernels_float[3][0], 500, 10);
+    restructure_fully_connected_kernel(&kernels_float[2][0], 800, 500);
+    restructure_fully_connected_kernel(&kernels_float[3][0], 500, 10);
 
     // convert kernels and biasses to fixed16
     fixed16_t*** kernels;
@@ -449,7 +449,7 @@ int main(int argc, char** argv) {
 
         #pragma omp parallel for private(j) num_threads(1)
         for(j = 0; j < omp_get_max_threads(); j++) {
-            fully_connected_naive_fixed16(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias);
+            fully_connected_cpu_fixed16(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias, 0, 500);
         }
 
         // make pgm F5
@@ -488,7 +488,7 @@ int main(int argc, char** argv) {
         #endif
 
         // F6 input 1x500 -> 1x10
-        fully_connected_naive_fixed16(f5_output, 500, f6_output, 10, f6_kernel, f6_bias);
+        fully_connected_cpu_fixed16(f5_output, 500, f6_output, 10, f6_kernel, f6_bias, 0 ,10);
 
         // make pgm F6
         #ifdef DEBUG
