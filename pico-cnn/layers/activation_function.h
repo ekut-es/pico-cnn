@@ -414,7 +414,45 @@ void relu_naive_fixed16(const fixed16_t* original_image, const uint16_t height, 
 }
 
 void relu_cpu_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image) {
-    relu_naive_fixed16(original_image, height, width, new_image);
+
+	fixed16x8_t original_image_0;
+    fixed16x8_t original_image_1;
+    fixed16x8_t original_image_2;
+    fixed16x8_t original_image_3;
+
+    fixed16x8_t new_image_0;
+    fixed16x8_t new_image_1;
+    fixed16x8_t new_image_2;
+    fixed16x8_t new_image_3;
+
+    fixed16x8_t zero = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
+
+    uint32_t i;
+
+	// L1 block size is 64 Bytes = 32 fixed16_t
+    for(i = 0; i < height*width-32; i += 32) {
+
+        // load image into vectors
+        original_image_0 = vld1q_s16(original_image+i);
+        original_image_1 = vld1q_s16(original_image+i+8);
+        original_image_2 = vld1q_s16(original_image+i+16);
+        original_image_3 = vld1q_s16(original_image+i+24);
+
+        new_image_0 = vmaxq_s16(original_image_0, zero);
+        new_image_1 = vmaxq_s16(original_image_1, zero);
+        new_image_2 = vmaxq_s16(original_image_2, zero);
+        new_image_3 = vmaxq_s16(original_image_3, zero);
+
+        vst1q_s16(new_image+i, new_image_0);
+        vst1q_s16(new_image+i+8, new_image_1);
+        vst1q_s16(new_image+i+16, new_image_2);
+        vst1q_s16(new_image+i+24, new_image_3);
+    }
+
+    // residual pixels
+    for(i = i; i < height*width; i++) {
+        new_image[i] = (original_image[i] < 0x0000) ? 0x0000 : original_image[i];
+    }
 }
 
 /**
