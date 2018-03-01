@@ -18,6 +18,11 @@
 #include "arm_neon.h"
 #endif
 
+#ifdef FIXED16
+#include "../driver/fixed16.h"
+#endif 
+
+
 /**
  * @brief performs a 2D convolution on original_image with kernel and stores the
  * result to new_image
@@ -903,7 +908,8 @@ void add_image2d_cpu(fp_t* image_a, const fp_t* image_b, const uint16_t height, 
     float32x4_t image_b_2;
     float32x4_t image_b_3;
 
-    for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
+	// L1 block size is 64 Bytes = 16 floats
+    for(i = 0; i < height*width-16; i += 16) {
 		// load images into vector
         image_a_0 = vld1q_f32(image_a+i);
         image_a_1 = vld1q_f32(image_a+i+4);
@@ -933,6 +939,394 @@ void add_image2d_cpu(fp_t* image_a, const fp_t* image_b, const uint16_t height, 
         image_a[i] = image_a[i] + image_b[i];
     }
 }
+#endif
+
+#ifdef FIXED16
+/**
+ * @brief performs a 2D convolution on original_image with kernel and stores the
+ * result to new_image
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param new_image (height-kernel_size/2 x width-kernel_size/2)
+ * @param kernel (kernel_size x kernel_size)
+ * @param kernel_size
+ * @param stride
+ * @param padding (0 means valid, > 0 zeros will be added to the edge)
+ * @param bias
+ */
+void convolution2d_naive_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image, const fixed16_t* kernel, const uint16_t kernel_size, const uint16_t stride, const uint16_t padding, const fixed16_t bias) {
+    int32_t image_row, image_column;
+    int32_t kernel_row, kernel_column;
+    int32_t crop = kernel_size/2;
+
+    int32_t new_image_row, new_image_column, new_image_width;
+
+    fixed16_t pixel;
+
+    new_image_row = 0;
+    new_image_column = 0;
+
+    // padding valid
+    if(padding == 0) {
+        if(stride == 1) {
+            new_image_width = ((width-2*crop)/stride);
+        } else {
+            new_image_width = ((width-2*crop)/stride)+1;
+        }
+
+        for(image_row = crop; image_row < height-crop; image_row+=stride) {
+            for(image_column = crop; image_column < width-crop; image_column+=stride) {
+                pixel = 0;
+
+                for(kernel_row = 0; kernel_row < kernel_size; kernel_row++) {
+                    for(kernel_column = 0; kernel_column < kernel_size; kernel_column++) {
+                        pixel = add_fixed16(pixel, mul_fixed16(kernel[kernel_row*kernel_size+kernel_column], original_image[(image_row-crop+kernel_row)*width+(image_column-crop+kernel_column)]));
+                    }
+                }
+
+                pixel = add_fixed16(pixel, bias);
+
+                new_image[new_image_row*new_image_width+new_image_column] = pixel;
+                new_image_column++;
+            }
+            new_image_row++;
+            new_image_column = 0;
+        }
+    }
+
+    // padding same
+    else if(padding == kernel_size/2) {
+        new_image_width = width;
+
+        for(image_row = 0; image_row < height; image_row+=stride) {
+            for(image_column = 0; image_column < width; image_column+=stride) {
+                pixel = 0;
+
+                for(kernel_row = -padding; kernel_row <= padding; kernel_row++) {
+                    for(kernel_column = -padding; kernel_column <= padding; kernel_column++) {
+                        if((image_row+kernel_row) < 0 || (image_row+kernel_row) > height-1 || (image_column+kernel_column) < 0 || (image_column+kernel_column) > width-1) {
+                            pixel = add_fixed16(0, pixel);
+                        } else {
+                            pixel = add_fixed16(pixel, mul_fixed16(kernel[(kernel_row+padding)*kernel_size+(kernel_column+padding)], original_image[(image_row+kernel_row)*width+(image_column+kernel_column)]));
+                        }
+                    }
+                } 
+
+                pixel = add_fixed16(pixel, bias);
+
+                new_image[new_image_row*new_image_width+new_image_column] = pixel;
+                new_image_column++;
+            }
+            new_image_row++;
+            new_image_column = 0;
+        }
+    }
+}
+
+#ifdef __aarch64__
+/**
+ * @brief performs an CPU optimized (fixed16_t) 2D convolution on original_image 
+ * with a kernel 5x5 and stores the result to new_image
+ *
+ * stride = 1
+ * padding = same
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param new_image (height x width)
+ * @param kernel (5x5)
+ * @param bias
+ */
+void convolution2d_cpu_5x5_s1_valid_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image, const fixed16_t* kernel, const fixed16_t bias) {
+	
+	uint16_t image_row, image_column;
+    const uint8_t padding = 2;
+
+    // vectors for kernel
+    fixed16x4_t kernel_0;
+    fixed16x4_t kernel_1;
+    fixed16x4_t kernel_2;
+    fixed16x4_t kernel_3;
+    fixed16x4_t kernel_4;
+    fixed16x4_t kernel_5;
+    fixed16_t kernel_6;
+
+    fixed16_t kernel_temp[4];
+
+    kernel_0 = vld1_s16(kernel);
+    kernel_1 = vld1_s16(kernel+5);
+    kernel_2 = vld1_s16(kernel+10);
+    kernel_3 = vld1_s16(kernel+15);
+    kernel_4 = vld1_s16(kernel+20);
+
+    kernel_temp[0] = kernel[4];
+    kernel_temp[1] = kernel[9];
+    kernel_temp[2] = kernel[14];
+    kernel_temp[3] = kernel[19];
+    kernel_5 = vld1_s16(kernel_temp);
+
+    kernel_6 = kernel[24];
+
+    // vectors for image
+    fixed16x4_t image_0_0;
+    fixed16x4_t image_1_0;
+    fixed16x4_t image_2_0;
+    fixed16x4_t image_3_0;
+    fixed16x4_t image_4_0;
+    fixed16x4_t image_5_0;
+    fixed16_t image_6_0;
+
+    fixed16x4_t image_0_1;
+    fixed16x4_t image_1_1;
+    fixed16x4_t image_2_1;
+    fixed16x4_t image_3_1;
+    fixed16x4_t image_4_1;
+    fixed16x4_t image_5_1;
+    fixed16_t image_6_1;
+
+    fixed16x4_t image_0_2;
+    fixed16x4_t image_1_2;
+    fixed16x4_t image_2_2;
+    fixed16x4_t image_3_2;
+    fixed16x4_t image_4_2;
+    fixed16x4_t image_5_2;
+    fixed16_t image_6_2;
+
+    fixed16x4_t image_0_3;
+    fixed16x4_t image_1_3;
+    fixed16x4_t image_2_3;
+    fixed16x4_t image_3_3;
+    fixed16x4_t image_4_3;
+    fixed16x4_t image_5_3;
+    fixed16_t image_6_3;
+
+    fixed16_t image_temp[4];
+
+    for(image_row = 0; image_row < height-4; image_row++) {
+        for(image_column = 0; image_column < width-4-4; image_column+=4) {
+
+            // load image into vectors
+            const uint32_t source_0 = (image_row+0)*width+image_column;
+            const uint32_t source_1 = (image_row+1)*width+image_column;
+            const uint32_t source_2 = (image_row+2)*width+image_column;
+            const uint32_t source_3 = (image_row+3)*width+image_column;
+            const uint32_t source_4 = (image_row+4)*width+image_column;
+
+            image_0_0 = vld1_s16(original_image+source_0);
+            image_1_0 = vld1_s16(original_image+source_1);
+            image_2_0 = vld1_s16(original_image+source_2);
+            image_3_0 = vld1_s16(original_image+source_3);
+            image_4_0 = vld1_s16(original_image+source_4);
+
+            image_temp[0] = original_image[source_0+4];
+            image_temp[1] = original_image[source_1+4];
+            image_temp[2] = original_image[source_2+4];
+            image_temp[3] = original_image[source_3+4];
+            image_5_0 = vld1_s16(image_temp);
+
+            image_6_0 = original_image[source_4+4]; 
+
+
+            image_0_1 = vld1_s16(original_image+source_0+1);
+            image_1_1 = vld1_s16(original_image+source_1+1);
+            image_2_1 = vld1_s16(original_image+source_2+1);
+            image_3_1 = vld1_s16(original_image+source_3+1);
+            image_4_1 = vld1_s16(original_image+source_4+1);
+
+            image_temp[0] = original_image[source_0+4+1];
+            image_temp[1] = original_image[source_1+4+1];
+            image_temp[2] = original_image[source_2+4+1];
+            image_temp[3] = original_image[source_3+4+1];
+            image_5_1 = vld1_s16(image_temp);
+
+            image_6_1 = original_image[source_4+4+1];
+
+
+            image_0_2 = vld1_s16(original_image+source_0+2);
+            image_1_2 = vld1_s16(original_image+source_1+2);
+            image_2_2 = vld1_s16(original_image+source_2+2);
+            image_3_2 = vld1_s16(original_image+source_3+2);
+            image_4_2 = vld1_s16(original_image+source_4+2);
+
+            image_temp[0] = original_image[source_0+4+2];
+            image_temp[1] = original_image[source_1+4+2];
+            image_temp[2] = original_image[source_2+4+2];
+            image_temp[3] = original_image[source_3+4+2];
+            image_5_2 = vld1_s16(image_temp);
+
+            image_6_2 = original_image[source_4+4+2];
+
+
+            image_0_3 = vld1_s16(original_image+source_0+3);
+            image_1_3 = vld1_s16(original_image+source_1+3);
+            image_2_3 = vld1_s16(original_image+source_2+3);
+            image_3_3 = vld1_s16(original_image+source_3+3);
+            image_4_3 = vld1_s16(original_image+source_4+3);
+
+            image_temp[0] = original_image[source_0+4+3];
+            image_temp[1] = original_image[source_1+4+3];
+            image_temp[2] = original_image[source_2+4+3];
+            image_temp[3] = original_image[source_3+4+3];
+            image_5_3 = vld1_s16(image_temp);
+
+            image_6_3 = original_image[source_4+4+3];
+
+
+            // apply kernel
+            image_0_0 = vmul_fixed16(image_0_0, kernel_0);
+            image_1_0 = vmla_fixed16(image_0_0, image_1_0, kernel_1);
+            image_2_0 = vmla_fixed16(image_1_0, image_2_0, kernel_2);
+            image_3_0 = vmla_fixed16(image_2_0, image_3_0, kernel_3);
+            image_4_0 = vmla_fixed16(image_3_0, image_4_0, kernel_4);
+            image_5_0 = vmla_fixed16(image_4_0, image_5_0, kernel_5);
+
+            image_0_1 = vmul_fixed16(image_0_1, kernel_0);
+            image_1_1 = vmla_fixed16(image_0_1, image_1_1, kernel_1);
+            image_2_1 = vmla_fixed16(image_1_1, image_2_1, kernel_2);
+            image_3_1 = vmla_fixed16(image_2_1, image_3_1, kernel_3);
+            image_4_1 = vmla_fixed16(image_3_1, image_4_1, kernel_4);
+            image_5_1 = vmla_fixed16(image_4_1, image_5_1, kernel_5);
+
+            image_0_2 = vmul_fixed16(image_0_2, kernel_0);
+            image_1_2 = vmla_fixed16(image_0_2, image_1_2, kernel_1);
+            image_2_2 = vmla_fixed16(image_1_2, image_2_2, kernel_2);
+            image_3_2 = vmla_fixed16(image_2_2, image_3_2, kernel_3);
+            image_4_2 = vmla_fixed16(image_3_2, image_4_2, kernel_4);
+            image_5_2 = vmla_fixed16(image_4_2, image_5_2, kernel_5);
+
+            image_0_3 = vmul_fixed16(image_0_3, kernel_0);
+            image_1_3 = vmla_fixed16(image_0_3, image_1_3, kernel_1);
+            image_2_3 = vmla_fixed16(image_1_3, image_2_3, kernel_2);
+            image_3_3 = vmla_fixed16(image_2_3, image_3_3, kernel_3);
+            image_4_3 = vmla_fixed16(image_3_3, image_4_3, kernel_4);
+            image_5_3 = vmla_fixed16(image_4_3, image_5_3, kernel_5);
+
+            // store new image
+            const uint32_t target = image_row*(width-2*padding)+image_column;
+
+            new_image[target] =   add_fixed16(vaddv_s16(image_5_0), add_fixed16(mul_fixed16(image_6_0, kernel_6), bias));
+            new_image[target+1] = add_fixed16(vaddv_s16(image_5_1), add_fixed16(mul_fixed16(image_6_1, kernel_6), bias));
+            new_image[target+2] = add_fixed16(vaddv_s16(image_5_2), add_fixed16(mul_fixed16(image_6_2, kernel_6), bias));
+            new_image[target+3] = add_fixed16(vaddv_s16(image_5_3), add_fixed16(mul_fixed16(image_6_3, kernel_6), bias));
+        }
+
+        // residual columns
+        for(image_column = image_column; image_column < width-4; image_column++) {
+
+            // load image into vectors
+            const uint32_t source_0 = (image_row+0)*width+image_column;
+            const uint32_t source_1 = (image_row+1)*width+image_column;
+            const uint32_t source_2 = (image_row+2)*width+image_column;
+            const uint32_t source_3 = (image_row+3)*width+image_column;
+            const uint32_t source_4 = (image_row+4)*width+image_column;
+
+            image_0_0 = vld1_s16(original_image+source_0);
+            image_1_0 = vld1_s16(original_image+source_1);
+            image_2_0 = vld1_s16(original_image+source_2);
+            image_3_0 = vld1_s16(original_image+source_3);
+            image_4_0 = vld1_s16(original_image+source_4);
+
+            image_temp[0] = original_image[source_0+4];
+            image_temp[1] = original_image[source_1+4];
+            image_temp[2] = original_image[source_2+4];
+            image_temp[3] = original_image[source_3+4];
+            image_5_0 = vld1_s16(image_temp);
+
+            image_6_0 = original_image[source_4+4];
+
+            // apply kernel
+            image_0_0 = vmul_fixed16(image_0_0, kernel_0);
+            image_1_0 = vmla_fixed16(image_0_0, image_1_0, kernel_1);
+            image_2_0 = vmla_fixed16(image_1_0, image_2_0, kernel_2);
+            image_3_0 = vmla_fixed16(image_2_0, image_3_0, kernel_3);
+            image_4_0 = vmla_fixed16(image_3_0, image_4_0, kernel_4);
+            image_5_0 = vmla_fixed16(image_4_0, image_5_0, kernel_5);
+
+            // store new image
+            const uint32_t target = image_row*(width-2*padding)+image_column;
+
+            new_image[target] = add_fixed16(vaddv_s16(image_5_0), add_fixed16(mul_fixed16(image_6_0,kernel_6), bias));
+        }
+    }
+}
+#endif
+
+/**
+ * @brief adds image_a and image_b pixel by pixel and stores result in image_a
+ * 
+ * @param image_a (height x width)
+ * @param image_b (height x width)
+ * @param height
+ * @param width
+ */
+void add_image2d_naive_fixed16(fixed16_t* image_a, const fixed16_t* image_b, const uint16_t height, const uint16_t width) {
+    uint32_t row, column;
+
+    for(row = 0; row < height; row++) {
+        for(column = 0; column < width; column++) {
+            image_a[row*width+column] = add_fixed16(image_a[row*width+column], image_b[row*width+column]);
+        }
+    }
+}
+
+#ifdef __aarch64__
+/**
+ * @brief adds image_a and image_b pixel by pixel and stores result in image_a 
+ * optimized for CPU (fixed16_t)
+ * 
+ * @param image_a (height x width)
+ * @param image_b (height x width)
+ * @param height
+ * @param width
+ */
+void add_image2d_cpu_fixed16(fixed16_t* image_a, const fixed16_t* image_b, const uint16_t height, const uint16_t width) {
+	uint32_t i;
+
+    fixed16x8_t image_a_0;
+    fixed16x8_t image_a_1;
+    fixed16x8_t image_a_2;
+    fixed16x8_t image_a_3;
+
+    fixed16x8_t image_b_0;
+    fixed16x8_t image_b_1;
+    fixed16x8_t image_b_2;
+    fixed16x8_t image_b_3;
+
+	// L1 block size is 64 Bytes = 32 fixed16
+    for(i = 0; i < height*width-32; i += 32) {
+		// load images into vector
+        image_a_0 = vld1q_s16(image_a+i);
+        image_a_1 = vld1q_s16(image_a+i+8);
+        image_a_2 = vld1q_s16(image_a+i+16);
+        image_a_3 = vld1q_s16(image_a+i+24);
+
+        image_b_0 = vld1q_s16(image_b+i);
+        image_b_1 = vld1q_s16(image_b+i+8);
+        image_b_2 = vld1q_s16(image_b+i+16);
+        image_b_3 = vld1q_s16(image_b+i+24);
+
+		// add vectors
+        image_a_0 = vaddq_s16(image_a_0, image_b_0);
+        image_a_1 = vaddq_s16(image_a_1, image_b_1);
+        image_a_2 = vaddq_s16(image_a_2, image_b_2);
+        image_a_3 = vaddq_s16(image_a_3, image_b_3);
+
+		// store vectors in image a
+        vst1q_s16(image_a+i, image_a_0);
+        vst1q_s16(image_a+i+8, image_a_1);
+        vst1q_s16(image_a+i+16, image_a_2);
+        vst1q_s16(image_a+i+24, image_a_3);
+    }
+
+    // residual pixels
+    for(i = i; i < height*width; i++) {
+        image_a[i] = add_fixed16(image_a[i], image_b[i]);
+    }
+}
+#endif
 #endif
 
 #endif // CONVOLUTION_H

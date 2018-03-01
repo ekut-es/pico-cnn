@@ -16,6 +16,10 @@
 #include <float.h>
 #endif
 
+#ifdef FIXED16
+#include "../driver/fixed16.h"
+#endif 
+
 
 /**
  * @brief applies max pooling of kernel_size x kernel_size to original_image 
@@ -437,6 +441,138 @@ void max_pooling2d_cpu_3x3_s2(const fp_t* original_image, const uint16_t height,
         new_image_column = 0;
     }
 }
+#endif
+
+#ifdef FIXED16
+/**
+ * @brief applies max pooling of kernel_size x kernel_size to original_image 
+ *
+ * @param original_image (height x width)
+ * @param height
+ * @param width
+ * @param new_image (height/kernel_size x width/kernel_size)
+ * @param kernel_size
+ * @param stride
+*/
+void max_pooling2d_naive_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image, const uint16_t kernel_size, const uint16_t stride) {
+
+    uint16_t image_row, image_column;
+    uint16_t new_image_row, new_image_column;
+    uint16_t new_image_height, new_image_width;
+
+    uint16_t kernel_row, kernel_column;
+
+    new_image_row = 0;
+    new_image_column = 0;
+    
+    new_image_height = height/stride;
+    new_image_width = width/stride;
+
+    for(image_row = 0; image_row < height && new_image_row < new_image_height; image_row += stride) {
+        for(image_column = 0; image_column < width && new_image_column < new_image_width; image_column += stride) {
+            fp_t pixel = original_image[image_row*width+image_column];
+    
+            for(kernel_row = image_row; kernel_row < image_row+kernel_size && kernel_row < height; kernel_row++) {
+                for(kernel_column = image_column; kernel_column < image_column+kernel_size && kernel_column < width; kernel_column++) {
+                    if(original_image[kernel_row*width+kernel_column] > pixel) {
+                        pixel = original_image[kernel_row*width+kernel_column];
+                    }
+                }
+            }
+            
+            new_image[new_image_row*new_image_width+new_image_column] = pixel;
+            new_image_column++;
+        }
+        new_image_row++;
+        new_image_column = 0;
+    }
+}
+
+#ifdef __aarch64__
+/**
+ * @brief applies max pooling of kernel_size x kernel_size to original_image (fixed16_t) 
+ *
+ * kernel_size = 2
+ * stride = 2
+ *
+ * @param original_image (height x width)
+ * @param new_image (height/kernel_size x width/kernel_size)
+ * @param kernel_size
+ */
+void max_pooling2d_cpu_2x2_s2_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image) {
+
+	uint16_t image_row, image_column;
+    uint16_t new_image_row, new_image_column;
+    uint16_t new_image_width;
+
+    new_image_row = 0;
+    new_image_column = 0;
+    
+    new_image_width = width/2;
+
+	fixed16_t pixel_0;
+	fixed16_t pixel_1;
+	fixed16_t pixel_2;
+	fixed16_t pixel_3;
+
+	fixed16x8_t original_image_0;
+	fixed16x8_t original_image_1;
+
+	fixed16x4_t temp_max_0;
+	fixed16x4_t temp_max_1;
+
+    for(image_row = 0; image_row < height; image_row += 2) {
+        for(image_column = 0; image_column < width; image_column += 8) {
+
+			// load first and second row into vectors
+    		original_image_0 = vld1q_s16(original_image+image_row*width+image_column);
+    		original_image_1 = vld1q_s16(original_image+(image_row+1)*width+image_column);
+
+			// determine max of columns
+    		original_image_0 = vmaxq_s16(original_image_0, original_image_1);
+
+			// split 16x8 vector in 2x 16x4
+			temp_max_0 = vget_low_s16(original_image_0);
+    		temp_max_1 = vget_high_s16(original_image_0);
+
+			// get pair-wise max in vectors
+			temp_max_0 = vpmax_s16(temp_max_0, temp_max_0);
+			temp_max_1 = vpmax_s16(temp_max_1, temp_max_1);
+
+			// retrieve max
+			pixel_0 = vget_lane_s16(temp_max_0, 0);
+			pixel_1 = vget_lane_s16(temp_max_0, 1);
+			pixel_2 = vget_lane_s16(temp_max_1, 0);
+			pixel_3 = vget_lane_s16(temp_max_1, 1);
+
+            
+            new_image[new_image_row*new_image_width+new_image_column] = pixel_0;
+            new_image[new_image_row*new_image_width+new_image_column+1] = pixel_1;
+            new_image[new_image_row*new_image_width+new_image_column+2] = pixel_2;
+            new_image[new_image_row*new_image_width+new_image_column+3] = pixel_3;
+            new_image_column+=4;
+        }
+
+		// residual columns
+    	for(image_column = image_column; image_column < width; image_column+=2) {
+
+		// TODO vectorize for residual row lenght of 4 and 2
+		pixel_0 = MAX(
+				MAX(original_image[image_row*width+image_column], original_image[image_row*width+image_column+1]),
+				MAX(original_image[(image_row+1)*width+image_column], original_image[(image_row+1)*width+image_column+1])
+			);
+
+        new_image[new_image_row*new_image_width+new_image_column] = pixel_0;
+		new_image_column++;
+	}
+        new_image_row++;
+        new_image_column = 0;
+    }
+
+	
+}
+
+#endif
 #endif
 
 #endif // POOLING_H

@@ -16,8 +16,8 @@ extern fp_t min_float;
 
 
 #ifdef __aarch64__
-// L1 cache line size 64 Byte = 16 float_32 values
-#define BLOCK_SIZE 16
+// L1 cache line size 64 Byte
+#define BLOCK_SIZE 64
 #endif
 
 #endif // PARAMETERS_H

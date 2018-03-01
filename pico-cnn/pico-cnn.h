@@ -36,4 +36,8 @@
 #include "io/write_float.h"
 #endif
 
+#ifdef FIXED16
+#include "driver/fixed16.h"
+#endif 
+
 #endif // PICO_CNN_H
