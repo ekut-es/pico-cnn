@@ -15,7 +15,7 @@
 #include <omp.h>
 
 void usage() {
-    printf("./caffe_lenet PATH_TO_MNIST_DATASET PATH_TO_WEIGHTS_FILE\n");
+    printf("./caffe_lenet_fixed16 PATH_TO_MNIST_DATASET PATH_TO_WEIGHTS_FILE\n");
 }
 
 /**
@@ -149,8 +149,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    restructure_fully_connected_kernel(&kernels_float[2][0], 800, 500);
-    restructure_fully_connected_kernel(&kernels_float[3][0], 500, 10);
+    //restructure_fully_connected_kernel(&kernels_float[2][0], 800, 500);
+    //restructure_fully_connected_kernel(&kernels_float[3][0], 500, 10);
 
     // convert kernels and biasses to fixed16
     fixed16_t*** kernels;
@@ -325,7 +325,7 @@ int main(int argc, char** argv) {
     for(i = 0; i < NUM; i++) {
 
         // C1 input 28x28x1 -> output 24x24x20
-        #pragma omp parallel for private(j)
+        #pragma omp parallel for private(j) num_threads(1)
         for(j = 0; j < 20; j++) {
             convolution2d_cpu_5x5_s1_valid_fixed16(t10k_images[i], 28, 28, c1_output[j], c1_kernels[j], c1_bias[j]);
         }
@@ -353,7 +353,7 @@ int main(int argc, char** argv) {
         #endif
 
         // S2 input 24x24x20 -> output 12x12x20
-        #pragma omp parallel for private(j)
+        #pragma omp parallel for private(j) num_threads(1)
         for(j = 0; j < 20; j++) {
             max_pooling2d_cpu_2x2_s2_fixed16(c1_output[j], 24, 24, s2_output[j]);
         }
@@ -381,7 +381,7 @@ int main(int argc, char** argv) {
         #endif
 
         // C3 input 12x12x20 -> output 8x8x50
-        #pragma omp parallel for private(j,k)
+        #pragma omp parallel for private(j,k) num_threads(1)
         for(j = 0; j < 50; j++) {
             convolution2d_cpu_5x5_s1_valid_fixed16(s2_output[0], 12, 12, c3_output[j], c3_kernels[j*20], c3_bias[j]);
 
@@ -414,7 +414,7 @@ int main(int argc, char** argv) {
         #endif
 
         // S4 input 8x8x50 -> output 8x8x50 
-        #pragma omp parallel for private(j)
+        #pragma omp parallel for private(j) num_threads(1)
         for(j = 0; j < 50; j++) {
             max_pooling2d_cpu_2x2_s2_fixed16(c3_output[j], 8, 8, s4_output[j]);
         }
@@ -447,9 +447,9 @@ int main(int argc, char** argv) {
             memcpy(&s4_output_merged[j*4*4], s4_output[j], 4*4*sizeof(fixed16_t));
         }
 
-        #pragma omp parallel for private(j)
+        #pragma omp parallel for private(j) num_threads(1)
         for(j = 0; j < omp_get_max_threads(); j++) {
-            fully_connected_cpu_fixed16(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias, 0, 500);
+            fully_connected_naive_fixed16(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias);
         }
 
         // make pgm F5
@@ -488,7 +488,7 @@ int main(int argc, char** argv) {
         #endif
 
         // F6 input 1x500 -> 1x10
-        fully_connected_cpu_fixed16(f5_output, 500, f6_output, 10, f6_kernel, f6_bias, 0 ,10);
+        fully_connected_naive_fixed16(f5_output, 500, f6_output, 10, f6_kernel, f6_bias);
 
         // make pgm F6
         #ifdef DEBUG

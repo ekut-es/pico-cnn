@@ -13,10 +13,6 @@
 #include <stdio.h>
 #include <limits.h>
 
-#ifdef __aarch64__
-#include "arm_neon.h"
-#endif
-
 // how many bits are used to store a fixed point number
 #define FIXED_LENGTH 16
 
@@ -38,10 +34,6 @@
 // type in which fixed point numbers will be stored
 typedef int16_t fixed16_t;
 
-#ifdef __aarch64__
-typedef int16x4_t fixed16x4_t;
-typedef int16x8_t fixed16x8_t;
-#endif
 
 /**
  * @brief converts a floating point number into a fixed point number
@@ -49,7 +41,7 @@ typedef int16x8_t fixed16x8_t;
  * @param float value
  * @return fixed16 value
  */
-inline fixed16_t float_to_fixed16(fp_t float_value) {
+fixed16_t float_to_fixed16(fp_t float_value) {
     fixed16_t temp;
 
     // negative
@@ -70,7 +62,7 @@ inline fixed16_t float_to_fixed16(fp_t float_value) {
  * @param fixed16 value
  * @return float value
  */
-inline fp_t fixed16_to_float(fixed16_t fixed) {
+fp_t fixed16_to_float(fixed16_t fixed) {
     fp_t temp;
 
     // negative
@@ -94,17 +86,12 @@ inline fp_t fixed16_to_float(fixed16_t fixed) {
  * @param int16_t value
  * @return fixed16 value
  */
-inline fixed16_t int_to_fixed16(const int16_t a) {
+fixed16_t int_to_fixed16(int16_t a) {
     return a * FIXED_ONE; 
 }
-/**
- * @brief converts a fixed point number to an integer number
- *
- * @param int16_t value
- * @return fixed16 value
- */
 
-inline int16_t fixed16_to_int16(const fixed16_t a) {
+// converts a fixed point number to an integer
+int16_t fixed16_to_int16(fixed16_t a) {
     return a >> DECIMAL_PLACES;
 }
 
@@ -116,14 +103,11 @@ inline int16_t fixed16_to_int16(const fixed16_t a) {
  * @param b
  * @return a+b
  */
-inline fixed16_t add_fixed16(const fixed16_t a, const fixed16_t b) {
-	/*
+fixed16_t add_fixed16(fixed16_t a, fixed16_t b) {
     uint16_t _a = a;
     uint16_t _b = b;
     uint16_t sum = _a + _b;
     return sum;
-	*/
-	return a + b;
 }
 
 /**
@@ -134,14 +118,11 @@ inline fixed16_t add_fixed16(const fixed16_t a, const fixed16_t b) {
  * @param b
  * @return a-b
  */
-inline fixed16_t sub_fixed16(const fixed16_t a, const fixed16_t b) {
-	/*
+fixed16_t sub_fixed16(fixed16_t a, fixed16_t b) {
     uint16_t _a = a;
     uint16_t _b = b;
     uint16_t diff = _a - _b;
     return diff;
-	*/
-	return a - b;
 }
 
 /**
@@ -152,8 +133,8 @@ inline fixed16_t sub_fixed16(const fixed16_t a, const fixed16_t b) {
  * @param b
  * @return a*b
  */
-inline fixed16_t mul_fixed16(const fixed16_t a, const fixed16_t b) {
-	int32_t prod = (a * b) >> DECIMAL_PLACES;
+fixed16_t mul_fixed16(fixed16_t a, fixed16_t b) {
+	int32_t prod = ((a * b) & ~(1 << 31)) >> DECIMAL_PLACES;
 	return (int16_t) prod;
 }
 
@@ -165,7 +146,7 @@ inline fixed16_t mul_fixed16(const fixed16_t a, const fixed16_t b) {
  * @param b
  * @return a/b
  */
-inline fixed16_t div_fixed16(const fixed16_t a, const fixed16_t b) {
+fixed16_t div_fixed16(fixed16_t a, fixed16_t b) {
 	int32_t quot = ((int32_t)a * (1 << DECIMAL_PLACES)) / b;
 	return (int16_t) quot;
 }
@@ -215,7 +196,7 @@ fixed16_t exp_fixed16(fixed16_t x) {
  * @param x
  * @return exp(x)
  */
-inline int32_t exp_int32(const int32_t x) {
+int32_t exp_int32(int32_t x) {
     if(x < 0) return 0;
     if(x > 21) return INT_MAX; 
 
@@ -253,7 +234,7 @@ inline int32_t exp_int32(const int32_t x) {
  * @param x
  * @return exp(x)
  */
-inline int16_t exp_int16(const int16_t x) {
+int16_t exp_int16(int16_t x) {
     if(x < 0) return 0;
     if(x > 10) return SHRT_MAX; 
 
@@ -273,36 +254,4 @@ inline int16_t exp_int16(const int16_t x) {
 
     return values[x];
 }
-
-#ifdef __aarch64__
-/**
- * @brief fixed16x4_t vector multiplication
- *
- * @assert no overflow handling
- * @param a
- * @param b
- * @return a*b
- */
-fixed16x4_t vmul_fixed16(const fixed16x4_t a, const fixed16x4_t b) {
-	int32x4_t prod;
-   	prod = vmull_s16(a, b);
-	prod = vshrq_n_s32(prod, DECIMAL_PLACES);
-	return vmovn_s32(prod);
-}
-
-/**
- * @brief fixed16x4_t vector multiply-accumulate
- *
- * @assert no overflow handling
- * @param a
- * @param b
- * @param c
- * @return b*c+a
- */
-fixed16x4_t vmla_fixed16(const fixed16x4_t a, const fixed16x4_t b, const fixed16x4_t c) {
-	int16x4_t prod = vmul_fixed16(b, c);
-	return vadd_s16(prod, a);
-}
-#endif
-
 #endif /* SRC_FIXED16_H_ */
