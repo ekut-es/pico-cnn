@@ -5,14 +5,12 @@ option(BUILD_TESTS "Test programs from the 'test' directory will be built." OFF)
 option(BUILD_UTILS "Utility programs from the 'util' directory will be built." OFF)
 option(BUILD_EXAMPLES "Example programs from the 'examples' directory will be built." OFF)
 
-#set(CMAKE_C_COMPILER gcc-5)
-set(CMAKE_C_FLAGS "-Wall -Wno-unused-result -O2")
 set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 include_directories("${PROJECT_SOURCE_DIR}")
 
-list(APPEND LINK_LIBS m)
+list(APPEND LINK_LIBS m omp)
 
 if(BUILD_TESTS AND AARCH64)
     add_executable(max_pooling_test ${PROJECT_SOURCE_DIR}/test/max_pooling_test.c)
@@ -81,5 +79,3 @@ add_custom_target(remove_output_data
     COMMAND rm ${CMAKE_BINARY_DIR}/*.pgm
     COMMAND rm ${CMAKE_BINARY_DIR}/*.float
 )
-
-
