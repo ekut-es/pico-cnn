@@ -9,6 +9,7 @@
 #define NUM 1000
 //#define DEBUG
 #define INDEX 0
+#define ARM_NEON
 
 #include "pico-cnn/pico-cnn.h"
 
@@ -189,12 +190,16 @@ int main(int argc, char** argv) {
     fp_t* f5_output;
     f5_output = (fp_t*) malloc(500*sizeof(fp_t));
 
+	restructure_fully_connected_kernel(&kernels[2][0], 800, 500);
+
     fp_t* f5_kernel = kernels[2][0];
     fp_t* f5_bias = biasses[2];
 
     // F6
     fp_t* f6_output;
     f6_output = (fp_t*) malloc(10*sizeof(fp_t));
+
+	restructure_fully_connected_kernel(&kernels[3][0], 500, 10);
 
     fp_t* f6_kernel = kernels[3][0];
     fp_t* f6_bias = biasses[3];
@@ -206,7 +211,7 @@ int main(int argc, char** argv) {
 
         // C1 input 28x28x1 -> output 24x24x20
         for(j = 0; j < 20; j++) {
-            convolution2d_naive(t10k_images[i], 28, 28, c1_output[j], c1_kernels[j], 5, 1, 0, c1_bias[j]);
+            convolution2d_cpu_5x5_s1_valid(t10k_images[i], 28, 28, c1_output[j], c1_kernels[j], c1_bias[j]);
         }
 
         // make pgm C1
@@ -225,7 +230,7 @@ int main(int argc, char** argv) {
 
         // S2 input 24x24x20 -> output 12x12x20
         for(j = 0; j < 20; j++) {
-            max_pooling2d_naive(c1_output[j], 24, 24, s2_output[j], 2, 2);
+			max_pooling2d_cpu_2x2_s2(c1_output[j], 24, 24, s2_output[j]);
         }
 
         // make pgm S2
@@ -243,11 +248,11 @@ int main(int argc, char** argv) {
 
         // C3 input 12x12x20 -> output 8x8x50
         for(j = 0; j < 50; j++) {
-            convolution2d_naive(s2_output[0], 12, 12, c3_output[j], c3_kernels[j*20], 5, 1, 0, c3_bias[j]);
+            convolution2d_cpu_5x5_s1_valid(s2_output[0], 12, 12, c3_output[j], c3_kernels[j*20], c3_bias[j]);
 
             for(k = 1; k < 20; k++) {
-                convolution2d_naive(s2_output[k], 12, 12, c3_intermediate, c3_kernels[j*20+k], 5, 1, 0, 0.0);
-                add_image2d_naive(c3_output[j], c3_intermediate, 8, 8);
+            	convolution2d_cpu_5x5_s1_valid(s2_output[k], 12, 12, c3_intermediate, c3_kernels[j*20+k], 0.0);
+                add_image2d_cpu(c3_output[j], c3_intermediate, 8, 8);
             }
         }
 
@@ -266,7 +271,7 @@ int main(int argc, char** argv) {
 
         // S4 input 8x8x50 -> output 4x4x50
         for(j = 0; j < 50; j++) {
-            max_pooling2d_naive(c3_output[j], 8, 8, s4_output[j], 2, 2);
+            max_pooling2d_cpu_2x2_s2(c3_output[j], 8, 8, s4_output[j]);
         }
 
         // make pgm S4
@@ -288,7 +293,7 @@ int main(int argc, char** argv) {
             memcpy(&s4_output_merged[j*4*4], s4_output[j], 4*4*sizeof(fp_t));
         }
 
-        fully_connected_naive(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias);
+		fully_connected_cpu(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias, 0, 500);
 
         // make pgm F5
         #ifdef DEBUG
@@ -299,7 +304,7 @@ int main(int argc, char** argv) {
         #endif
 
         // ReLU
-        relu_naive(f5_output, 1, 500, f5_output);
+        relu_cpu(f5_output, 1, 500, f5_output);
 
         // make pgm F5 ReLU
         #ifdef DEBUG
@@ -310,7 +315,7 @@ int main(int argc, char** argv) {
         #endif
 
         // F6 input 1x500 -> 1x10        
-        fully_connected_naive(f5_output, 500, f6_output, 10, f6_kernel, f6_bias);
+        fully_connected_cpu(f5_output, 500, f6_output, 10, f6_kernel, f6_bias, 0, 10);
 
         // make pgm F6
         #ifdef DEBUG
@@ -321,7 +326,7 @@ int main(int argc, char** argv) {
         #endif
 
         // softmax
-        softmax_naive(f6_output, 1, 10, f6_output);
+        softmax_cpu_single(f6_output, 1, 10, f6_output);
 
         // make pgm F6 softmax
         #ifdef DEBUG
@@ -351,8 +356,6 @@ int main(int argc, char** argv) {
         }
 
         confusion_matrix[labels[0]][t10k_labels[i]]++;
-
-        
     }
 
     // freeing memory

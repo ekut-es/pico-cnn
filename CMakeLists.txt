@@ -4,6 +4,7 @@ project(pico_cnn)
 option(BUILD_TESTS "Test programs from the 'test' directory will be built." OFF)
 option(BUILD_UTILS "Utility programs from the 'util' directory will be built." OFF)
 option(BUILD_EXAMPLES "Example programs from the 'examples' directory will be built." OFF)
+option(BUILD_ARM_EXAMPLES "ARM example programs from the 'examples' directory will be built." OFF)
 
 set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
@@ -13,6 +14,9 @@ include_directories("${PROJECT_SOURCE_DIR}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 list(APPEND LINK_LIBS m)
     
+if(BUILD_TESTS)
+    add_executable(preprocessor_macro_test ${PROJECT_SOURCE_DIR}/util/preprocessor_macro_test.c)
+endif()
 
 if(BUILD_UTILS)
     add_executable(compare_float_files ${PROJECT_SOURCE_DIR}/util/compare_float_files.c)
@@ -36,6 +40,13 @@ if(BUILD_EXAMPLES)
     add_executable(ekut_es_alexnet_naive ${PROJECT_SOURCE_DIR}/examples/ekut_es_alexnet_naive.c)
     target_link_libraries(ekut_es_alexnet_naive ${LINK_LIBS} jpeg)
 endif()
+
+if(BUILD_ARM_EXAMPLES)
+    add_executable(caffe_lenet_arm_cpu ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_arm_cpu.c)
+    target_compile_options(caffe_lenet_arm_cpu PRIVATE "-mfpu=neon")
+    target_link_libraries(caffe_lenet_arm_cpu ${LINK_LIBS})
+endif()
+
 
 # removes pgm and float files
 add_custom_target(remove_output_data
