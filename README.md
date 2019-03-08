@@ -1,6 +1,16 @@
 # Pico CNN
 
 ## TL;DR
+### Ubuntu
+```{bash}
+sudo apt install libjpeg-dev
+```
+
+### Scientific Linux
+```{bash}
+sudo yum install libjpeg-devel
+```
+
 ### LeNet-5
 LeNet-5 implementation as proposed by Yann LeCun et. al <a id="cit_LeCun1998">[[LeCun1998]](#LeCun1998)</a>
 ```{bash}
