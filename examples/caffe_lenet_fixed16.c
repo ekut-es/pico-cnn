@@ -7,7 +7,7 @@
 
 #define FIXED16
 #define MNIST
-#define NUM 10000
+#define NUM 1000
 //#define DEBUG
 #define INDEX 0
 
@@ -320,12 +320,13 @@ int main(int argc, char** argv) {
     fixed16_t* f6_bias = biasses[3];
 
 
+    printf("threads: %d\n", omp_get_max_threads());
     printf("starting CNN\n");
 
     for(i = 0; i < NUM; i++) {
 
         // C1 input 28x28x1 -> output 24x24x20
-        #pragma omp parallel for private(j) num_threads(1)
+        #pragma omp parallel for private(j) 
         for(j = 0; j < 20; j++) {
             convolution2d_cpu_5x5_s1_valid_fixed16(t10k_images[i], 28, 28, c1_output[j], c1_kernels[j], c1_bias[j]);
         }
@@ -353,7 +354,7 @@ int main(int argc, char** argv) {
         #endif
 
         // S2 input 24x24x20 -> output 12x12x20
-        #pragma omp parallel for private(j) num_threads(1)
+        #pragma omp parallel for private(j)
         for(j = 0; j < 20; j++) {
             max_pooling2d_cpu_2x2_s2_fixed16(c1_output[j], 24, 24, s2_output[j]);
         }
@@ -381,7 +382,7 @@ int main(int argc, char** argv) {
         #endif
 
         // C3 input 12x12x20 -> output 8x8x50
-        #pragma omp parallel for private(j,k) num_threads(1)
+        #pragma omp parallel for private(j,k)
         for(j = 0; j < 50; j++) {
             convolution2d_cpu_5x5_s1_valid_fixed16(s2_output[0], 12, 12, c3_output[j], c3_kernels[j*20], c3_bias[j]);
 
@@ -414,7 +415,7 @@ int main(int argc, char** argv) {
         #endif
 
         // S4 input 8x8x50 -> output 8x8x50 
-        #pragma omp parallel for private(j) num_threads(1)
+        #pragma omp parallel for private(j)
         for(j = 0; j < 50; j++) {
             max_pooling2d_cpu_2x2_s2_fixed16(c3_output[j], 8, 8, s4_output[j]);
         }
@@ -447,10 +448,7 @@ int main(int argc, char** argv) {
             memcpy(&s4_output_merged[j*4*4], s4_output[j], 4*4*sizeof(fixed16_t));
         }
 
-        #pragma omp parallel for private(j) num_threads(1)
-        for(j = 0; j < omp_get_max_threads(); j++) {
-            fully_connected_naive_fixed16(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias);
-        }
+        fully_connected_naive_fixed16(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias);
 
         // make pgm F5
         #ifdef DEBUG
