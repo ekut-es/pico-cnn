@@ -12,6 +12,7 @@
 #define ARM_NEON
 
 #include "pico-cnn/pico-cnn.h"
+#include <omp.h>
 
 void usage() {
     printf("./caffe_lenet_naive PATH_TO_MNIST_DATASET PATH_TO_WEIGHTS_FILE\n");
@@ -167,7 +168,11 @@ int main(int argc, char** argv) {
     fp_t** c3_output;
     c3_output = (fp_t**) malloc(50*sizeof(fp_t*));
 
-    fp_t* c3_intermediate = malloc(8*8*sizeof(fp_t*));
+    fp_t** c3_intermediate = malloc(omp_get_max_threads()*sizeof(fp_t*));
+
+    for(j = 0; j < omp_get_max_threads(); j++) {
+        c3_intermediate[j] = malloc(8*8*sizeof(fp_t*));
+    }
 
     for(j = 0; j < 50; j++) {
         c3_output[j] = (fp_t*) malloc(8*8*sizeof(fp_t));
@@ -205,11 +210,13 @@ int main(int argc, char** argv) {
     fp_t* f6_bias = biasses[3];
 
 
+    printf("threads: %d\n", omp_get_max_threads());
     printf("starting CNN\n");
 
     for(i = 0; i < NUM; i++) {
 
         // C1 input 28x28x1 -> output 24x24x20
+        #pragma omp parallel for private(j) 
         for(j = 0; j < 20; j++) {
             convolution2d_cpu_5x5_s1_valid(t10k_images[i], 28, 28, c1_output[j], c1_kernels[j], c1_bias[j]);
         }
@@ -229,6 +236,7 @@ int main(int argc, char** argv) {
         #endif
 
         // S2 input 24x24x20 -> output 12x12x20
+        #pragma omp parallel for private(j)
         for(j = 0; j < 20; j++) {
 			max_pooling2d_cpu_2x2_s2(c1_output[j], 24, 24, s2_output[j]);
         }
@@ -247,12 +255,13 @@ int main(int argc, char** argv) {
         #endif
 
         // C3 input 12x12x20 -> output 8x8x50
+        #pragma omp parallel for private(j,k)
         for(j = 0; j < 50; j++) {
             convolution2d_cpu_5x5_s1_valid(s2_output[0], 12, 12, c3_output[j], c3_kernels[j*20], c3_bias[j]);
 
             for(k = 1; k < 20; k++) {
-            	convolution2d_cpu_5x5_s1_valid(s2_output[k], 12, 12, c3_intermediate, c3_kernels[j*20+k], 0.0);
-                add_image2d_cpu(c3_output[j], c3_intermediate, 8, 8);
+            	convolution2d_cpu_5x5_s1_valid(s2_output[k], 12, 12, c3_intermediate[omp_get_thread_num()], c3_kernels[j*20+k], 0.0);
+                add_image2d_cpu(c3_output[j], c3_intermediate[omp_get_thread_num()], 8, 8);
             }
         }
 
@@ -270,6 +279,7 @@ int main(int argc, char** argv) {
         #endif
 
         // S4 input 8x8x50 -> output 4x4x50
+        #pragma omp parallel for private(j)
         for(j = 0; j < 50; j++) {
             max_pooling2d_cpu_2x2_s2(c3_output[j], 8, 8, s4_output[j]);
         }
@@ -292,8 +302,10 @@ int main(int argc, char** argv) {
         for(j = 0; j < 50; j++) {
             memcpy(&s4_output_merged[j*4*4], s4_output[j], 4*4*sizeof(fp_t));
         }
-
-		fully_connected_cpu(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias, 0, 500);
+        #pragma omp parallel for private(j)
+        for(j = 0; j < omp_get_max_threads(); j++) {
+            fully_connected_cpu(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias, (500/omp_get_max_threads())*omp_get_thread_num(), (500/omp_get_max_threads())*(omp_get_thread_num()+1));
+        }
 
         // make pgm F5
         #ifdef DEBUG
