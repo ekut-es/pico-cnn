@@ -17,9 +17,18 @@ set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 include_directories("${PROJECT_SOURCE_DIR}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 
-list(APPEND LINK_LIBS m)
+if(UNIX AND NOT APPLE)
+    set(LINUX TRUE)
+endif()
+
+if(LINUX)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+    list(APPEND LINK_LIBS m)
+else()
+    list(APPEND LINK_LIBS m omp)
+endif()
+    
 
 if(BUILD_UTILS)
     add_executable(compare_float_files ${PROJECT_SOURCE_DIR}/util/compare_float_files.c)
