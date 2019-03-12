@@ -5,12 +5,21 @@ option(BUILD_TESTS "Test programs from the 'test' directory will be built." OFF)
 option(BUILD_UTILS "Utility programs from the 'util' directory will be built." OFF)
 option(BUILD_EXAMPLES "Example programs from the 'examples' directory will be built." OFF)
 
+find_package(OpenMP)
+if(OpenMP_C_FOUND)
+    target_link_libraries(caffe_lenet_naive PUBLIC OpenMP::OpenMP_C)
+    target_link_libraries(caffe_lenet_fixed16 PUBLIC OpenMP::OpenMP_C)
+    target_link_libraries(es_alexnet_naive PUBLIC OpenMP::OpenMP_CX)
+    target_link_libraries(es_vgg_naive PUBLIC OpenMP::OpenMP_C)
+endif()
+
 set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 include_directories("${PROJECT_SOURCE_DIR}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 
-list(APPEND LINK_LIBS m omp)
+list(APPEND LINK_LIBS m)
 
 if(BUILD_UTILS)
     add_executable(compare_float_files ${PROJECT_SOURCE_DIR}/util/compare_float_files.c)
