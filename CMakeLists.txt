@@ -10,16 +10,8 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 include_directories("${PROJECT_SOURCE_DIR}")
 
-if(UNIX AND NOT APPLE)
-    set(LINUX TRUE)
-endif()
-
-if(LINUX)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-    list(APPEND LINK_LIBS m)
-else()
-    list(APPEND LINK_LIBS m omp)
-endif()
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+list(APPEND LINK_LIBS m)
     
 
 if(BUILD_UTILS)
