@@ -168,9 +168,7 @@ int main(int argc, char** argv) {
     #endif
 
 
-    printf("starting CNN\n");
-
-    // conv1 input 227x227x3 -> output 55x55x96
+    // conv1
     fp_t** conv1_output;
     conv1_output = (fp_t**) malloc(96*sizeof(fp_t*));
 
@@ -183,6 +181,124 @@ int main(int argc, char** argv) {
     fp_t** conv1_kernels = kernels[0];
     fp_t* conv1_bias = biasses[0];
 
+    // norm1
+    fp_t** norm1_output;
+    norm1_output = (fp_t**) malloc(96*sizeof(fp_t*));
+    
+    for(i = 0; i < 96; i++) {
+        norm1_output[i] = (fp_t*) malloc(55*55*sizeof(fp_t));
+    }
+
+    // pool1
+    fp_t** pool1_output;
+    pool1_output = (fp_t**) malloc(96*sizeof(fp_t*));
+    
+    for(i = 0; i < 96; i++) {
+        pool1_output[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
+    }
+
+    // conv2
+    fp_t** conv2_output;
+    conv2_output = (fp_t**) malloc(256*sizeof(fp_t*));
+
+    for(i = 0; i < 256; i++) {
+        conv2_output[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
+    }
+
+    // norm2
+    fp_t** norm2_output;
+    norm2_output = (fp_t**) malloc(256*sizeof(fp_t*));
+    
+    for(i = 0; i < 256; i++) {
+        norm2_output[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
+    }
+
+    // pool2
+    fp_t** pool2_output;
+    pool2_output = (fp_t**) malloc(256*sizeof(fp_t*));
+    
+    for(i = 0; i < 256; i++) {
+        pool2_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
+    } 
+
+    fp_t* conv2_intermediate = (fp_t*) malloc(27*27*sizeof(fp_t));
+
+    fp_t** conv2_kernels = kernels[1];
+    fp_t* conv2_bias = biasses[1];
+
+    // conv3
+    fp_t** conv3_output;
+    conv3_output = (fp_t**) malloc(384*sizeof(fp_t*));
+
+    for(i = 0; i < 384; i++) {
+        conv3_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
+    }
+
+    fp_t* conv3_intermediate = (fp_t*) malloc(13*13*sizeof(fp_t));
+
+    fp_t** conv3_kernels = kernels[2];
+    fp_t* conv3_bias = biasses[2];
+
+    // conv4
+    fp_t** conv4_output;
+    conv4_output = (fp_t**) malloc(384*sizeof(fp_t*));
+
+    for(i = 0; i < 384; i++) {
+        conv4_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
+    }
+
+    fp_t* conv4_intermediate = (fp_t*) malloc(13*13*sizeof(fp_t));
+
+    fp_t** conv4_kernels = kernels[3];
+    fp_t* conv4_bias = biasses[3];
+
+    // conv5
+    fp_t** conv5_output;
+    conv5_output = (fp_t**) malloc(256*sizeof(fp_t*));
+
+    for(i = 0; i < 256; i++) {
+        conv5_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
+    }
+
+    fp_t* conv5_intermediate = (fp_t*) malloc(13*13*sizeof(fp_t));
+
+    fp_t** conv5_kernels = kernels[4];
+    fp_t* conv5_bias = biasses[4];
+
+    // pool5
+    fp_t** pool5_output;
+    pool5_output = (fp_t**) malloc(256*sizeof(fp_t*));
+    
+    for(i = 0; i < 256; i++) {
+        pool5_output[i] = (fp_t*) malloc(6*6*sizeof(fp_t));
+    }
+
+    // fc6
+    fp_t* pool5_output_merged = (fp_t*) malloc(6*6*256*sizeof(fp_t));
+    fp_t* fc6_output;
+    fc6_output = (fp_t*) malloc(4096*sizeof(fp_t));
+
+    fp_t* fc6_kernel = kernels[5][0];
+    fp_t* fc6_bias = biasses[5];
+
+    // fc7
+    fp_t* fc7_output;
+    fc7_output = (fp_t*) malloc(4096*sizeof(fp_t));
+
+    fp_t* fc7_kernel = kernels[6][0];
+    fp_t* fc7_bias = biasses[6];
+
+    // fc8
+    fp_t* fc8_output;
+    fc8_output = (fp_t*) malloc(1000*sizeof(fp_t));
+
+    fp_t* fc8_kernel = kernels[7][0];
+    fp_t* fc8_bias = biasses[7];
+
+
+    printf("starting CNN\n");
+
+    // conv1 input 227x227x3 -> output 55x55x96
     uint16_t kernel_number = 0;
 
     for(i = 0; i < 96; i++) {
@@ -210,16 +326,7 @@ int main(int argc, char** argv) {
     free(conv1_file_content);
     #endif
 
-    // free conv1_intermediate
-    free(conv1_intermediate);
-
-    // free input
-    free(input[0]);
-    free(input[1]);
-    free(input[2]);
-    free(input);
-
-
+    
     // relu1
     for(i = 0; i < 96; i++) {
         relu_naive(conv1_output[i], 55, 55, conv1_output[i]);
@@ -238,13 +345,6 @@ int main(int argc, char** argv) {
 
 
     // norm1
-    fp_t** norm1_output;
-    norm1_output = (fp_t**) malloc(96*sizeof(fp_t*));
-    
-    for(i = 0; i < 96; i++) {
-        norm1_output[i] = (fp_t*) malloc(55*55*sizeof(fp_t));
-    }
-
     local_response_normalization_naive(conv1_output, 55, 55, 96, norm1_output, 0.0001, 0.75, 5);
 
     // make pgm of norm1 output
@@ -258,21 +358,8 @@ int main(int argc, char** argv) {
     free(norm1_file_content);
     #endif
 
-    // free conv1 output
-    for(i = 0; i < 96; i++) {
-        free(conv1_output[i]);
-    }
-    free(conv1_output);
-
-
-    // pool1 55x55x96 -> 27x27x96
-    fp_t** pool1_output;
-    pool1_output = (fp_t**) malloc(96*sizeof(fp_t*));
     
-    for(i = 0; i < 96; i++) {
-        pool1_output[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
-    }
-
+    // pool1 55x55x96 -> 27x27x96
     for(i = 0; i < 96; i++) {
         max_pooling2d_naive(norm1_output[i], 55, 55, pool1_output[i], 3, 2);
     }
@@ -288,27 +375,8 @@ int main(int argc, char** argv) {
     free(pool1_file_content);
     #endif
 
-    // free norm1 output
-    for(i = 0; i < 96; i++) {
-        free(norm1_output[i]);
-    }
-    free(norm1_output);
 
-
-    // conv2 27x27x96 -> 27x27x256
-    fp_t** conv2_output;
-    conv2_output = (fp_t**) malloc(256*sizeof(fp_t*));
-
-    for(i = 0; i < 256; i++) {
-        conv2_output[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
-    }
-
-
-    fp_t* conv2_intermediate = (fp_t*) malloc(27*27*sizeof(fp_t));
-
-    fp_t** conv2_kernels = kernels[1];
-    fp_t* conv2_bias = biasses[1];
-
+    // conv2 27x27x96 -> 27x27x256 
     for(i = 0; i < 256; i++) {
         convolution2d_naive(pool1_output[0], 27, 27, conv2_output[i], conv2_kernels[i*96], 5, 1, 2, 0.0);
 
@@ -319,10 +387,7 @@ int main(int argc, char** argv) {
         convolution2d_naive(pool1_output[95], 27, 27, conv2_intermediate, conv2_kernels[i*96+95], 5, 1, 2, conv2_bias[i]);
         add_image2d_naive(conv2_output[i], conv2_intermediate, 27, 27);
     }
-
-    // free conv2_intermediate
-    free(conv2_intermediate);
-
+    
     // make pgm of conv2 output
     #ifdef DEBUG
     fp_t* conv2_file_content = (fp_t*) malloc(27*27*256*sizeof(fp_t));
@@ -333,13 +398,7 @@ int main(int argc, char** argv) {
     write_float(conv2_file_content, 256*27, 27, "conv2_output.float");
     free(conv2_file_content);
     #endif
-
-    // free pool1 output
-    for(i = 0; i < 96; i++) {
-        free(pool1_output[i]);
-    }
-    free(pool1_output);
-
+ 
 
     // relu2
     for(i = 0; i < 256; i++) {
@@ -359,13 +418,6 @@ int main(int argc, char** argv) {
 
 
     // norm2
-    fp_t** norm2_output;
-    norm2_output = (fp_t**) malloc(256*sizeof(fp_t*));
-    
-    for(i = 0; i < 256; i++) {
-        norm2_output[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
-    }
-
     local_response_normalization_naive(conv2_output, 27, 27, 256, norm2_output, 0.0001, 0.75, 5);
 
     // make pgm of norm2 output
@@ -380,21 +432,7 @@ int main(int argc, char** argv) {
     #endif
 
 
-    // free conv2 output
-    for(i = 0; i < 256; i++) {
-        free(conv2_output[i]);
-    }
-    free(conv2_output);
-
-
     // pool2 27x27x256 -> 13x13x256
-    fp_t** pool2_output;
-    pool2_output = (fp_t**) malloc(256*sizeof(fp_t*));
-    
-    for(i = 0; i < 256; i++) {
-        pool2_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
-    }
-
     for(i = 0; i < 256; i++) {
         max_pooling2d_naive(norm2_output[i], 27, 27, pool2_output[i], 3, 2);
     }
@@ -410,27 +448,8 @@ int main(int argc, char** argv) {
     free(pool2_file_content);
     #endif
 
-    // free norm2 output
-    for(i = 0; i < 256; i++) {
-        free(norm2_output[i]);
-    }
-    free(norm2_output);
-
-    
-    // conv3
-    fp_t** conv3_output;
-    conv3_output = (fp_t**) malloc(384*sizeof(fp_t*));
-
-    for(i = 0; i < 384; i++) {
-        conv3_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
-    }
-
-
-    fp_t* conv3_intermediate = (fp_t*) malloc(13*13*sizeof(fp_t));
-
-    fp_t** conv3_kernels = kernels[2];
-    fp_t* conv3_bias = biasses[2];
-
+        
+    // conv3 
     for(i = 0; i < 384; i++) {
         convolution2d_naive(pool2_output[0], 13, 13, conv3_output[i], conv3_kernels[i*256], 3, 1, 1, 0.0);
 
@@ -441,9 +460,6 @@ int main(int argc, char** argv) {
         convolution2d_naive(pool2_output[255], 13, 13, conv3_intermediate, conv3_kernels[i*256+255], 3, 1, 1, conv3_bias[i]);
         add_image2d_naive(conv3_output[i], conv3_intermediate, 13, 13);
     }
-
-    // free conv3_intermediate
-    free(conv3_intermediate);
 
     // make pgm of conv2 output
     #ifdef DEBUG
@@ -456,14 +472,7 @@ int main(int argc, char** argv) {
     free(conv3_file_content);
     #endif
 
-
-    // free pool2 output
-    for(i = 0; i < 256; i++) {
-        free(pool2_output[i]);
-    }
-    free(pool2_output);
-
-
+    
     // relu3
     for(i = 0; i < 384; i++) {
         relu_naive(conv3_output[i], 13, 13, conv3_output[i]);
@@ -482,19 +491,6 @@ int main(int argc, char** argv) {
 
 
     // conv4
-    fp_t** conv4_output;
-    conv4_output = (fp_t**) malloc(384*sizeof(fp_t*));
-
-    for(i = 0; i < 384; i++) {
-        conv4_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
-    }
-
-
-    fp_t* conv4_intermediate = (fp_t*) malloc(13*13*sizeof(fp_t));
-
-    fp_t** conv4_kernels = kernels[3];
-    fp_t* conv4_bias = biasses[3];
-
     for(i = 0; i < 384; i++) {
         convolution2d_naive(conv3_output[0], 13, 13, conv4_output[i], conv4_kernels[i*384], 3, 1, 1, 0.0);
 
@@ -506,8 +502,6 @@ int main(int argc, char** argv) {
         add_image2d_naive(conv4_output[i], conv4_intermediate, 13, 13);
     }
 
-    // free conv4_intermediate
-    free(conv4_intermediate);
 
     // make pgm of conv4 output
     #ifdef DEBUG
@@ -520,13 +514,7 @@ int main(int argc, char** argv) {
     free(conv4_file_content);
     #endif
 
-    // free conv3 output
-    for(i = 0; i < 384; i++) {
-        free(conv3_output[i]);
-    }
-    free(conv3_output);
-
-
+    
     // relu4
     for(i = 0; i < 384; i++) {
         relu_naive(conv4_output[i], 13, 13, conv4_output[i]);
@@ -544,19 +532,7 @@ int main(int argc, char** argv) {
     #endif
 
 
-    // conv5
-    fp_t** conv5_output;
-    conv5_output = (fp_t**) malloc(256*sizeof(fp_t*));
-
-    for(i = 0; i < 256; i++) {
-        conv5_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
-    }
-
-    fp_t* conv5_intermediate = (fp_t*) malloc(13*13*sizeof(fp_t));
-
-    fp_t** conv5_kernels = kernels[4];
-    fp_t* conv5_bias = biasses[4];
-
+    // conv5 
     for(i = 0; i < 256; i++) {
         convolution2d_naive(conv4_output[0], 13, 13, conv5_output[i], conv5_kernels[i*384], 3, 1, 1, 0.0);
 
@@ -568,8 +544,6 @@ int main(int argc, char** argv) {
         add_image2d_naive(conv5_output[i], conv5_intermediate, 13, 13);
     }
 
-    // free conv5_intermediate
-    free(conv5_intermediate);
 
     // make pgm of conv5 output
     #ifdef DEBUG
@@ -582,14 +556,7 @@ int main(int argc, char** argv) {
     free(conv5_file_content);
     #endif
 
-
-    // free conv4 output
-    for(i = 0; i < 384; i++) {
-        free(conv4_output[i]);
-    }
-    free(conv4_output);
-
-
+    
     // relu5
     for(i = 0; i < 256; i++) {
         relu_naive(conv5_output[i], 13, 13, conv5_output[i]);
@@ -608,13 +575,6 @@ int main(int argc, char** argv) {
 
 
     // pool5
-    fp_t** pool5_output;
-    pool5_output = (fp_t**) malloc(256*sizeof(fp_t*));
-    
-    for(i = 0; i < 256; i++) {
-        pool5_output[i] = (fp_t*) malloc(6*6*sizeof(fp_t));
-    }
-
     for(i = 0; i < 256; i++) {
         max_pooling2d_naive(conv5_output[i], 13, 13, pool5_output[i], 3, 2);
     }
@@ -630,32 +590,14 @@ int main(int argc, char** argv) {
     free(pool5_file_content);
     #endif
 
-    // free conv5 output
-    for(i = 0; i < 256; i++) {
-        free(conv5_output[i]);
-    }
-    free(conv5_output);
-
-
+    
     // fc6 6x6x256 = 1x9216 -> 1x4096
     // merge S4 output
-    fp_t* pool5_output_merged = (fp_t*) malloc(6*6*256*sizeof(fp_t));
     for(i = 0; i < 256; i++) {
         memcpy(&pool5_output_merged[i*6*6], pool5_output[i], 6*6*sizeof(fp_t));
     }
-
-    // free pool5 output
-    for(i = 0; i < 256; i++) {
-        free(pool5_output[i]);
-    }
-    free(pool5_output);
-
-    fp_t* fc6_output;
-    fc6_output = (fp_t*) malloc(4096*sizeof(fp_t));
-
-    fp_t* fc6_kernel = kernels[5][0];
-    fp_t* fc6_bias = biasses[5];
-    
+ 
+        
     fully_connected_naive(pool5_output_merged, 9216, fc6_output, 4096, fc6_kernel, fc6_bias);
 
     // make pgm fc6 output
@@ -664,9 +606,6 @@ int main(int argc, char** argv) {
     write_float(fc6_output, 1, 4096, "fc6_output.float");
     #endif
     
-    // free fc6_output
-    free(pool5_output_merged);
-
 
     // relu6
     relu_naive(fc6_output, 1, 4096, fc6_output);
@@ -683,12 +622,6 @@ int main(int argc, char** argv) {
 
 
     // fc7 1x4096 -> 1x4096
-    fp_t* fc7_output;
-    fc7_output = (fp_t*) malloc(4096*sizeof(fp_t));
-
-    fp_t* fc7_kernel = kernels[6][0];
-    fp_t* fc7_bias = biasses[6];
-    
     fully_connected_naive(fc6_output, 4096, fc7_output, 4096, fc7_kernel, fc7_bias);
 
     // make pgm fc7 output
@@ -696,9 +629,6 @@ int main(int argc, char** argv) {
     write_pgm(fc7_output, 1, 4096, "fc7_output.pgm");
     write_float(fc7_output, 1, 4096, "fc7_output.float");
     #endif
-
-    // free fc6 output
-    free(fc6_output);
 
 
     // relu7
@@ -715,13 +645,7 @@ int main(int argc, char** argv) {
     // do nothing
 
 
-    // fc7 1x4096 -> 1x1000
-    fp_t* fc8_output;
-    fc8_output = (fp_t*) malloc(1000*sizeof(fp_t));
-
-    fp_t* fc8_kernel = kernels[7][0];
-    fp_t* fc8_bias = biasses[7];
-    
+    // fc8 1x4096 -> 1x1000    
     fully_connected_naive(fc7_output, 4096, fc8_output, 1000, fc8_kernel, fc8_bias);
 
     // make pgm fc8 output
@@ -729,10 +653,6 @@ int main(int argc, char** argv) {
     write_pgm(fc8_output, 1, 1000, "fc8_output.pgm");
     write_float(fc8_output, 1, 1000, "fc8_output.float");
     #endif
-
-    // free fc7 output
-    free(fc7_output);
-
 
     // prob
     softmax_naive(fc8_output, 1, 1000, fc8_output);
@@ -743,6 +663,91 @@ int main(int argc, char** argv) {
     write_float(fc8_output, 1, 1000, "prob_output.float");
     #endif
 
+    // free memory
+    // input
+    free(input[0]);
+    free(input[1]);
+    free(input[2]);
+    free(input);
+
+    // conv1
+    free(conv1_intermediate);
+
+    for(i = 0; i < 96; i++) {
+        free(conv1_output[i]);
+    }
+    free(conv1_output);
+
+    // norm1
+    for(i = 0; i < 96; i++) {
+        free(norm1_output[i]);
+    }
+    free(norm1_output);
+
+    // pool1
+    for(i = 0; i < 96; i++) {
+        free(pool1_output[i]);
+    }
+    free(pool1_output);
+
+    // conv2
+    free(conv2_intermediate);
+
+    for(i = 0; i < 256; i++) {
+        free(conv2_output[i]);
+    }
+    free(conv2_output);
+
+    // norm2
+    for(i = 0; i < 256; i++) {
+        free(norm2_output[i]);
+    }
+    free(norm2_output);
+
+    // pool2
+    for(i = 0; i < 256; i++) {
+        free(pool2_output[i]);
+    }
+    free(pool2_output);
+
+    // conv3
+    free(conv3_intermediate);
+
+    for(i = 0; i < 384; i++) {
+        free(conv3_output[i]);
+    }
+    free(conv3_output);
+
+    // conv4
+    free(conv4_intermediate);
+
+    for(i = 0; i < 384; i++) {
+        free(conv4_output[i]);
+    }
+    free(conv4_output);
+
+    // conv5
+    free(conv5_intermediate);
+
+    for(i = 0; i < 256; i++) {
+        free(conv5_output[i]);
+    }
+    free(conv5_output);
+
+    // pool5
+    for(i = 0; i < 256; i++) {
+        free(pool5_output[i]);
+    }
+    free(pool5_output);
+
+    // fc6
+    free(pool5_output_merged);
+    free(fc6_output);
+
+    // fc7
+    free(fc7_output);
+
+    // fc8
 
     for(i = 0; i < 288; i++) {
         free(kernels[0][i]);
