@@ -2,3 +2,5 @@
 build
 *.weights
 .*.swp
+*ubyte
+data/imagenet_dataset
