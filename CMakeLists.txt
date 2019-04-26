@@ -35,9 +35,6 @@ if(BUILD_EXAMPLES)
 
     add_executable(ekut_es_alexnet_naive ${PROJECT_SOURCE_DIR}/examples/ekut_es_alexnet_naive.c)
     target_link_libraries(ekut_es_alexnet_naive ${LINK_LIBS} jpeg)
-
-	add_executable(ekut_es_vgg_naive ${PROJECT_SOURCE_DIR}/examples/ekut_es_vgg_naive.c)
-    target_link_libraries(ekut_es_vgg_naive ${LINK_LIBS} jpeg)
 endif()
 
 # removes pgm and float files
