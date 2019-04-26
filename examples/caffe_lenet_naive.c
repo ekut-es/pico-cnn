@@ -142,18 +142,70 @@ int main(int argc, char** argv) {
         {0,0,0,0,0,0,0,0,0,0}
     };
 
+    // allocate memory for CNN and set pointers
+    // C1
+    fp_t** c1_output;
+    c1_output = (fp_t**) malloc(20*sizeof(fp_t*));
+   
+    for(j = 0; j < 20; j++) {
+        c1_output[j] = (fp_t*) malloc(24*24*sizeof(fp_t));
+    }
+
+    fp_t** c1_kernels = kernels[0];
+    fp_t* c1_bias = biasses[0];
+
+    // S2
+    fp_t** s2_output;
+    s2_output = (fp_t**) malloc(20*sizeof(fp_t*));
+
+    for(j = 0; j < 20; j++) {
+        s2_output[j] = (fp_t*) malloc(12*12*sizeof(fp_t));
+    }
+
+    // C3
+    fp_t** c3_output;
+    c3_output = (fp_t**) malloc(50*sizeof(fp_t*));
+
+    fp_t* c3_intermediate = malloc(8*8*sizeof(fp_t*));
+
+    for(j = 0; j < 50; j++) {
+        c3_output[j] = (fp_t*) malloc(8*8*sizeof(fp_t));
+    }
+
+    fp_t** c3_kernels = kernels[1];
+    fp_t* c3_bias = biasses[1];
+
+    // S4
+    fp_t** s4_output;
+    s4_output = (fp_t**) malloc(50*sizeof(fp_t*));
+
+    for(j = 0; j < 50; j++) {
+        s4_output[j] = (fp_t*) malloc(4*4*sizeof(fp_t));
+    }
+
+    // F5
+    fp_t* s4_output_merged = (fp_t*) malloc(4*4*50*sizeof(fp_t));
+
+    fp_t* f5_output;
+    f5_output = (fp_t*) malloc(500*sizeof(fp_t));
+
+    fp_t* f5_kernel = kernels[2][0];
+    fp_t* f5_bias = biasses[2];
+
+    // F6
+    fp_t* f6_output;
+    f6_output = (fp_t*) malloc(10*sizeof(fp_t));
+
+    fp_t* f6_kernel = kernels[3][0];
+    fp_t* f6_bias = biasses[3];
+
+
     printf("starting CNN\n");
 
     for(i = 0; i < NUM; i++) {
-        // C1 input 28x28x1 -> output 24x24x20
-        fp_t** c1_output;
-        c1_output = (fp_t**) malloc(20*sizeof(fp_t*));
-        
-        fp_t** c1_kernels = kernels[0];
-        fp_t* c1_bias = biasses[0];
 
+        // C1 input 28x28x1 -> output 24x24x20
         for(j = 0; j < 20; j++) {
-            c1_output[j] = (fp_t*) malloc(24*24*sizeof(fp_t));
             convolution2d_naive(t10k_images[i], 28, 28, c1_output[j], c1_kernels[j], 5, 1, 0, c1_bias[j]);
         }
 
@@ -172,11 +224,7 @@ int main(int argc, char** argv) {
         #endif
 
         // S2 input 24x24x20 -> output 12x12x20
-        fp_t** s2_output;
-        s2_output = (fp_t**) malloc(20*sizeof(fp_t*));
-
         for(j = 0; j < 20; j++) {
-            s2_output[j] = (fp_t*) malloc(12*12*sizeof(fp_t));
             max_pooling2d_naive(c1_output[j], 24, 24, s2_output[j], 2, 2);
         }
 
@@ -193,24 +241,8 @@ int main(int argc, char** argv) {
         }
         #endif
 
-        // C1 free memory
-        for(j = 0; j < 20; j++) {
-            free(c1_output[j]);
-        }
-
-        free(c1_output);
-
         // C3 input 12x12x20 -> output 8x8x50
-        fp_t** c3_output;
-        c3_output = (fp_t**) malloc(50*sizeof(fp_t*));
-
-        fp_t* c3_intermediate = malloc(8*8*sizeof(fp_t*));
-        
-        fp_t** c3_kernels = kernels[1];
-        fp_t* c3_bias = biasses[1];
-
         for(j = 0; j < 50; j++) {
-            c3_output[j] = (fp_t*) malloc(8*8*sizeof(fp_t));
             convolution2d_naive(s2_output[0], 12, 12, c3_output[j], c3_kernels[j*20], 5, 1, 0, c3_bias[j]);
 
             for(k = 1; k < 20; k++) {
@@ -218,8 +250,6 @@ int main(int argc, char** argv) {
                 add_image2d_naive(c3_output[j], c3_intermediate, 8, 8);
             }
         }
-
-        free(c3_intermediate);
 
         // make pgm C3
         #ifdef DEBUG
@@ -234,20 +264,8 @@ int main(int argc, char** argv) {
         }
         #endif
 
-
-        // S2 free memory
-        for(j = 0; j < 20; j++) {
-            free(s2_output[j]);
-        }
-
-        free(s2_output);
-
         // S4 input 8x8x50 -> output 4x4x50
-        fp_t** s4_output;
-        s4_output = (fp_t**) malloc(50*sizeof(fp_t*));
-
         for(j = 0; j < 50; j++) {
-            s4_output[j] = (fp_t*) malloc(4*4*sizeof(fp_t));
             max_pooling2d_naive(c3_output[j], 8, 8, s4_output[j], 2, 2);
         }
 
@@ -264,27 +282,12 @@ int main(int argc, char** argv) {
         }
         #endif
 
-        // C3 free memory
-        for(j = 0; j < 50; j++) {
-            free(c3_output[j]);
-        }
-
-        free(c3_output);
-
         // F5 input 50x4x4 = 1x800 -> output 1x500
-        
         // merge S4 output
-        fp_t* s4_output_merged = (fp_t*) malloc(4*4*50*sizeof(fp_t));
         for(j = 0; j < 50; j++) {
             memcpy(&s4_output_merged[j*4*4], s4_output[j], 4*4*sizeof(fp_t));
         }
 
-        fp_t* f5_output;
-        f5_output = (fp_t*) malloc(500*sizeof(fp_t));
-
-        fp_t* f5_kernel = kernels[2][0];
-        fp_t* f5_bias = biasses[2];
-        
         fully_connected_naive(s4_output_merged, 800, f5_output, 500, f5_kernel, f5_bias);
 
         // make pgm F5
@@ -294,14 +297,6 @@ int main(int argc, char** argv) {
             write_float(f5_output, 1, 500, "f5_output.float");
         }
         #endif
-
-        // S4 free memory
-        for(j = 0; j < 50; j++) {
-            free(s4_output[j]);
-        }
-
-        free(s4_output);
-        free(s4_output_merged);
 
         // ReLU
         relu_naive(f5_output, 1, 500, f5_output);
@@ -314,13 +309,7 @@ int main(int argc, char** argv) {
         }
         #endif
 
-        // F6 input 1x500 -> 1x10
-        fp_t* f6_output;
-        f6_output = (fp_t*) malloc(10*sizeof(fp_t));
-
-        fp_t* f6_kernel = kernels[3][0];
-        fp_t* f6_bias = biasses[3];
-        
+        // F6 input 1x500 -> 1x10        
         fully_connected_naive(f5_output, 500, f6_output, 10, f6_kernel, f6_bias);
 
         // make pgm F6
@@ -330,9 +319,6 @@ int main(int argc, char** argv) {
             write_float(f6_output, 1, 10, "f6_output.float");
         }
         #endif
-
-        // F5 free memory
-        free(f5_output);
 
         // softmax
         softmax_naive(f6_output, 1, 10, f6_output);
@@ -366,11 +352,43 @@ int main(int argc, char** argv) {
 
         confusion_matrix[labels[0]][t10k_labels[i]]++;
 
-        // F6 free memory
-        free(f6_output);
+        
     }
 
     // freeing memory
+    // C1
+    for(j = 0; j < 20; j++) {
+        free(c1_output[j]);
+    }
+    free(c1_output);
+
+    // S2
+    for(j = 0; j < 20; j++) {
+        free(s2_output[j]);
+    }
+    free(s2_output);
+
+    // C3
+    for(j = 0; j < 50; j++) {
+        free(c3_output[j]);
+    }
+    free(c3_output);
+    free(c3_intermediate);
+
+    // S4
+    for(j = 0; j < 50; j++) {
+        free(s4_output[j]);
+    }
+
+    free(s4_output);
+
+    // F5
+    free(s4_output_merged);
+    free(f5_output);
+
+    // F6
+    free(f6_output);
+
     for(i = 0; i < NUM; i++) {
         free(t10k_images[i]);
     }
