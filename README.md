@@ -20,6 +20,7 @@ mkdir build
 cd build
 cmake -DBUILD_EXAMPLES=ON ..
 make ekut_es_alexnet_naive
+./ekut_es_alexnet_naive PATH_TO_WEIGHTS_FILE PATH_TO_IMAGENET_MEANS PATH_TO_IMAGENET_LABELS PATH_TO_INPUT_IMAGE
 ``` 
 
 ## Set Compiler
