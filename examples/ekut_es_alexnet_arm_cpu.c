@@ -11,7 +11,7 @@
 #define ARM_NEON
 
 #include "pico-cnn/pico-cnn.h"
-#include <stdio.h>
+#include <omp.h>
 
 void usage() {
     printf("./ekut_es_alexnet_arm_cpu \\\n"); 

@@ -10,7 +10,6 @@
 //#define DEBUG
 
 #include "pico-cnn/pico-cnn.h"
-#include <stdio.h>
 
 void usage() {
     printf("./ekut_es_alexnet_naive \\\n"); 
