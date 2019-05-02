@@ -388,6 +388,10 @@ int main(int argc, char** argv) {
         free(c3_output[j]);
     }
     free(c3_output);
+
+    for(j = 0; j < omp_get_max_threads(); j++) {
+        free(c3_intermediate[j]);
+    }
     free(c3_intermediate);
 
     // S4
