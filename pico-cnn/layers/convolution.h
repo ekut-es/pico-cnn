@@ -239,24 +239,16 @@ void convolution2d_cpu_3x3_s1_valid(const fp_t* original_image, const uint16_t h
             image_1_4 = vmlaq_f32(image_0_4, image_1_4, kernel_1);
             image_2_4 = vmlaq_f32(image_1_4, image_2_4, kernel_2);
 
-            // set bias to last lane of each vector
-            image_2_0 = vsetq_lane_f32(bias, image_2_0, 3);
-            image_2_1 = vsetq_lane_f32(bias, image_2_1, 3);
-            image_2_2 = vsetq_lane_f32(bias, image_2_2, 3);
-            image_2_3 = vsetq_lane_f32(bias, image_2_3, 3);
-            image_2_4 = vsetq_lane_f32(bias, image_2_4, 3);
-
             // store new image
             const uint32_t target = image_row*(width-2*padding)+image_column;
 
             // sum up whole vector (with bias)
-            /*
-            new_image[target] =   vaddvq_f32(image_2_0);
-            new_image[target+1] = vaddvq_f32(image_2_1);
-            new_image[target+2] = vaddvq_f32(image_2_2);
-            new_image[target+3] = vaddvq_f32(image_2_3);
-            new_image[target+4] = vaddvq_f32(image_2_4);
-            */
+            new_image[target] =   vgetq_lane_f32(image_2_0, 0) + vgetq_lane_f32(image_2_0, 1) + vgetq_lane_f32(image_2_0, 2) + bias;
+            new_image[target+1] = vgetq_lane_f32(image_2_1, 0) + vgetq_lane_f32(image_2_1, 1) + vgetq_lane_f32(image_2_1, 2) + bias;
+            new_image[target+2] = vgetq_lane_f32(image_2_2, 0) + vgetq_lane_f32(image_2_2, 1) + vgetq_lane_f32(image_2_2, 2) + bias;
+            new_image[target+3] = vgetq_lane_f32(image_2_3, 0) + vgetq_lane_f32(image_2_3, 1) + vgetq_lane_f32(image_2_3, 2) + bias;
+            new_image[target+4] = vgetq_lane_f32(image_2_4, 0) + vgetq_lane_f32(image_2_4, 1) + vgetq_lane_f32(image_2_4, 2) + bias;
+
         }
 
         // residual columns
@@ -276,16 +268,11 @@ void convolution2d_cpu_3x3_s1_valid(const fp_t* original_image, const uint16_t h
             image_1_0 = vmlaq_f32(image_0_0, image_1_0, kernel_1);
             image_2_0 = vmlaq_f32(image_1_0, image_2_0, kernel_2);
 
-            // set bias to last lane of each vector
-            image_2_0 = vsetq_lane_f32(bias, image_2_0, 3);
-
             // store new image
             const uint32_t target = image_row*(width-2*padding)+image_column;
 
             // sum up whole vector (with bias)
-            /*
-            new_image[target] = vaddvq_f32(image_2_0);
-            */
+            new_image[target] = vgetq_lane_f32(image_2_0, 0) + vgetq_lane_f32(image_2_0, 1) + vgetq_lane_f32(image_2_0, 2) + bias;
         }
     }
 }
@@ -766,9 +753,7 @@ void convolution2d_cpu_11x11_s4_valid(const fp_t* original_image, const uint16_t
             image_13_0 = vmlaq_f32(image_12_0, image_13_0, kernel_13);
           
             // sum up whole vector 
-            /*
-            pixel = vaddvq_f32(image_13_0);
-            */
+            pixel = vgetq_lane_f32(image_13_0, 0) + vgetq_lane_f32(image_13_0, 1) + vgetq_lane_f32(image_13_0, 2) + vgetq_lane_f32(image_13_0, 3);
             
 
             image_2_0 = vmulq_f32(image_2_0, kernel_2);
@@ -777,13 +762,8 @@ void convolution2d_cpu_11x11_s4_valid(const fp_t* original_image, const uint16_t
             image_11_0 = vmlaq_f32(image_8_0, image_11_0, kernel_11);
             image_14_0 = vmlaq_f32(image_11_0, image_14_0, kernel_14);
 
-            // set last value to 0.0
-            image_14_0 = vsetq_lane_f32(0.0, image_14_0, 3);
-
             // sum up whole vector
-            /*
-            pixel += vaddvq_f32(image_14_0);
-            */
+            pixel += vgetq_lane_f32(image_14_0, 0) + vgetq_lane_f32(image_14_0, 1) + vgetq_lane_f32(image_14_0, 2);
 
 
             // load second part of kernel
@@ -845,9 +825,7 @@ void convolution2d_cpu_11x11_s4_valid(const fp_t* original_image, const uint16_t
             image_13_0 = vmlaq_f32(image_12_0, image_13_0, kernel_13);
            
             // sum up whole vector
-            /*
-            pixel += vaddvq_f32(image_13_0);
-            */
+            pixel += vgetq_lane_f32(image_13_0, 0) + vgetq_lane_f32(image_13_0, 1) + vgetq_lane_f32(image_13_0, 2) + vgetq_lane_f32(image_13_0, 3);
             
 
             image_2_0 = vmulq_f32(image_2_0, kernel_2);
@@ -856,13 +834,8 @@ void convolution2d_cpu_11x11_s4_valid(const fp_t* original_image, const uint16_t
             image_11_0 = vmlaq_f32(image_8_0, image_11_0, kernel_11);
             image_14_0 = vmlaq_f32(image_11_0, image_14_0, kernel_14);
             
-            // set last value to 0.0
-            image_14_0 = vsetq_lane_f32(0.0, image_14_0, 3);
-
             // sum up whole vector
-            /*
-            pixel += vaddvq_f32(image_14_0);
-            */
+            pixel += vgetq_lane_f32(image_14_0, 0) + vgetq_lane_f32(image_14_0, 1) + vgetq_lane_f32(image_14_0, 2);
 
 
             // load third part of kernel
@@ -880,19 +853,12 @@ void convolution2d_cpu_11x11_s4_valid(const fp_t* original_image, const uint16_t
             image_1_0 = vmlaq_f32(image_0_0, image_1_0, kernel_1);
 
             // sum up whole vector
-            /*
-            pixel += vaddvq_f32(image_1_0);
-            */
+            pixel += vgetq_lane_f32(image_1_0, 0) + vgetq_lane_f32(image_1_0, 1) + vgetq_lane_f32(image_1_0, 2) + vgetq_lane_f32(image_1_0, 3);
 
             image_2_0 = vmulq_f32(image_2_0, kernel_2);
 
-            // set last lane to bias
-            image_2_0 = vsetq_lane_f32(bias, image_2_0, 3);
-
             // sum up whole vector
-            /*
-            pixel += vaddvq_f32(image_2_0);
-            */
+            pixel += vgetq_lane_f32(image_2_0, 0) + vgetq_lane_f32(image_2_0, 1) + vgetq_lane_f32(image_2_0, 2) + bias;
 
 
             // store new image

@@ -45,6 +45,10 @@ if(BUILD_ARM_EXAMPLES)
     add_executable(caffe_lenet_arm_cpu ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_arm_cpu.c)
     target_compile_options(caffe_lenet_arm_cpu PRIVATE "-mfpu=neon")
     target_link_libraries(caffe_lenet_arm_cpu ${LINK_LIBS})
+
+    add_executable(ekut_es_alexnet_arm_cpu ${PROJECT_SOURCE_DIR}/examples/ekut_es_alexnet_arm_cpu.c)
+    target_compile_options(ekut_es_alexnet_arm_cpu PRIVATE "-mfpu=neon")
+    target_link_libraries(ekut_es_alexnet_arm_cpu ${LINK_LIBS} jpeg)
 endif()
 
 
