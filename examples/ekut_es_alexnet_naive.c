@@ -449,7 +449,7 @@ int main(int argc, char** argv) {
     #endif
 
         
-    // conv3 
+    // conv3 13x13x256 -> 13x13x384
     for(i = 0; i < 384; i++) {
         convolution2d_naive(pool2_output[0], 13, 13, conv3_output[i], conv3_kernels[i*256], 3, 1, 1, 0.0);
 
@@ -490,7 +490,7 @@ int main(int argc, char** argv) {
     #endif
 
 
-    // conv4
+    // conv4 13x13x384 -> 13x13x384
     for(i = 0; i < 384; i++) {
         convolution2d_naive(conv3_output[0], 13, 13, conv4_output[i], conv4_kernels[i*384], 3, 1, 1, 0.0);
 
@@ -532,7 +532,7 @@ int main(int argc, char** argv) {
     #endif
 
 
-    // conv5 
+    // conv5 13x13x384 -> 13x13x256 
     for(i = 0; i < 256; i++) {
         convolution2d_naive(conv4_output[0], 13, 13, conv5_output[i], conv5_kernels[i*384], 3, 1, 1, 0.0);
 
@@ -574,7 +574,7 @@ int main(int argc, char** argv) {
     #endif
 
 
-    // pool5
+    // pool5 13x13x256 -> 6x6x256
     for(i = 0; i < 256; i++) {
         max_pooling2d_naive(conv5_output[i], 13, 13, pool5_output[i], 3, 2);
     }
