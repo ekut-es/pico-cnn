@@ -19,6 +19,7 @@ void usage() {
     printf("PATH_TO_MEANS_FILE.means \\\n");
     printf("PATH_TO_IMAGE_NET_LABELS.txt \\\n");
     printf("PATH_TO_IMAGE.jpg\n");
+
 }
 
 /**
@@ -29,6 +30,7 @@ void usage() {
  * @param labels (1 x length)
  * @param length
  */
+
 void sort_prediction(fp_t* prediction, uint16_t* labels_pos, const uint16_t length) {
     // simple bubble sort
     uint16_t i,j;
@@ -49,8 +51,11 @@ void sort_prediction(fp_t* prediction, uint16_t* labels_pos, const uint16_t leng
                 labels_pos[j+1] = temp_label;
             }
         }
+
     }
+
 }
+
 
 int main(int argc, char** argv) {
 
@@ -58,6 +63,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "too few or to many arguments!\n");
         usage();
         return 1;
+
     }
 
     char weights_path[1024];
@@ -81,6 +87,7 @@ int main(int argc, char** argv) {
     if(read_weights(weights_path, &kernels, &biasses) != 0) {
         fprintf(stderr, "could not read weights from '%s'\n", weights_path);
         return 1;
+
     }
 
 
@@ -177,7 +184,11 @@ int main(int argc, char** argv) {
         conv1_output[i] = (fp_t*) malloc(55*55*sizeof(fp_t));
     }
 
-    fp_t* conv1_intermediate = (fp_t*) malloc(55*55*sizeof(fp_t));
+    fp_t** conv1_intermediate = (fp_t**) malloc(omp_get_max_threads()*sizeof(fp_t*));
+
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        conv1_intermediate[i] = (fp_t*) malloc(55*55*sizeof(fp_t));
+    }
 
     fp_t** conv1_kernels = kernels[0];
     fp_t* conv1_bias = biasses[0];
@@ -206,6 +217,15 @@ int main(int argc, char** argv) {
         conv2_output[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
     }
 
+    fp_t** conv2_intermediate = (fp_t**) malloc(omp_get_max_threads()*sizeof(fp_t*));
+
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        conv2_intermediate[i] = (fp_t*) malloc(27*27*sizeof(fp_t));
+    }
+
+    fp_t** conv2_kernels = kernels[1];
+    fp_t* conv2_bias = biasses[1];
+
     // norm2
     fp_t** norm2_output;
     norm2_output = (fp_t**) malloc(256*sizeof(fp_t*));
@@ -222,11 +242,6 @@ int main(int argc, char** argv) {
         pool2_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
     } 
 
-    fp_t* conv2_intermediate = (fp_t*) malloc(27*27*sizeof(fp_t));
-
-    fp_t** conv2_kernels = kernels[1];
-    fp_t* conv2_bias = biasses[1];
-
     // conv3
     fp_t** conv3_output;
     conv3_output = (fp_t**) malloc(384*sizeof(fp_t*));
@@ -235,7 +250,11 @@ int main(int argc, char** argv) {
         conv3_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
     }
 
-    fp_t* conv3_intermediate = (fp_t*) malloc(13*13*sizeof(fp_t));
+    fp_t** conv3_intermediate = (fp_t**) malloc(omp_get_max_threads()*sizeof(fp_t*));
+
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        conv3_intermediate[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
+    }
 
     fp_t** conv3_kernels = kernels[2];
     fp_t* conv3_bias = biasses[2];
@@ -248,7 +267,11 @@ int main(int argc, char** argv) {
         conv4_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
     }
 
-    fp_t* conv4_intermediate = (fp_t*) malloc(13*13*sizeof(fp_t));
+    fp_t** conv4_intermediate = (fp_t**) malloc(omp_get_max_threads()*sizeof(fp_t*));
+   
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        conv4_intermediate[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
+    }
 
     fp_t** conv4_kernels = kernels[3];
     fp_t* conv4_bias = biasses[3];
@@ -261,7 +284,11 @@ int main(int argc, char** argv) {
         conv5_output[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
     }
 
-    fp_t* conv5_intermediate = (fp_t*) malloc(13*13*sizeof(fp_t));
+    fp_t** conv5_intermediate = (fp_t**) malloc(omp_get_max_threads()*sizeof(fp_t*));
+
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        conv5_intermediate[i] = (fp_t*) malloc(13*13*sizeof(fp_t));
+    }
 
     fp_t** conv5_kernels = kernels[4];
     fp_t* conv5_bias = biasses[4];
@@ -308,17 +335,15 @@ int main(int argc, char** argv) {
     // conv1 input 227x227x3 -> output 55x55x96
     uint16_t kernel_number = 0;
 
+    #pragma omp parallel for private(i)
     for(i = 0; i < 96; i++) {
-        convolution2d_cpu_11x11_s4_valid(input[0], 227, 227, conv1_output[i], conv1_kernels[kernel_number], 0.0);
-        kernel_number++;
+        convolution2d_cpu_11x11_s4_valid(input[0], 227, 227, conv1_output[i], conv1_kernels[i*3+0], 0.0);
 
-        convolution2d_cpu_11x11_s4_valid(input[1], 227, 227, conv1_intermediate, conv1_kernels[kernel_number], 0.0);
-        add_image2d_cpu(conv1_output[i], conv1_intermediate, 55, 55);
-        kernel_number++;
+        convolution2d_cpu_11x11_s4_valid(input[1], 227, 227, conv1_intermediate[omp_get_thread_num()], conv1_kernels[i*3+1], 0.0);
+        add_image2d_cpu(conv1_output[i], conv1_intermediate[omp_get_thread_num()], 55, 55);
 
-        convolution2d_cpu_11x11_s4_valid(input[2], 227, 227, conv1_intermediate, conv1_kernels[kernel_number], conv1_bias[i]);
-        add_image2d_cpu(conv1_output[i], conv1_intermediate, 55, 55);
-        kernel_number++;
+        convolution2d_cpu_11x11_s4_valid(input[2], 227, 227, conv1_intermediate[omp_get_thread_num()], conv1_kernels[i*3+2], conv1_bias[i]);
+        add_image2d_cpu(conv1_output[i], conv1_intermediate[omp_get_thread_num()], 55, 55);
     }
 
     // make pgm of input image
@@ -333,8 +358,9 @@ int main(int argc, char** argv) {
     free(conv1_file_content);
     #endif
 
-    
+   
     // relu1
+    #pragma omp parallel for private(i)
     for(i = 0; i < 96; i++) {
         relu_cpu(conv1_output[i], 55, 55, conv1_output[i]);
     }
@@ -367,6 +393,7 @@ int main(int argc, char** argv) {
 
     
     // pool1 55x55x96 -> 27x27x96
+    #pragma omp parallel for private(i)
     for(i = 0; i < 96; i++) {
         max_pooling2d_cpu_3x3_s2(norm1_output[i], 55, 55, pool1_output[i]);
     }
@@ -384,15 +411,16 @@ int main(int argc, char** argv) {
 
 
     // conv2 27x27x96 -> 27x27x256 
+    #pragma omp parallel for private(i,j)
     for(i = 0; i < 256; i++) {
         convolution2d_cpu_5x5_s1_same(pool1_output[0], 27, 27, conv2_output[i], conv2_kernels[i*96], 0.0);
 
         for(j = 1; j < 95; j++) {
-            convolution2d_cpu_5x5_s1_same(pool1_output[j], 27, 27, conv2_intermediate, conv2_kernels[i*96+j], 0.0);
-            add_image2d_cpu(conv2_output[i], conv2_intermediate, 27, 27);
+            convolution2d_cpu_5x5_s1_same(pool1_output[j], 27, 27, conv2_intermediate[omp_get_thread_num()], conv2_kernels[i*96+j], 0.0);
+            add_image2d_cpu(conv2_output[i], conv2_intermediate[omp_get_thread_num()], 27, 27);
         }
-        convolution2d_cpu_5x5_s1_same(pool1_output[95], 27, 27, conv2_intermediate, conv2_kernels[i*96+95], conv2_bias[i]);
-        add_image2d_cpu(conv2_output[i], conv2_intermediate, 27, 27);
+        convolution2d_cpu_5x5_s1_same(pool1_output[95], 27, 27, conv2_intermediate[omp_get_thread_num()], conv2_kernels[i*96+95], conv2_bias[i]);
+        add_image2d_cpu(conv2_output[i], conv2_intermediate[omp_get_thread_num()], 27, 27);
     }
     
     // make pgm of conv2 output
@@ -408,6 +436,7 @@ int main(int argc, char** argv) {
  
 
     // relu2
+    #pragma omp parallel for private(i)
     for(i = 0; i < 256; i++) {
         relu_cpu(conv2_output[i], 27, 27, conv2_output[i]);
     }
@@ -440,6 +469,7 @@ int main(int argc, char** argv) {
 
 
     // pool2 27x27x256 -> 13x13x256
+    #pragma omp parallel for private(i)
     for(i = 0; i < 256; i++) {
         max_pooling2d_cpu_3x3_s2(norm2_output[i], 27, 27, pool2_output[i]);
     }
@@ -455,17 +485,17 @@ int main(int argc, char** argv) {
     free(pool2_file_content);
     #endif
 
-        
+    #pragma omp parallel for private(i,j) 
     // conv3 13x13x256 -> 13x13x384
     for(i = 0; i < 384; i++) {
         convolution2d_cpu_3x3_s1_same(pool2_output[0], 13, 13, conv3_output[i], conv3_kernels[i*256], 0.0);
 
         for(j = 1; j < 255; j++) {
-            convolution2d_cpu_3x3_s1_same(pool2_output[j], 13, 13, conv3_intermediate, conv3_kernels[i*256+j], 0.0);
-            add_image2d_cpu(conv3_output[i], conv3_intermediate, 13, 13);
+            convolution2d_cpu_3x3_s1_same(pool2_output[j], 13, 13, conv3_intermediate[omp_get_thread_num()], conv3_kernels[i*256+j], 0.0);
+            add_image2d_cpu(conv3_output[i], conv3_intermediate[omp_get_thread_num()], 13, 13);
         }
-        convolution2d_cpu_3x3_s1_same(pool2_output[255], 13, 13, conv3_intermediate, conv3_kernels[i*256+255], conv3_bias[i]);
-        add_image2d_cpu(conv3_output[i], conv3_intermediate, 13, 13);
+        convolution2d_cpu_3x3_s1_same(pool2_output[255], 13, 13, conv3_intermediate[omp_get_thread_num()], conv3_kernels[i*256+255], conv3_bias[i]);
+        add_image2d_cpu(conv3_output[i], conv3_intermediate[omp_get_thread_num()], 13, 13);
     }
 
     // make pgm of conv2 output
@@ -481,6 +511,7 @@ int main(int argc, char** argv) {
 
     
     // relu3
+    #pragma omp parallel for private(i)
     for(i = 0; i < 384; i++) {
         relu_cpu(conv3_output[i], 13, 13, conv3_output[i]);
     }
@@ -498,15 +529,16 @@ int main(int argc, char** argv) {
 
 
     // conv4 13x13x384 -> 13x13x384
+    #pragma omp parallel for private(i,j)
     for(i = 0; i < 384; i++) {
         convolution2d_cpu_3x3_s1_same(conv3_output[0], 13, 13, conv4_output[i], conv4_kernels[i*384], 0.0);
 
         for(j = 1; j < 383; j++) {
-            convolution2d_cpu_3x3_s1_same(conv3_output[j], 13, 13, conv4_intermediate, conv4_kernels[i*384+j], 0.0);
-            add_image2d_cpu(conv4_output[i], conv4_intermediate, 13, 13);
+            convolution2d_cpu_3x3_s1_same(conv3_output[j], 13, 13, conv4_intermediate[omp_get_thread_num()], conv4_kernels[i*384+j], 0.0);
+            add_image2d_cpu(conv4_output[i], conv4_intermediate[omp_get_thread_num()], 13, 13);
         }
-        convolution2d_cpu_3x3_s1_same(conv3_output[383], 13, 13, conv4_intermediate, conv4_kernels[i*384+383], conv4_bias[i]);
-        add_image2d_cpu(conv4_output[i], conv4_intermediate, 13, 13);
+        convolution2d_cpu_3x3_s1_same(conv3_output[383], 13, 13, conv4_intermediate[omp_get_thread_num()], conv4_kernels[i*384+383], conv4_bias[i]);
+        add_image2d_cpu(conv4_output[i], conv4_intermediate[omp_get_thread_num()], 13, 13);
     }
 
 
@@ -538,17 +570,17 @@ int main(int argc, char** argv) {
     free(relu4_file_content);
     #endif
 
-
+    #pragma omp parallel for private(i,j)
     // conv5 13x13x384 -> 13x13x256 
     for(i = 0; i < 256; i++) {
         convolution2d_cpu_3x3_s1_same(conv4_output[0], 13, 13, conv5_output[i], conv5_kernels[i*384], 0.0);
 
         for(j = 1; j < 383; j++) {
-            convolution2d_cpu_3x3_s1_same(conv4_output[j], 13, 13, conv5_intermediate, conv5_kernels[i*384+j], 0.0);
-            add_image2d_cpu(conv5_output[i], conv5_intermediate, 13, 13);
+            convolution2d_cpu_3x3_s1_same(conv4_output[j], 13, 13, conv5_intermediate[omp_get_thread_num()], conv5_kernels[i*384+j], 0.0);
+            add_image2d_cpu(conv5_output[i], conv5_intermediate[omp_get_thread_num()], 13, 13);
         }
-        convolution2d_cpu_3x3_s1_same(conv4_output[383], 13, 13, conv5_intermediate, conv5_kernels[i*384+383], conv5_bias[i]);
-        add_image2d_cpu(conv5_output[i], conv5_intermediate, 13, 13);
+        convolution2d_cpu_3x3_s1_same(conv4_output[383], 13, 13, conv5_intermediate[omp_get_thread_num()], conv5_kernels[i*384+383], conv5_bias[i]);
+        add_image2d_cpu(conv5_output[i], conv5_intermediate[omp_get_thread_num()], 13, 13);
     }
 
 
@@ -582,6 +614,7 @@ int main(int argc, char** argv) {
 
 
     // pool5 13x13x256 -> 6x6x256
+    #pragma omp parallel for private(i)
     for(i = 0; i < 256; i++) {
         max_pooling2d_cpu_3x3_s2(conv5_output[i], 13, 13, pool5_output[i]);
     }
@@ -603,9 +636,11 @@ int main(int argc, char** argv) {
     for(i = 0; i < 256; i++) {
         memcpy(&pool5_output_merged[i*6*6], pool5_output[i], 6*6*sizeof(fp_t));
     }
- 
-        
-    fully_connected_cpu(pool5_output_merged, 9216, fc6_output, 4096, fc6_kernel, fc6_bias, 0, 4096);
+
+    #pragma omp parallel for private(i)
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        fully_connected_cpu(pool5_output_merged, 9216, fc6_output, 4096, fc6_kernel, fc6_bias, (4096/omp_get_max_threads())*omp_get_thread_num(), (4096/omp_get_max_threads())*(omp_get_thread_num()+1));
+    }
 
     // make pgm fc6 output
     #ifdef DEBUG
@@ -629,7 +664,11 @@ int main(int argc, char** argv) {
 
 
     // fc7 1x4096 -> 1x4096
-    fully_connected_cpu(fc6_output, 4096, fc7_output, 4096, fc7_kernel, fc7_bias, 0, 4096);
+    #pragma omp parallel for private(i)
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        fully_connected_cpu(fc6_output, 4096, fc7_output, 4096, fc7_kernel, fc7_bias, (4096/omp_get_max_threads())*omp_get_thread_num(), (4096/omp_get_max_threads())*(omp_get_thread_num()+1));
+    }
+
 
     // make pgm fc7 output
     #ifdef DEBUG
@@ -653,7 +692,10 @@ int main(int argc, char** argv) {
 
 
     // fc8 1x4096 -> 1x1000    
-    fully_connected_cpu(fc7_output, 4096, fc8_output, 1000, fc8_kernel, fc8_bias, 0, 1000);
+    #pragma omp parallel for private(i)
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        fully_connected_cpu(fc7_output, 4096, fc8_output, 1000, fc8_kernel, fc8_bias, (1000/omp_get_max_threads())*omp_get_thread_num(), (1000/omp_get_max_threads())*(omp_get_thread_num()+1));
+    }
 
     // make pgm fc8 output
     #ifdef DEBUG
@@ -678,6 +720,9 @@ int main(int argc, char** argv) {
     free(input);
 
     // conv1
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        free(conv1_intermediate[i]);
+    }
     free(conv1_intermediate);
 
     for(i = 0; i < 96; i++) {
@@ -698,6 +743,9 @@ int main(int argc, char** argv) {
     free(pool1_output);
 
     // conv2
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        free(conv2_intermediate[i]);
+    }
     free(conv2_intermediate);
 
     for(i = 0; i < 256; i++) {
@@ -718,6 +766,9 @@ int main(int argc, char** argv) {
     free(pool2_output);
 
     // conv3
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        free(conv3_intermediate[i]);
+    }
     free(conv3_intermediate);
 
     for(i = 0; i < 384; i++) {
@@ -726,6 +777,9 @@ int main(int argc, char** argv) {
     free(conv3_output);
 
     // conv4
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        free(conv4_intermediate[i]);
+    }
     free(conv4_intermediate);
 
     for(i = 0; i < 384; i++) {
@@ -734,6 +788,9 @@ int main(int argc, char** argv) {
     free(conv4_output);
 
     // conv5
+    for(i = 0; i < omp_get_max_threads(); i++) {
+        free(conv5_intermediate[i]);
+    }
     free(conv5_intermediate);
 
     for(i = 0; i < 256; i++) {
