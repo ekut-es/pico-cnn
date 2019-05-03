@@ -343,7 +343,7 @@ int main(int argc, char** argv) {
         add_channel2d_cpu(conv1_output[i], conv1_intermediate[omp_get_thread_num()], 55, 55);
 
         convolution2d_cpu_11x11_s4_valid(input[2], 227, 227, conv1_intermediate[omp_get_thread_num()], conv1_kernels[i*3+2], conv1_bias[i]);
-        add_image2d_cpu(conv1_output[i], conv1_intermediate[omp_get_thread_num()], 55, 55);
+        add_channel2d_cpu(conv1_output[i], conv1_intermediate[omp_get_thread_num()], 55, 55);
     }
 
     // make pgm of input image
@@ -417,10 +417,10 @@ int main(int argc, char** argv) {
 
         for(j = 1; j < 95; j++) {
             convolution2d_cpu_5x5_s1_same(pool1_output[j], 27, 27, conv2_intermediate[omp_get_thread_num()], conv2_kernels[i*96+j], 0.0);
-            add_image2d_cpu(conv2_output[i], conv2_intermediate[omp_get_thread_num()], 27, 27);
+            add_channel2d_cpu(conv2_output[i], conv2_intermediate[omp_get_thread_num()], 27, 27);
         }
         convolution2d_cpu_5x5_s1_same(pool1_output[95], 27, 27, conv2_intermediate[omp_get_thread_num()], conv2_kernels[i*96+95], conv2_bias[i]);
-        add_image2d_cpu(conv2_output[i], conv2_intermediate[omp_get_thread_num()], 27, 27);
+        add_channel2d_cpu(conv2_output[i], conv2_intermediate[omp_get_thread_num()], 27, 27);
     }
     
     // make pgm of conv2 output
@@ -492,10 +492,10 @@ int main(int argc, char** argv) {
 
         for(j = 1; j < 255; j++) {
             convolution2d_cpu_3x3_s1_same(pool2_output[j], 13, 13, conv3_intermediate[omp_get_thread_num()], conv3_kernels[i*256+j], 0.0);
-            add_image2d_cpu(conv3_output[i], conv3_intermediate[omp_get_thread_num()], 13, 13);
+            add_channel2d_cpu(conv3_output[i], conv3_intermediate[omp_get_thread_num()], 13, 13);
         }
         convolution2d_cpu_3x3_s1_same(pool2_output[255], 13, 13, conv3_intermediate[omp_get_thread_num()], conv3_kernels[i*256+255], conv3_bias[i]);
-        add_image2d_cpu(conv3_output[i], conv3_intermediate[omp_get_thread_num()], 13, 13);
+        add_channel2d_cpu(conv3_output[i], conv3_intermediate[omp_get_thread_num()], 13, 13);
     }
 
     // make pgm of conv2 output
@@ -535,10 +535,10 @@ int main(int argc, char** argv) {
 
         for(j = 1; j < 383; j++) {
             convolution2d_cpu_3x3_s1_same(conv3_output[j], 13, 13, conv4_intermediate[omp_get_thread_num()], conv4_kernels[i*384+j], 0.0);
-            add_image2d_cpu(conv4_output[i], conv4_intermediate[omp_get_thread_num()], 13, 13);
+            add_channel2d_cpu(conv4_output[i], conv4_intermediate[omp_get_thread_num()], 13, 13);
         }
         convolution2d_cpu_3x3_s1_same(conv3_output[383], 13, 13, conv4_intermediate[omp_get_thread_num()], conv4_kernels[i*384+383], conv4_bias[i]);
-        add_image2d_cpu(conv4_output[i], conv4_intermediate[omp_get_thread_num()], 13, 13);
+        add_channel2d_cpu(conv4_output[i], conv4_intermediate[omp_get_thread_num()], 13, 13);
     }
 
 
@@ -577,10 +577,10 @@ int main(int argc, char** argv) {
 
         for(j = 1; j < 383; j++) {
             convolution2d_cpu_3x3_s1_same(conv4_output[j], 13, 13, conv5_intermediate[omp_get_thread_num()], conv5_kernels[i*384+j], 0.0);
-            add_image2d_cpu(conv5_output[i], conv5_intermediate[omp_get_thread_num()], 13, 13);
+            add_channel2d_cpu(conv5_output[i], conv5_intermediate[omp_get_thread_num()], 13, 13);
         }
         convolution2d_cpu_3x3_s1_same(conv4_output[383], 13, 13, conv5_intermediate[omp_get_thread_num()], conv5_kernels[i*384+383], conv5_bias[i]);
-        add_image2d_cpu(conv5_output[i], conv5_intermediate[omp_get_thread_num()], 13, 13);
+        add_channel2d_cpu(conv5_output[i], conv5_intermediate[omp_get_thread_num()], 13, 13);
     }
 
 
