@@ -1,0 +1,8 @@
+numpy==1.16.3
+onnx==1.5.0
+protobuf==3.7.1
+pydot==1.4.1
+pyparsing==2.4.0
+six==1.12.0
+typing==3.6.6
+typing-extensions==3.7.2

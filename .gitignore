@@ -4,3 +4,5 @@ build
 .*.swp
 *ubyte
 data/imagenet_dataset
+util/venv
+util/.idea
