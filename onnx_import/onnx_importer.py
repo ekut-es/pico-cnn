@@ -42,6 +42,8 @@ def main():
         print("Graph of ONNX model will be saved to:", args.output + ".dot", "and", args.output + ".svg")
         create_plot(model.graph, args.output)
 
+    return 0
+
 
 if __name__ == '__main__':
     main()
