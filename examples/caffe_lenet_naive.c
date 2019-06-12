@@ -1,4 +1,4 @@
-/** 
+/**
  * @brief LeNet implementation as provided by the Caffe LeNet MNIST example:
  * http://caffe.berkeleyvision.org/gathered/examples/mnist.html
  *
@@ -7,7 +7,7 @@
 
 #define MNIST
 #define NUM 1000
-//#define DEBUG
+#define DEBUG
 #define INDEX 0
 
 #include "pico-cnn/pico-cnn.h"
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
 
     fp_t** t10k_images;
     int num_t10k_images;
-    
+
     printf("reading images from '%s'\n", t10k_images_path);
 
     num_t10k_images = read_mnist_images(t10k_images_path, &t10k_images, NUM, 0, 0.0, 1.0);
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
     //strcat(t10k_labels_path, "/train-labels.idx1-ubyte");
 
     uint8_t* labels;
-    labels = (uint8_t*) malloc(10*sizeof(uint8_t)); 
+    labels = (uint8_t*) malloc(10*sizeof(uint8_t));
 
     uint8_t* t10k_labels;
     int num_t10k_labels;
@@ -146,7 +146,7 @@ int main(int argc, char** argv) {
     // C1
     fp_t** c1_output;
     c1_output = (fp_t**) malloc(20*sizeof(fp_t*));
-   
+
     for(j = 0; j < 20; j++) {
         c1_output[j] = (fp_t*) malloc(24*24*sizeof(fp_t));
     }
@@ -216,7 +216,7 @@ int main(int argc, char** argv) {
             for(j = 0; j < 20; j++) {
                 memcpy(&c1_file_content[j*24*24], c1_output[j], 24*24*sizeof(fp_t));
             }
-            
+
             write_pgm(c1_file_content, 20*24, 24, "c1_output.pgm");
             write_float(c1_file_content, 20*24, 24, "c1_output.float");
             free(c1_file_content);
@@ -309,7 +309,7 @@ int main(int argc, char** argv) {
         }
         #endif
 
-        // F6 input 1x500 -> 1x10        
+        // F6 input 1x500 -> 1x10
         fully_connected_naive(f5_output, 500, f6_output, 10, f6_kernel, f6_bias);
 
         // make pgm F6
@@ -352,7 +352,7 @@ int main(int argc, char** argv) {
 
         confusion_matrix[labels[0]][t10k_labels[i]]++;
 
-        
+
     }
 
     // freeing memory

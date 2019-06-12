@@ -6,3 +6,6 @@ build
 data/imagenet_dataset
 onnx_import/venv
 onnx_import/.idea
+*.onnx
+*.pb
+*.pbtxt
