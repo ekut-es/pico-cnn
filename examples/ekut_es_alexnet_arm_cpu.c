@@ -340,7 +340,7 @@ int main(int argc, char** argv) {
         convolution2d_cpu_11x11_s4_valid(input[0], 227, 227, conv1_output[i], conv1_kernels[i*3+0], 0.0);
 
         convolution2d_cpu_11x11_s4_valid(input[1], 227, 227, conv1_intermediate[omp_get_thread_num()], conv1_kernels[i*3+1], 0.0);
-        add_image2d_cpu(conv1_output[i], conv1_intermediate[omp_get_thread_num()], 55, 55);
+        add_channel2d_cpu(conv1_output[i], conv1_intermediate[omp_get_thread_num()], 55, 55);
 
         convolution2d_cpu_11x11_s4_valid(input[2], 227, 227, conv1_intermediate[omp_get_thread_num()], conv1_kernels[i*3+2], conv1_bias[i]);
         add_image2d_cpu(conv1_output[i], conv1_intermediate[omp_get_thread_num()], 55, 55);
