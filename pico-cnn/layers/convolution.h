@@ -22,6 +22,73 @@
 #include "arm_neon.h"
 #endif
 
+/**
+ * @brief performs a 1D convolution on input_channel with kernel and stores the
+ * result to output_channel
+ *
+ * @param input_channel (height x width)
+ * @param height
+ * @param width
+ * @param output_channel 
+ * @param kernel 
+ * @param kernel_size
+ * @param stride
+ * @param padding (0 means valid, > 0 zeros will be added to the edge). Padding for both sides
+ * @param dilation
+ * @param bias
+ */
+void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* output_channel, const fp_t* kernel, const int kernel_size, const int stride, const int padding, const fp_t bias) {
+    int32_t input_channel_idx;
+    int32_t kernel_idx;
+    int32_t crop = kernel_size/2;
+    int32_t output_channel_idx, output_channel_size;
+    
+    fp_t pixel;
+
+    output_channel_idx = 0;
+
+    // padding valid
+    if(padding == 0) {
+        if(stride == 1) {
+            output_channel_size = input_size-2*crop;
+        } else {
+            output_channel_size = ((input_size-2*crop)/stride)+1;
+        }
+
+        for(input_channel_idx = crop; input_channel_idx < input_size-crop; input_channel_idx+=stride) {
+            pixel = 0.0;
+            for(kernel_idx = 0; kernel_idx < kernel_size; kernel_idx++) {
+                pixel += kernel[kernel_idx] * input_channel[input_channel_idx-crop+kernel_idx];
+            }
+
+            pixel += bias;
+
+            output_channel[output_channel_idx] = pixel;
+            output_channel_idx++;
+        }
+    }
+
+    // padding same
+    else if(padding == kernel_size/2) {
+        output_channel_size = input_size/stride;
+
+        for(input_channel_idx = 0; input_channel_idx < input_size; input_channel_idx+=stride) {
+            pixel = 0.0;
+            for(kernel_idx = -padding; kernel_idx <= padding; kernel_idx++) {
+                if((input_channel_idx+kernel_idx) < 0 || (input_channel_idx+kernel_idx) > input_size-1) {
+                    pixel += 0.0;
+                } else {
+                    pixel += kernel[kernel_idx+padding] * input_channel[input_channel_idx+kernel_idx];
+                }
+            }
+            pixel += bias;
+
+            output_channel[output_channel_idx] = pixel;
+            output_channel_idx++;
+        }
+    }
+}
+
 
 /**
  * @brief performs a 2D convolution on input_channel with kernel and stores the
