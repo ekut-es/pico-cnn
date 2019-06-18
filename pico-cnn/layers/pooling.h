@@ -21,6 +21,38 @@
 #endif
 
 /**
+ * @brief applies max pooling of kernel_size to input_channel
+ *
+ * @param input_channel 
+ * @param output_channel 
+ * @param kernel_size
+ * @param stride
+ */
+void max_pooling1d_naive(const fp_t* input_channel, const uint16_t input_width, fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride) {
+    
+    uint16_t input_channel_idx;
+    uint16_t output_channel_idx;
+    uint16_t output_channel_width;
+    uint16_t kernel_idx;
+
+    output_channel_idx = 0;    
+    output_channel_width = input_width/stride;
+
+    for(input_channel_idx = 0; input_channel_idx < input_width && output_channel_idx < output_channel_width; input_channel_idx += stride) {
+        fp_t pixel = input_channel[input_channel_idx];
+
+        for(kernel_idx = input_channel_idx; kernel_idx < input_channel_idx+kernel_size && kernel_idx < input_width; kernel_idx++) {
+            if(input_channel[kernel_idx] > pixel) {
+                pixel = input_channel[kernel_idx];
+            }
+        }
+        output_channel[output_channel_idx] = pixel;
+        output_channel_idx++;
+    }        
+}
+
+
+/**
  * @brief applies max pooling of kernel_size x kernel_size to input_channel 
  *
  * @param input_channel (height x width)
