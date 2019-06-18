@@ -174,10 +174,10 @@ void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const
 }
 
 /**
- * @brief adds image_a and image_b pixel by pixel and stores result in image_a
+ * @brief adds channel_a and channel_b pixel by pixel and stores result in channel_a
  * 
- * @param image_a (height x width)
- * @param image_b (height x width)
+ * @param channel_a (height x width)
+ * @param channel_b (height x width)
  * @param height
  * @param width
  */
