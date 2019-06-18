@@ -105,7 +105,7 @@ void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* 
  * @param bias
  */
 void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel, const fp_t* kernel, const uint16_t kernel_size, const uint16_t stride, const uint16_t padding, const fp_t bias) {
-    int32_t image_row, image_column;
+    int32_t channel_row, channel_column;
     int32_t kernel_row, kernel_column;
     int32_t crop = kernel_size/2;
 
@@ -124,13 +124,13 @@ void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const
             output_channel_width = ((width-2*crop)/stride)+1;
         }
 
-        for(image_row = crop; image_row < height-crop; image_row+=stride) {
-            for(image_column = crop; image_column < width-crop; image_column+=stride) {
+        for(channel_row = crop; channel_row < height-crop; channel_row+=stride) {
+            for(channel_column = crop; channel_column < width-crop; channel_column+=stride) {
                 pixel = 0.0;
 
                 for(kernel_row = 0; kernel_row < kernel_size; kernel_row++) {
                     for(kernel_column = 0; kernel_column < kernel_size; kernel_column++) {
-                        pixel += kernel[kernel_row*kernel_size+kernel_column] * input_channel[(image_row-crop+kernel_row)*width+(image_column-crop+kernel_column)];
+                        pixel += kernel[kernel_row*kernel_size+kernel_column] * input_channel[(channel_row-crop+kernel_row)*width+(channel_column-crop+kernel_column)];
                     }
                 }
 
@@ -148,16 +148,16 @@ void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const
     else if(padding == kernel_size/2) {
         output_channel_width = width;
 
-        for(image_row = 0; image_row < height; image_row+=stride) {
-            for(image_column = 0; image_column < width; image_column+=stride) {
+        for(channel_row = 0; channel_row < height; channel_row+=stride) {
+            for(channel_column = 0; channel_column < width; channel_column+=stride) {
                 pixel = 0.0;
 
                 for(kernel_row = -padding; kernel_row <= padding; kernel_row++) {
                     for(kernel_column = -padding; kernel_column <= padding; kernel_column++) {
-                        if((image_row+kernel_row) < 0 || (image_row+kernel_row) > height-1 || (image_column+kernel_column) < 0 || (image_column+kernel_column) > width-1) {
+                        if((channel_row+kernel_row) < 0 || (channel_row+kernel_row) > height-1 || (channel_column+kernel_column) < 0 || (channel_column+kernel_column) > width-1) {
                             pixel += 0.0;
                         } else {
-                            pixel += kernel[(kernel_row+padding)*kernel_size+(kernel_column+padding)] * input_channel[(image_row+kernel_row)*width+(image_column+kernel_column)];
+                            pixel += kernel[(kernel_row+padding)*kernel_size+(kernel_column+padding)] * input_channel[(channel_row+kernel_row)*width+(channel_column+kernel_column)];
                         }
                     }
                 } 
