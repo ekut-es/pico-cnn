@@ -1,4 +1,4 @@
-# Pico CNN
+# Pico-CNN
 
 ## TL;DR
 ### Ubuntu
