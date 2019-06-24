@@ -240,8 +240,6 @@ class MaxPool2D(BaseLayer):
 
 OperationRegistry.register(MaxPool2D)
 
-
-
 #
 # class MaxPool1D(BaseLayer):
 #     name = "PicoCNNMaxPool1D"
@@ -505,26 +503,44 @@ OperationRegistry.register(MaxPool2D)
 #
 #
 # OperationRegistry.register(Transpose)
-#
-#
-# class Reshape(BaseLayer):
-#     name = "ReshapeGeneric"
-#     operator = "Reshape"
-#     template_file = "reshape.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         operation = cls(node, graph)
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['output_buffer'] = output_buffer
-#         return operation
-#
-#
-# OperationRegistry.register(Reshape)
+
+
+class Reshape(BaseLayer):
+    name = "ReshapeGeneric"
+    operator = "Reshape"
+    template_file = "reshape.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_id = node.inputs[0]
+        input_shape = graph.get_shape(input_id)
+
+        output_id = node.outputs[0]
+        output_shape = graph.get_shape(output_id)
+
+        assert(reduce_mult(input_shape) == reduce_mult(output_shape))
+
+        num_input_channels = input_shape[1]
+        input_width = input_shape[2]
+        input_height = input_shape[3]
+
+        operation = cls(node, graph)
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['num_input_channels'] = num_input_channels
+        operation.attributes['input_width'] = input_width
+        operation.attributes['input_height'] = input_height
+
+        operation.attributes['output_buffer'] = output_buffer
+
+
+        return operation
+
+
+OperationRegistry.register(Reshape)
 #
 #
 # class Add(BaseLayer):

@@ -8,7 +8,7 @@ for(int i = 0; i < {{num_output_channels}}; i++){
                         {{stride}},
                         {{padding}},
                         {% if bias_buffer %}
-                        *({{bias_buffer.start_ptr}}[i])
+                        {{bias_buffer.name}}[i]
                         {% else %}
                         0
                         {% endif %});
@@ -22,9 +22,10 @@ for(int i = 0; i < {{num_output_channels}}; i++){
                             temp_buffer,
                             {{kernel.start_ptr}}[i*{{num_input_channels}}+j],
                             {{kernel_size}},
+                            {{stride}},
                             {{padding}},
                             {% if bias_buffer %}
-                            *({{bias_buffer.start_ptr}}[i])
+                            {{bias_buffer.name}}[i]
                             {% else %}
                             0
                             {% endif %});

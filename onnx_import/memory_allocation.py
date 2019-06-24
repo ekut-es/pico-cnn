@@ -39,9 +39,13 @@ class KernelAllocationCode(BaseCode):
             kernel_width = buffer_shape[2]
             kernel_height = buffer_shape[3]
         elif len(buffer_shape) == 1:
+            operation.attributes['one_dimensional'] = 1
             num_kernels = buffer_shape[0]
-            kernel_width = 1
-            kernel_height = 1
+            kernel_width = kernel_height = 0
+        elif len(buffer_shape) == 2:
+            operation.attributes['one_dimensional'] = 1
+            num_kernels = buffer_shape[0] * buffer_shape[1]
+            kernel_width = kernel_height = 0
         else:
             print("ERROR: Unknown kernel shape: {}, Buffer: {}".format(str(buffer_shape), buffer.name))
             num_kernels = 0
@@ -73,6 +77,10 @@ class OutputAllocation(BaseCode):
             num_outputs = buffer_shape[0] * buffer_shape[1]
             output_width = buffer_shape[2]
             output_height = buffer_shape[3]
+        elif len(buffer_shape) == 2:
+            operation.attributes['one_dimensional'] = 1
+            num_outputs = buffer_shape[1]
+            output_width = output_height = 0
         else:
             print("ERROR: Unknown output shape: {}, Buffer: {}".format(str(buffer_shape), buffer.name))
             num_outputs = output_width = output_height = 0

@@ -134,9 +134,14 @@ class BackendRep(backend_base.BackendRep):
             initialization_code += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
 
             # Allocate memory for kernels and biases
+            initialization_header += "// Inputs\n"
+            initialization_code += "// Inputs\n"
             for num, input in enumerate(node.input_tensors):
                 buffer = memory_manager.get_buffer(graph, input)
                 data = node.input_tensors[input]
+
+                if input == "OC2_DUMMY_1" or input == "OC2_DUMMY_0":
+                    print(input, data)
 
                 # if len(data.shape) == 4:
                 #     num_kernels = data.shape[0] * data.shape[1]
@@ -146,7 +151,10 @@ class BackendRep(backend_base.BackendRep):
                 #     kernel_size = 1
 
                 initialization_header += "// " + str(buffer.shape) + "\n"
-                initialization_header += "fp_t **" + buffer.name + ";\n"
+                if len(buffer.shape) == 1 or len(buffer.shape) == 2:
+                    initialization_header += "fp_t *" + buffer.name + ";\n"
+                else:
+                    initialization_header += "fp_t **" + buffer.name + ";\n"
 
                 initialization_code += "// " + str(buffer.shape) + "\n"
 
@@ -157,11 +165,17 @@ class BackendRep(backend_base.BackendRep):
                     initialization_code += impl.generate_code()
                     initialization_code += "\n"
 
+            initialization_header += "// Outputs\n"
+            initialization_code += "// Outputs\n"
             for num, output in enumerate(node.outputs):
                 buffer = memory_manager.get_buffer(graph, output)
 
                 initialization_header += "// " + str(buffer.shape) + "\n"
-                initialization_header += "fp_t **" + buffer.name + ";\n"
+
+                if len(buffer.shape) == 2:
+                    initialization_header += "fp_t *" + buffer.name + ";\n"
+                else:
+                    initialization_header += "fp_t **" + buffer.name + ";\n"
 
                 initialization_code += "// " + str(buffer.shape) + "\n"
 
@@ -269,11 +283,11 @@ class BackendRep(backend_base.BackendRep):
             outputs = node.outputs
             output_shapes = (str(graph.shape_dict[o]) for o in node.outputs if o in graph.shape_dict)
             print("{:<24}  {:<20}  {:<30}  {:<30}  {:<20}  {:<30}".format(node.name,
-                                                  node.op_type,
-                                                  ",".join(inputs),
-                                                  ",".join(input_shapes),
-                                                  ",".join(outputs),
-                                                  ",".join(output_shapes)))
+                                                                          node.op_type,
+                                                                          ",".join(inputs),
+                                                                          ",".join(input_shapes),
+                                                                          ",".join(outputs),
+                                                                          ",".join(output_shapes)))
 
         memory_manager = MemoryManager()
 
@@ -289,7 +303,7 @@ class BackendRep(backend_base.BackendRep):
         output_names = ["output"+str(name) for name, type, shape in graph.outputs]
 
         input_defs = ["float **"+n for n in input_names]
-        output_defs = ["float **"+n for n in output_names] # TODO: correct datatype?
+        output_defs = ["float **"+n for n in output_names]  # TODO: correct datatype?
         network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
 
         self.network_def = network_def + ";"
@@ -354,7 +368,6 @@ class BackendRep(backend_base.BackendRep):
             os.makedirs(folder)
             print("Created directory for generated code.")
         except FileExistsError:
-            print("Directory already existed.")
             pass
 
         with open(os.path.join(folder, "network.c"), "w") as f:
