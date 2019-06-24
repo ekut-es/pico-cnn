@@ -3,12 +3,13 @@ import numpy as np
 
 
 class Buffer(object):
-    def __init__(self, id, name, shape, size, dt, dtsize, alignment, is_managed):
+    def __init__(self, id, name, shape, size, dt, dtsize, alignment, is_managed, dt_string=None):
         self.id = id
         self.name = name
         self.shape = shape
         self.size = size
         self.dt = dt
+        self.dt_string = dt_string
         self.typed_size = size // dtsize
         self.dtsize = dtsize
         self.alignment = alignment
@@ -18,16 +19,21 @@ class Buffer(object):
     @property
     def start_ptr(self):
         if self.offset != 0:
-            return "((float*)("+self.name+"+"+str(self.offset)+"))"
+            return "((float*)("+self.name+"+"+str(self.offset)+"))"  # TODO make dependent on dt
         
         return "((float*)"+self.name+")"
 
     @property
     def static_decl(self):
         return "static float " + self.name + "[" + str(self.typed_size) + "]" + ";"
-    
+
+    @property
+    def dynamic_decl(self):  # TODO Can be removed probably
+        return "float **" + self.name + ";"
+
+
     @classmethod
-    def get(cls, graph, id : str, name="", alignment=None):
+    def get(cls, graph, id: str, name="", alignment=None, dt_string=None):
         buffer_name = "buffer"
         is_managed = True
         if graph.is_input(id):
@@ -44,17 +50,17 @@ class Buffer(object):
         buffer_name += id        
         shape = graph.get_shape(id)
 
-        #TODO infer datatypes
+        # TODO infer datatypes
         dt = np.float
         dtsize = 4
 
         size = reduce_mult(shape)*dtsize
         if alignment is None:
             alignment = dtsize
-        
-        
+
         return cls(id, buffer_name, shape, size,
-                   dt, dtsize, alignment, is_managed)
+                   dt, dtsize, alignment, is_managed, dt_string)
+
 
 class MemoryManager():
     def __init__(self):
@@ -121,7 +127,6 @@ class MemoryManager():
             
         self.free_list.append(buffer)
         self.free_list.sort(key = lambda x : x["start"])
-
 
     def allocate(self, schedule):
         return

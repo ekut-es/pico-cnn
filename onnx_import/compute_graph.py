@@ -141,7 +141,7 @@ class ComputeGraph(object):
         return ComputeGraph(nodes_, inputs, outputs, shape_dict)
 
     def remove_node(self, node):
-        #print("Removing node", node.name)
+        print("Removing node", node.name)
         if not node in self.nodes:
             return
      

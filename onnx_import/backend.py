@@ -3,7 +3,9 @@ from constprop import constant_propagation
 from utils import reduce_mult
 from memory_manager import MemoryManager
 from ir import OperationRegistry
-from pico_cnn_layers import *
+from ir import CodeRegistry
+from pico_cnn import *
+from memory_allocation import *
 import cffi
 
 import onnx.backend.base as backend_base
@@ -14,11 +16,13 @@ import os
 
 class BackendRep(backend_base.BackendRep):
     def __init__(self, onnx_model):
-        self.onnx_model = onnx_model 
+        self.onnx_model = onnx_model
         self.network_code = ""
         self.network_header = ""
         self.parameter_code = ""
         self.parameter_header = ""
+        self.initialization_code = ""
+        self.initialization_header = ""
         self.network_def = ""
         self._export_model()
 
@@ -32,7 +36,7 @@ class BackendRep(backend_base.BackendRep):
                               include_dirs=["/local/gerum/projects/ocean12/speech_recognition/runtime/pico-cnn"],
                               libraries=["m", "pthread"],
                               extra_compile_args=["-O3", "-g", "-std=c99"])
-        
+
         ffibuilder.compile(verbose=True)
 
     def _remove_constants(self, graph, constant_states):
@@ -40,10 +44,10 @@ class BackendRep(backend_base.BackendRep):
         for node in list(graph.nodes):
             is_constant = True
             for output in node.outputs:
-               
+
                 if constant_states[output].value is None:
                     is_constant = False
-                    
+
             if is_constant:
                 graph.remove_node(node)
 
@@ -53,9 +57,10 @@ class BackendRep(backend_base.BackendRep):
             if node.op_type == "Unsqueeze":
                 inp = node.inputs[0]
                 out = node.outputs[0]
-             
+
+                print("Removing nop", node.name)
                 graph.nodes.remove(node)
-                
+
                 for node in graph.nodes:
                     for num, input in enumerate(node.inputs):
                         if input == out:
@@ -79,8 +84,9 @@ class BackendRep(backend_base.BackendRep):
                     removed_input = node.inputs[0]
                     output = node.outputs[0]
 
+                    print("Removing nop", node.name)
                     graph.nodes.remove(node)
-                    
+
                     for node in graph.nodes:
                         for num, input in enumerate(node.inputs):
                             if input == output:
@@ -90,30 +96,89 @@ class BackendRep(backend_base.BackendRep):
 
     def _generate_parameters(self, graph, memory_manager):
         # Generate Node Parameters
-        parameter_header = "#ifndef NETWORK_PARAMETERS_H\n";
-        parameter_header += "#define NETWORK_PARAMETERS_H\n";
+        parameter_header = "#ifndef NETWORK_PARAMETERS_H\n"
+        parameter_header += "#define NETWORK_PARAMETERS_H\n"
         parameter_header += "#include \"pico-cnn/parameters.h\"\n\n"
-        parameter_code = "#include \"network_parameters.h\"\n\n";
+        parameter_code = "#include \"network_parameters.h\"\n\n"
         for node in graph.nodes:
-            for num, input in  enumerate(node.input_tensors):
+            for num, input in enumerate(node.input_tensors):
                 buffer = memory_manager.get_buffer(graph, input)
                 data = node.input_tensors[input]
-                
+
                 if node.op_type == "Gemm":
                    data = data.transpose()
 
-                type_code = "fp_t " + buffer.name + "[]"      
+                type_code = "fp_t " + buffer.name + "[]"
                 declaration = "// " + str(data.shape) + "\n"
                 declaration += "extern " + type_code + ";"
-                definition  = type_code + " = {" + ",".join((str(x) for x in data.flatten())) + "};"
-     
+                definition = type_code + " = {" + ",".join((str(x) for x in data.flatten())) + "};"
+
                 parameter_code += definition + "\n\n"
                 parameter_header += declaration + "\n\n"
-                
+
         parameter_header += "#endif \n"
 
         self.parameter_header = parameter_header
         self.parameter_code = parameter_code
+
+    def _generate_network_initialization(self, graph, memory_manager):
+        initialization_header = "#ifndef NETWORK_INITIALIZATION_H\n"
+        initialization_header += "#define NETWORK_INITIALIZATION_H\n"
+        initialization_header += "#include \"pico-cnn/parameters.h\"\n\n"
+
+        initialization_code = "#include \"network_initialization.h\"\n\n"
+
+        for node in graph.nodes:
+
+            initialization_header += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
+            initialization_code += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
+
+            # Allocate memory for kernels and biases
+            for num, input in enumerate(node.input_tensors):
+                buffer = memory_manager.get_buffer(graph, input)
+                data = node.input_tensors[input]
+
+                # if len(data.shape) == 4:
+                #     num_kernels = data.shape[0] * data.shape[1]
+                #     kernel_size = data.shape[2] * data.shape[3]
+                # elif len(data.shape) == 1:
+                #     num_kernels = data.shape[0]
+                #     kernel_size = 1
+
+                initialization_header += "// " + str(buffer.shape) + "\n"
+                initialization_header += "fp_t **" + buffer.name + ";\n"
+
+                initialization_code += "// " + str(buffer.shape) + "\n"
+
+                functionality = CodeRegistry.get_funct("KernelAllocation")
+                impl = functionality[0].create(buffer)
+
+                if impl:
+                    initialization_code += impl.generate_code()
+                    initialization_code += "\n"
+
+            for num, output in enumerate(node.outputs):
+                buffer = memory_manager.get_buffer(graph, output)
+
+                initialization_header += "// " + str(buffer.shape) + "\n"
+                initialization_header += "fp_t **" + buffer.name + ";\n"
+
+                initialization_code += "// " + str(buffer.shape) + "\n"
+
+                functionality = CodeRegistry.get_funct("OutputAllocation")
+                impl = functionality[0].create(buffer)
+
+                if impl:
+                    initialization_code += impl.generate_code()
+                    initialization_code += "\n"
+
+            initialization_header += "\n\n"
+            initialization_code += "\n\n"
+
+        initialization_header += "#endif \n"
+
+        self.initialization_header = initialization_header
+        self.initialization_code = initialization_code
 
     def _select_implementations(self, graph, memory_manager):
         implementations = {}
@@ -123,7 +188,7 @@ class BackendRep(backend_base.BackendRep):
                 candidate = op.create(node, graph, memory_manager)
                 if candidate is not None:
                     choices.append(candidate)
-        
+
             if len(choices) >= 1:
                 implementations[node] = choices[0]
             else:
@@ -134,7 +199,7 @@ class BackendRep(backend_base.BackendRep):
     def _get_schedule(self, graph, implementations):
         # This is not a real scheduler, for now, just assume
         # the onnx defines a valid schedule
-        
+
         SchedulerTask = namedtuple("SchedulerTask", ["time", "node", "implementation"])
         schedule = []
         for num, node in enumerate(graph.nodes):
@@ -147,7 +212,7 @@ class BackendRep(backend_base.BackendRep):
 
         range_starts = {}
         range_ends = {}
-        
+
         for num, node, impl in schedule:
             for output in node.outputs:
                 range_starts[output] = num
@@ -173,26 +238,29 @@ class BackendRep(backend_base.BackendRep):
                 else:
                     print("     ", end="")
             print()
-        
+
     def _export_model(self):
         graph = ComputeGraph.from_onnx(self.onnx_model.graph)
-     
-        print("Running constant propagation")
-        constant_states = constant_propagation(graph)
 
-        self._remove_constants(graph, constant_states)
-        self._remove_nops(graph, constant_states)
-         
-        # Add shape information form constant propagation:
-        for var, res in constant_states.items():
-            if var in graph.shape_dict:
-                shape = graph.shape_dict[var]
-                if res.shape != shape:
-                    print("Warning: Shapes do not match: ", var, res.shape, shape)
-                    if res.shape is not None:
-                        graph.shape_dict[var] = res.shape
-            elif res.shape is not None:
-                graph.shape_dict[var] = res.shape
+        # BUG: Problem in constant propagation for Pooling Layer
+        # print("Running constant propagation")
+        # constant_states = constant_propagation(graph)
+        #
+        # print(constant_states)
+        #
+        # self._remove_constants(graph, constant_states)
+        # self._remove_nops(graph, constant_states)
+        #
+        # # Add shape information from constant propagation:
+        # for var, res in constant_states.items():
+        #     if var in graph.shape_dict:
+        #         shape = graph.shape_dict[var]
+        #         if res.shape != shape:
+        #             print("Warning: Shapes do not match: ", var, res.shape, shape)
+        #             if res.shape is not None:
+        #                 graph.shape_dict[var] = res.shape
+        #     elif res.shape is not None:
+        #         graph.shape_dict[var] = res.shape
 
         print("Inference graph:")
         for node in graph.nodes:
@@ -200,7 +268,7 @@ class BackendRep(backend_base.BackendRep):
             input_shapes = (str(graph.shape_dict[i]) for i in node.inputs if i in graph.shape_dict)
             outputs = node.outputs
             output_shapes = (str(graph.shape_dict[o]) for o in node.outputs if o in graph.shape_dict)
-            print("{:<24}  {:<20}  {:<20}  {:<30}  {:<20}  {:<30}".format(node.name,
+            print("{:<24}  {:<20}  {:<30}  {:<30}  {:<20}  {:<30}".format(node.name,
                                                   node.op_type,
                                                   ",".join(inputs),
                                                   ",".join(input_shapes),
@@ -210,54 +278,51 @@ class BackendRep(backend_base.BackendRep):
         memory_manager = MemoryManager()
 
         self._generate_parameters(graph, memory_manager)
-        
+
+        self._generate_network_initialization(graph, memory_manager)
+
         implementations = self._select_implementations(graph, memory_manager)
         schedule = self._get_schedule(graph, implementations)
-        alllocation = self._allocate_memory(graph, schedule)
-        
+        allocation = self._allocate_memory(graph, schedule)
 
         input_names = ["input"+str(name) for name, type, shape in graph.inputs]
         output_names = ["output"+str(name) for name, type, shape in graph.outputs]
-     
-        input_defs = ["float *"+n for n in input_names];
-        output_defs = ["float *"+n for n in output_names];
-        network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) +  ")"
+
+        input_defs = ["float **"+n for n in input_names]
+        output_defs = ["float **"+n for n in output_names] # TODO: correct datatype?
+        network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
 
         self.network_def = network_def + ";"
-        
-        network_header =  "#ifndef NETWORK_H\n"
+
+        network_header = "#ifndef NETWORK_H\n"
         network_header += "#define NETWORK_H\n"
         network_header += "#include \"pico-cnn/parameters.h\"\n\n"
         network_header += network_def + ";\n"
         network_header += "#endif //NETWORK_H\n"
 
-        
-        network_code : Text =  "#include \"network.h\"\n"
+        network_code: Text = "#include \"network.h\"\n"
         network_code += "#include \"network_parameters.h\"\n\n"
         network_code += "#include \"pico-cnn/pico-cnn.h\"\n\n"
         network_code += network_def+"{\n"
-     
+
         implementation_code = ""
         buffer_code = ""
         buffer_code_end = ""
-        
-        for task in schedule:
-            num, node, impl = task 
-            implementation_code += "  //Layer " + str(num) + " " +  node.name + " " +   node.op_type + "\n"
-            implementation_code += "  //Attributes\n"
-            for key, val in node.attrs.items():
-                implementation_code += "  //  " + str(key) + ": " + str(val) + "\n"
-            implementation_code += "  //Parameters\n"
-            implementation_code += "  //Inputs: "+ ",".join(node.inputs) + "\n"
-            implementation_code += "  //Outputs: "+ ",".join(node.outputs) + "\n"
 
-            
+        for task in schedule:
+            num, node, impl = task
+            implementation_code += "    //Layer " + str(num) + " " + node.name + " " + node.op_type + "\n"
+            implementation_code += "    //Attributes\n"
+            for key, val in node.attrs.items():
+                implementation_code += "    //  " + str(key) + ": " + str(val) + "\n"
+            implementation_code += "    //Parameters\n"
+            implementation_code += "    //Inputs: " + ",".join(node.inputs) + "\n"
+            implementation_code += "    //Outputs: " + ",".join(node.outputs) + "\n"
+
             print(impl)
             if impl:
                 implementation_code += impl.generate_code()
                 implementation_code += "\n"
-            
-     
 
         for id, buffer in memory_manager.buffers.items():
             if graph.is_tensor(id):
@@ -267,17 +332,16 @@ class BackendRep(backend_base.BackendRep):
             if graph.is_output(id):
                 continue
 
-            buffer_code += "// " + str(buffer.shape) + "\n"
-            buffer_code += "  " + buffer.static_decl
+            #buffer_code += "    // " + str(buffer.shape) + "\n"
+            #buffer_code += "  " + buffer.static_decl
+            #buffer_code += "    " + buffer.dynamic_decl  # TODO Remove the declaration
             buffer_code += "\n"
-                
-                
+
         buffer_code += buffer_code_end
-    
-        
+
         network_code += buffer_code
         network_code += implementation_code
-            
+
         network_code += "}\n"
 
         self.network_code = network_code
@@ -288,17 +352,22 @@ class BackendRep(backend_base.BackendRep):
     def save(self, folder):
         with open(os.path.join(folder, "network.c"), "w") as f:
             f.write(self.network_code)
-     
+
         with open(os.path.join(folder, "network.h"), "w") as f:
             f.write(self.network_header)
 
         with open(os.path.join(folder, "network_parameters.h"), "w") as f:
             f.write(self.parameter_header)
-     
+
         with open(os.path.join(folder, "network_parameters.c"), "w") as f:
             f.write(self.parameter_code)
-     
-            
+
+        with open(os.path.join(folder, "network_initialization.c"), "w") as f:
+            f.write(self.initialization_code)
+
+        with open(os.path.join(folder, "network_initialization.h"), "w") as f:
+            f.write(self.initialization_header)
+
 
 class Backend(object):
     @classmethod
@@ -311,9 +380,9 @@ class Backend(object):
         onnx.checker.check_model(model)
 
         rep = BackendRep(model)
-        
+
         return  rep
-        
+
 def export_data(config):
     print("Exporting_input_data")
     train_set, dev_set, test_set = dataset.SpeechDataset.splits(config)
@@ -321,11 +390,11 @@ def export_data(config):
 
     data, label = next(iter(test_loader))
     data = data.numpy().flatten()
-    
+
     data_code = "#ifndef INPUT_DATA_H\n"
     data_code += "#include \"pico-cnn/parameters.h\"\n\n"
     data_code += "fp_t input[] = {" + ",".join((str(x) for x in data)) + "};\n"
     data_code += "#endif //INPUT_DATA_H\n"
     with open("input_data.h", "w") as f:
         f.write(data_code)
-    
+

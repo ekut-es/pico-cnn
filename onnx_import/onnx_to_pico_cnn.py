@@ -6,7 +6,7 @@ from onnx import optimizer, utils
 
 from onnx_importer import import_model
 
-from pico_cnn_layers import *
+from pico_cnn import *
 from ir import *
 from compute_graph import *
 from constprop import constant_propagation

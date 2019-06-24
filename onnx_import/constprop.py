@@ -107,17 +107,17 @@ class UnsqueezeImpl(ConstImpl):
 
     
 const_impls = {
-    "MaxPool" : PoolImpl(),
-    "AveragePool" : PoolImpl(),
-    "Transpose" : TransposeImpl(),
-    "BatchNormalization" : KeepDimsImpl(),
-    "Clip" : KeepDimsImpl(),
-    "Unsqueeze" : UnsqueezeImpl()
+    "MaxPool": PoolImpl(),
+    "AveragePool": PoolImpl(),
+    "Transpose": TransposeImpl(),
+    "BatchNormalization": KeepDimsImpl(),
+    "Clip": KeepDimsImpl(),
+    "Unsqueeze": UnsqueezeImpl()
 }
 
 
 def constant_propagation(graph):
-    """Identifie constant values and shapes using constant propagation"""
+    """Identify constant values and shapes using constant propagation"""
     state_dict = defaultdict(ConstPropState)
     worklist = []
 
@@ -182,7 +182,6 @@ def constant_propagation(graph):
                 changed=True
                 state_dict[output] = out
 
-            
         elif node.op_type == 'Add':
             out = ConstPropState(None, None)
             res = None
@@ -201,7 +200,6 @@ def constant_propagation(graph):
             if res is not None:
                 out = ConstPropState(None, res.shape)
             
-
             output = node.outputs[0]
             if state_dict[output] != out:
                 changed=True
@@ -222,7 +220,6 @@ def constant_propagation(graph):
             
             data_state, data_shape = state_dict[data]
             index_state, index_shape = state_dict[indices]
-
 
             def calc(data, index):
                 out = []
@@ -300,14 +297,13 @@ def constant_propagation(graph):
         elif node.op_type == "Transpose":
             perm = attrs['perm']
 
-            
             input_shape = state_dict[node.inputs[0]].shape
             out = ConstPropState(None, None)
             if input_shape is not None:
                 input = state_dict[node.inputs[0]].value
                 has_input = True
                 if input is None:
-                    has_input = false
+                    has_input = False
                     input = np.zeros(tuple(input_shape))
 
             if state_dict[node.outputs[0]] != out:
@@ -315,7 +311,7 @@ def constant_propagation(graph):
                 changed = True
                     
         else:
-            #raise Exception ("ConstProp: Unhandled op {}".format(node.op_type))
+            # raise Exception ("ConstProp: Unhandled op {}".format(node.op_type))
             print("ConstProp: Unhandled op {} using shape information from onnx shape_dict".format(node.op_type))
             
             changed = False
