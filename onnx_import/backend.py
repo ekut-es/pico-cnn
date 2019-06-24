@@ -347,7 +347,7 @@ class BackendRep(backend_base.BackendRep):
         self.network_code = network_code
         self.network_header = network_header
 
-        self.save(".")
+        self.save("./generated_code")
 
     def save(self, folder):
         with open(os.path.join(folder, "network.c"), "w") as f:
