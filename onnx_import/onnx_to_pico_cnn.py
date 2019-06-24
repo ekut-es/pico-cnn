@@ -12,6 +12,7 @@ from compute_graph import *
 from constprop import constant_propagation
 from backend import Backend, BackendRep
 
+
 def onnx_to_pico_cnn(onnx_model):
 
     # Set input batch size to 1

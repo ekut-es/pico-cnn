@@ -3,6 +3,7 @@ build
 *.weights
 .*.swp
 *ubyte
+.vscode
 data/imagenet_dataset
 onnx_import/venv
 onnx_import/.idea

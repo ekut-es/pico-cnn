@@ -350,6 +350,13 @@ class BackendRep(backend_base.BackendRep):
         self.save("./generated_code")
 
     def save(self, folder):
+        try:
+            os.makedirs(folder)
+            print("Created directory for generated code.")
+        except FileExistsError:
+            print("Directory already existed.")
+            pass
+
         with open(os.path.join(folder, "network.c"), "w") as f:
             f.write(self.network_code)
 
@@ -381,7 +388,8 @@ class Backend(object):
 
         rep = BackendRep(model)
 
-        return  rep
+        return rep
+
 
 def export_data(config):
     print("Exporting_input_data")
