@@ -24,11 +24,7 @@ for(int i = 0; i < {{num_output_channels}}; i++){
                             {{kernel_size}},
                             {{stride}},
                             {{padding}},
-                            {% if bias_buffer %}
-                            {{bias_buffer.name}}[i]
-                            {% else %}
-                            0
-                            {% endif %});
+                            0.0);
 
          add_image2d_naive({{output_buffer.start_ptr}}[i],
                            temp_buffer,
