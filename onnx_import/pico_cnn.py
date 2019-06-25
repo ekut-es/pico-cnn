@@ -153,48 +153,51 @@ OperationRegistry.register(Conv2D)
 #
 #
 # OperationRegistry.register(Conv1D)
-#
-#
-# class FullyConnected(BaseLayer):
-#     name = "PicoCNNFullyConnected"
-#     operator = "Gemm"
-#     template_file = "pico_cnn_fc.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#
-#         if node.attrs['alpha'] != 1.0:
-#             return None
-#         if node.attrs['beta'] != 1.0:
-#             return None
-#         if node.attrs['transB'] != 1:
-#             return None
-#
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         weight_buffer = memory_manager.get_buffer(graph, node.inputs[1])
-#         bias_buffer = None
-#         if len(node.inputs) > 2:
-#             bias_buffer = memory_manager.get_buffer(graph, node.inputs[2])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_size = reduce_mult(input_buffer.shape)
-#         output_size = reduce_mult(output_buffer.shape)
-#
-#         operation = cls(node, graph)
-#
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['input_size'] = input_size
-#         operation.attributes['weight_buffer'] = weight_buffer
-#         operation.attributes['bias_buffer'] = bias_buffer
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['output_size'] = output_size
-#
-#         return operation
-#
-#
-# OperationRegistry.register(FullyConnected)
-#
+
+
+class FullyConnected(BaseLayer):
+    name = "PicoCNNFullyConnected"
+    operator = "Gemm"
+    template_file = "pico_cnn_fc.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        if 'alpha' in node.attrs:
+            if node.attrs['alpha'] != 1.0:
+                return None
+        if 'beta' in node.attrs:
+            if node.attrs['beta'] != 1.0:
+                return None
+        if 'tranB' in node.attrs:
+            if node.attrs['transB'] != 1:
+                return None
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        weight_buffer = memory_manager.get_buffer(graph, node.inputs[1])
+        bias_buffer = None
+        if len(node.inputs) > 2:
+            bias_buffer = memory_manager.get_buffer(graph, node.inputs[2])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_size = reduce_mult(input_buffer.shape)
+        output_size = reduce_mult(output_buffer.shape)
+
+        operation = cls(node, graph)
+
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['input_size'] = input_size
+        operation.attributes['weight_buffer'] = weight_buffer
+        operation.attributes['bias_buffer'] = bias_buffer
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['output_size'] = output_size
+
+        return operation
+
+
+OperationRegistry.register(FullyConnected)
+
 
 class MaxPool2D(BaseLayer):
     name = "PicoCNNMaxPool2D"
@@ -206,7 +209,7 @@ class MaxPool2D(BaseLayer):
         attrs = node.attrs
 
         assert len(attrs["kernel_shape"]) == 2
-        #assert tuple(attrs["pads"]) == (0, 0) # TODO Check if we need those assertions
+        #assert tuple(attrs["pads"]) == (0, 0)  # TODO Check if we need those assertions
 
         input_id = node.inputs[0]
         input_shape = graph.get_shape(input_id)
@@ -272,41 +275,47 @@ OperationRegistry.register(MaxPool2D)
 #
 #
 # OperationRegistry.register(MaxPool1D)
-#
-#
-# class Relu(BaseLayer):
-#     name = "PicoCNNRelu"
-#     operator = "Relu"
-#     template_file = "pico_cnn_relu.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         print("generating relu layer")
-#
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_shape = input_buffer.shape
-#         input_channels = input_shape[1]
-#         input_height = input_shape[2]
-#         input_width = 1
-#         if len(input_shape) >= 4:
-#             input_width = input_shape[3]
-#
-#         operation = cls(node, graph)
-#
-#         operation.attributes['input_channels'] = input_channels
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['input_height'] = input_height
-#         operation.attributes['input_width'] = input_width
-#         operation.attributes['output_buffer'] = output_buffer
-#
-#         return cls
-#
-#
-# OperationRegistry.register(Relu)
-#
-#
+
+
+class Relu(BaseLayer):
+    name = "PicoCNNRelu"
+    operator = "Relu"
+    template_file = "pico_cnn_relu.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        print("generating relu layer")
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shape = input_buffer.shape
+
+        if len(input_shape) == 2:
+            num_input_channels = 1
+            input_height = input_shape[0]
+            input_width = input_shape[1]
+        else:
+            num_input_channels = input_shape[1]
+            input_height = input_shape[2]
+            input_width = 1
+            if len(input_shape) >= 4:
+                input_width = input_shape[3]
+
+        operation = cls(node, graph)
+
+        operation.attributes['num_input_channels'] = num_input_channels
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['input_height'] = input_height
+        operation.attributes['input_width'] = input_width
+        operation.attributes['output_buffer'] = output_buffer
+
+        return operation
+
+
+OperationRegistry.register(Relu)
+
+
 # class BatchNorm(BaseLayer):
 #     name = "PicoCNNBatchNorm"
 #     operator = "BatchNormalization"
@@ -577,3 +586,30 @@ OperationRegistry.register(Reshape)
 #
 #
 # OperationRegistry.register(Sum)
+
+
+class Softmax(BaseLayer):
+    name = "SoftmaxGeneric"
+    operator = "Softmax"
+    template_file = "pico_cnn_softmax.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+        input_buffers = [memory_manager.get_buffer(graph, i) for i in node.inputs]
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shape = input_buffers[0].shape
+        input_height = input_shape[0]
+        input_width = input_shape[1]
+
+        operation = cls(node, graph)
+        operation.attributes["input_buffer"] = input_buffers[0]
+        operation.attributes["output_buffer"] = output_buffer
+        operation.attributes["input_height"] = input_height
+        operation.attributes["input_width"] = input_width
+
+        return operation
+
+
+OperationRegistry.register(Softmax)
