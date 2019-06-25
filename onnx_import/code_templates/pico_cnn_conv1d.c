@@ -31,7 +31,7 @@ for(int i = 0; i < {{output_channels}}; i++){
                         {% endif %}
                         {{dilation}});
 
-    add_image2d_naive(&({{output_buffer.start_ptr}}[i*{{output_feature_size}}]),
+    add_channel2d_naive(&({{output_buffer.start_ptr}}[i*{{output_feature_size}}]),
                       temp_buffer,
                       1,
                       {{output_feature_size}});

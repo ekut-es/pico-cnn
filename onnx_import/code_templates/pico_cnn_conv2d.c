@@ -26,7 +26,7 @@ for(int i = 0; i < {{num_output_channels}}; i++){
                             {{padding}},
                             0.0);
 
-         add_image2d_naive({{output_buffer.start_ptr}}[i],
+         add_channel2d_naive({{output_buffer.start_ptr}}[i],
                            temp_buffer,
                            {{output_feature_size}},
                            {{output_feature_size}});
