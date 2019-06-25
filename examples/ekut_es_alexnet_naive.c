@@ -305,11 +305,11 @@ int main(int argc, char** argv) {
         kernel_number++;
 
         convolution2d_naive(input[1], 227, 227, conv1_intermediate, conv1_kernels[kernel_number], 11, 4, 0, 0.0);
-        add_image2d_naive(conv1_output[i], conv1_intermediate, 55, 55);
+        add_channel2d_naive(conv1_output[i], conv1_intermediate, 55, 55);
         kernel_number++;
 
         convolution2d_naive(input[2], 227, 227, conv1_intermediate, conv1_kernels[kernel_number], 11, 4, 0, conv1_bias[i]);
-        add_image2d_naive(conv1_output[i], conv1_intermediate, 55, 55);
+        add_channel2d_naive(conv1_output[i], conv1_intermediate, 55, 55);
         kernel_number++;
     }
 
@@ -381,10 +381,10 @@ int main(int argc, char** argv) {
 
         for(j = 1; j < 95; j++) {
             convolution2d_naive(pool1_output[j], 27, 27, conv2_intermediate, conv2_kernels[i*96+j], 5, 1, 2, 0.0);
-            add_image2d_naive(conv2_output[i], conv2_intermediate, 27, 27);
+            add_channel2d_naive(conv2_output[i], conv2_intermediate, 27, 27);
         }
         convolution2d_naive(pool1_output[95], 27, 27, conv2_intermediate, conv2_kernels[i*96+95], 5, 1, 2, conv2_bias[i]);
-        add_image2d_naive(conv2_output[i], conv2_intermediate, 27, 27);
+        add_channel2d_naive(conv2_output[i], conv2_intermediate, 27, 27);
     }
     
     // make pgm of conv2 output
@@ -454,10 +454,10 @@ int main(int argc, char** argv) {
 
         for(j = 1; j < 255; j++) {
             convolution2d_naive(pool2_output[j], 13, 13, conv3_intermediate, conv3_kernels[i*256+j], 3, 1, 1, 0.0);
-            add_image2d_naive(conv3_output[i], conv3_intermediate, 13, 13);
+            add_channel2d_naive(conv3_output[i], conv3_intermediate, 13, 13);
         }
         convolution2d_naive(pool2_output[255], 13, 13, conv3_intermediate, conv3_kernels[i*256+255], 3, 1, 1, conv3_bias[i]);
-        add_image2d_naive(conv3_output[i], conv3_intermediate, 13, 13);
+        add_channel2d_naive(conv3_output[i], conv3_intermediate, 13, 13);
     }
 
     // make pgm of conv2 output
@@ -495,10 +495,10 @@ int main(int argc, char** argv) {
 
         for(j = 1; j < 383; j++) {
             convolution2d_naive(conv3_output[j], 13, 13, conv4_intermediate, conv4_kernels[i*384+j], 3, 1, 1, 0.0);
-            add_image2d_naive(conv4_output[i], conv4_intermediate, 13, 13);
+            add_channel2d_naive(conv4_output[i], conv4_intermediate, 13, 13);
         }
         convolution2d_naive(conv3_output[383], 13, 13, conv4_intermediate, conv4_kernels[i*384+383], 3, 1, 1, conv4_bias[i]);
-        add_image2d_naive(conv4_output[i], conv4_intermediate, 13, 13);
+        add_channel2d_naive(conv4_output[i], conv4_intermediate, 13, 13);
     }
 
 
@@ -537,10 +537,10 @@ int main(int argc, char** argv) {
 
         for(j = 1; j < 383; j++) {
             convolution2d_naive(conv4_output[j], 13, 13, conv5_intermediate, conv5_kernels[i*384+j], 3, 1, 1, 0.0);
-            add_image2d_naive(conv5_output[i], conv5_intermediate, 13, 13);
+            add_channel2d_naive(conv5_output[i], conv5_intermediate, 13, 13);
         }
         convolution2d_naive(conv4_output[383], 13, 13, conv5_intermediate, conv5_kernels[i*384+383], 3, 1, 1, conv5_bias[i]);
-        add_image2d_naive(conv5_output[i], conv5_intermediate, 13, 13);
+        add_channel2d_naive(conv5_output[i], conv5_intermediate, 13, 13);
     }
 
 

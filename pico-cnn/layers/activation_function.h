@@ -23,84 +23,84 @@
 
 
 /**
- * @brief applies tanh(x) to all pixel of original_image and stores it in
- * new_image
+ * @brief applies tanh(x) to all pixel of input_channel and stores it in
+ * output_channel
  *
- * @param original_image (height x width)
+ * @param input_channel (height x width)
  * @param height
  * @param width
- * @param new_image (height x width)
+ * @param output_channel (height x width)
  */
-void tanh_naive(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
+void tanh_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
     uint16_t i;
 
     for(i = 0; i < height*width; i++) {
-        new_image[i] = tanhf(original_image[i]);
+        output_channel[i] = tanhf(input_channel[i]);
     }
 }
 
 /**
- * @brief applies relu(x) to all pixel of original_image and stores it in
- * new_image
+ * @brief applies relu(x) to all pixel of input_channel and stores it in
+ * output_channel
  *
- * @param original_image (height x width)
+ * @param input_channel (height x width)
  * @param height
  * @param width
- * @param new_image (height x width)
+ * @param output_channel (height x width)
  */
-void relu_naive(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
+void relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
     uint16_t i;
 
     for(i = 0; i < height*width; i++) {
-        new_image[i] = (original_image[i] < 0.0) ? 0.0 : original_image[i];
+        output_channel[i] = (input_channel[i] < 0.0) ? 0.0 : input_channel[i];
     }
 }
 
 /**
- * @brief applies softmax to all pixel of original_image and stores it in
- * new_image
+ * @brief applies softmax to all pixel of input_channel and stores it in
+ * output_channel
  *
- * @param original_image (height x width)
+ * @param input_channel (height x width)
  * @param height
  * @param width
- * @param new_image (height x width)
+ * @param output_channel (height x width)
  */
-void softmax_naive(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
+void softmax_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
     uint16_t i;
 
     fp_t denominator = 0.0;
 
     for(i = 0; i < height*width; i++) {
-        denominator += expf(original_image[i]);
+        denominator += expf(input_channel[i]);
     }
 
     for(i = 0; i < height*width; i++) {
-        new_image[i] = expf(original_image[i]) / denominator;
+        output_channel[i] = expf(input_channel[i]) / denominator;
     }
 }
 
 /**
- * @brief performs a local response normalization (across channels) on original 
- * image and stores the result in new_image
+ * @brief performs a local response normalization (across channels) on 
+ * input_channel and stores the result in output_channel
  *
  * Formula (Paper):
  * https://stats.stackexchange.com/questions/145768/importance-of-local-response-normalization-in-cnn/252343#252343
  * Formula (Implemented):
  * http://caffe.berkeleyvision.org/tutorial/layers/lrn.html
  *
- * @param original_image (height x width)
+ * @param input_channel (height x width)
  * @param height
  * @param width
  * @param depth
- * @param new_image
+ * @param output_channel
  * @param alpha
  * @param beta
  * @param n
  */
-void local_response_normalization_naive(fp_t** original_image, const uint16_t height, const uint16_t width, const uint16_t depth, fp_t** new_image, const fp_t alpha, const fp_t beta, const uint16_t n) {
+void local_response_normalization_naive(fp_t** input_channel, const uint16_t height, const uint16_t width, const uint16_t depth, fp_t** output_channel, const fp_t alpha, const fp_t beta, const uint16_t n) {
     
     int32_t channel, row, column, i;
     int32_t from;
@@ -118,10 +118,10 @@ void local_response_normalization_naive(fp_t** original_image, const uint16_t he
                 sum = 0.0;
 
                 for(i = from; i <= to; i++) {
-                    sum += powf(original_image[i][row*width+column], 2);
+                    sum += powf(input_channel[i][row*width+column], 2);
                 }
 
-                new_image[channel][row*width+column] = original_image[channel][row*width+column] / powf((1+(alpha/n)*sum),beta);
+                output_channel[channel][row*width+column] = input_channel[channel][row*width+column] / powf((1+(alpha/n)*sum),beta);
             }
         }
     }
@@ -130,74 +130,73 @@ void local_response_normalization_naive(fp_t** original_image, const uint16_t he
 
 #ifdef FIXED16
 /**
- * @brief applies relu(x) to all pixel of original_image and stores it in
- * new_image
+ * @brief applies relu(x) to all pixel of input_channel and stores it in
+ * output_channel
  *
- * @param original_image (height x width)
+ * @param input_channel (height x width)
  * @param height
  * @param width
- * @param new_image (height x width)
+ * @param output_channel (height x width)
  */
-void relu_naive_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image) {
+void relu_naive_fixed16(const fixed16_t* input_channel, const uint16_t height, const uint16_t width, fixed16_t* output_channel) {
 
     uint16_t i;
 
     for(i = 0; i < height*width; i++) {
-        new_image[i] = ((original_image[i] & 0x8000) == 0x8000) ? 0 : original_image[i];
+        output_channel[i] = ((input_channel[i] & 0x8000) == 0x8000) ? 0 : input_channel[i];
     }
 }
 
-void relu_cpu_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image) {
-    relu_naive_fixed16(original_image, height, width, new_image);
+void relu_cpu_fixed16(const fixed16_t* input_channel, const uint16_t height, const uint16_t width, fixed16_t* output_channel) {
+    relu_naive_fixed16(input_channel, height, width, output_channel);
 }
 
 /**
- * @brief applies softmax to all pixel of original_image and stores it in
- * new_image
+ * @brief applies softmax to all pixel of input_channel and stores it in
+ * output_channel
  *
- * @param original_image (height x width)
+ * @param input_channel (height x width)
  * @param height
  * @param width
- * @param new_image (height x width)
+ * @param output_channel (height x width)
  */
-void softmax_naive_fixed16(const fixed16_t* original_image, const uint16_t height, const uint16_t width, fixed16_t* new_image) {
+void softmax_naive_fixed16(const fixed16_t* input_channel, const uint16_t height, const uint16_t width, fixed16_t* output_channel) {
 
     uint16_t i;
 
     fixed16_t denominator = FIXED_ZERO;
 
     for(i = 0; i < height*width; i++) {
-        denominator += exp_int32(fixed16_to_int16(original_image[i]));
+        denominator += exp_int32(fixed16_to_int16(input_channel[i]));
     }
 
     for(i = 0; i < height*width; i++) {
-        new_image[i] = div_fixed16(exp_int32(fixed16_to_int16(original_image[i])), denominator);
+        output_channel[i] = div_fixed16(exp_int32(fixed16_to_int16(input_channel[i])), denominator);
     }
-
 }
 #endif
 
 #ifdef ARM_NEON 
 /**
- * @brief applies relu(x) to all pixel of original_image and stores it in
- * new_image optimzed of CPU
+ * @brief applies relu(x) to all pixel of input_channel and stores it in
+ * output_channel optimzed of CPU
  *
- * @param original_image (height x width)
+ * @param input_channel (height x width)
  * @param height
  * @param width
- * @param new_image (height x width)
+ * @param output_channel (height x width)
  */
-void relu_cpu(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
+void relu_cpu(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
-    float32x4_t original_image_0;
-    float32x4_t original_image_1;
-    float32x4_t original_image_2;
-    float32x4_t original_image_3;
+    float32x4_t input_channel_0;
+    float32x4_t input_channel_1;
+    float32x4_t input_channel_2;
+    float32x4_t input_channel_3;
 
-    float32x4_t new_image_0;
-    float32x4_t new_image_1;
-    float32x4_t new_image_2;
-    float32x4_t new_image_3;
+    float32x4_t output_channel_0;
+    float32x4_t output_channel_1;
+    float32x4_t output_channel_2;
+    float32x4_t output_channel_3;
 
     float32x4_t zero = {0.0, 0.0, 0.0, 0.0};
 
@@ -205,132 +204,133 @@ void relu_cpu(const fp_t* original_image, const uint16_t height, const uint16_t 
 
     for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
 
-        // load image into vectors
-        original_image_0 = vld1q_f32(original_image+i);
-        original_image_1 = vld1q_f32(original_image+i+4);
-        original_image_2 = vld1q_f32(original_image+i+8);
-        original_image_3 = vld1q_f32(original_image+i+12);
+        // load input_channel into vectors
+        input_channel_0 = vld1q_f32(input_channel+i);
+        input_channel_1 = vld1q_f32(input_channel+i+4);
+        input_channel_2 = vld1q_f32(input_channel+i+8);
+        input_channel_3 = vld1q_f32(input_channel+i+12);
 
-        new_image_0 = vmaxq_f32(original_image_0, zero);
-        new_image_1 = vmaxq_f32(original_image_1, zero);
-        new_image_2 = vmaxq_f32(original_image_2, zero);
-        new_image_3 = vmaxq_f32(original_image_3, zero);
+        output_channel_0 = vmaxq_f32(input_channel_0, zero);
+        output_channel_1 = vmaxq_f32(input_channel_1, zero);
+        output_channel_2 = vmaxq_f32(input_channel_2, zero);
+        output_channel_3 = vmaxq_f32(input_channel_3, zero);
 
-        vst1q_f32(new_image+i, new_image_0);
-        vst1q_f32(new_image+i+4, new_image_1);
-        vst1q_f32(new_image+i+8, new_image_2);
-        vst1q_f32(new_image+i+12, new_image_3);
+        vst1q_f32(output_channel+i, output_channel_0);
+        vst1q_f32(output_channel+i+4, output_channel_1);
+        vst1q_f32(output_channel+i+8, output_channel_2);
+        vst1q_f32(output_channel+i+12, output_channel_3);
     }
 
     // residual pixels
     for(i = i; i < height*width; i++) {
-        new_image[i] = (original_image[i] < 0.0) ? 0.0 : original_image[i];
+        output_channel[i] = (input_channel[i] < 0.0) ? 0.0 : input_channel[i];
     }
 }
 
 /**
- * @brief applies softmax to all pixel of original_image and stores it in
- * new_image optimzed of CPU
+ * @brief applies softmax to all pixel of input_channel and stores it in
+ * output_channel optimzed of CPU
  * Only single core optimization since softmax is usually performed on a small
  * dataset and a multi core solution would impose a large overhead
  *
- * @param original_image (height x width)
+ * @param input_channel (height x width)
  * @param height
  * @param width
- * @param new_image (height x width)
+ * @param output_channel (height x width)
  */
-void softmax_cpu_single(const fp_t* original_image, const uint16_t height, const uint16_t width, fp_t* new_image) {
+void softmax_cpu_single(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
     uint16_t i;
 
     fp_t denominator = 0.0;
 
-    float32x4_t original_image_0;
-    float32x4_t original_image_1;
-    float32x4_t original_image_2;
-    float32x4_t original_image_3;
+    float32x4_t input_channel_0;
+    float32x4_t input_channel_1;
+    float32x4_t input_channel_2;
+    float32x4_t input_channel_3;
 
     // calculate denominator
     for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
-        // load image into vectors
-        original_image_0 = vld1q_f32(original_image+i);
-        original_image_1 = vld1q_f32(original_image+i+4);
-        original_image_2 = vld1q_f32(original_image+i+8);
-        original_image_3 = vld1q_f32(original_image+i+12);
+        // load input channel into vectors
+        input_channel_0 = vld1q_f32(input_channel+i);
+        input_channel_1 = vld1q_f32(input_channel+i+4);
+        input_channel_2 = vld1q_f32(input_channel+i+8);
+        input_channel_3 = vld1q_f32(input_channel+i+12);
 
         // apply exponential function to vectors
-        original_image_0 = exp_ps(original_image_0);
-        original_image_1 = exp_ps(original_image_1);
-        original_image_2 = exp_ps(original_image_2);
-        original_image_3 = exp_ps(original_image_3);
+        input_channel_0 = exp_ps(input_channel_0);
+        input_channel_1 = exp_ps(input_channel_1);
+        input_channel_2 = exp_ps(input_channel_2);
+        input_channel_3 = exp_ps(input_channel_3);
 
         // add vectors together
-        original_image_1 = vaddq_f32(original_image_1, original_image_0);
-        original_image_2 = vaddq_f32(original_image_2, original_image_1);
-        original_image_3 = vaddq_f32(original_image_3, original_image_2);
+        input_channel_1 = vaddq_f32(input_channel_1, input_channel_0);
+        input_channel_2 = vaddq_f32(input_channel_2, input_channel_1);
+        input_channel_3 = vaddq_f32(input_channel_3, input_channel_2);
 
         // sum up whole vector
-        denominator += vgetq_lane_f32(original_image_3, 0) + vgetq_lane_f32(original_image_3, 1) + vgetq_lane_f32(original_image_3, 2) + vgetq_lane_f32(original_image_3, 3); //vaddvq_f32(original_image_3);
+        denominator += vgetq_lane_f32(input_channel_3, 0) + vgetq_lane_f32(input_channel_3, 1) + vgetq_lane_f32(input_channel_3, 2) + vgetq_lane_f32(input_channel_3, 3); //vaddvq_f32(input_channel_3);
     }
 
     // residual pixels
     for(i = i; i < height*width; i++) {
-        denominator += expf(original_image[i]);
+        denominator += expf(input_channel[i]);
     }
    
     const fp_t inv_denominator = 1.0/denominator;
     // apply softmax
     for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
-        // load image into vectors
-        original_image_0 = vld1q_f32(original_image+i);
-        original_image_1 = vld1q_f32(original_image+i+4);
-        original_image_2 = vld1q_f32(original_image+i+8);
-        original_image_3 = vld1q_f32(original_image+i+12);
+        // load input channel into vectors
+        input_channel_0 = vld1q_f32(input_channel+i);
+        input_channel_1 = vld1q_f32(input_channel+i+4);
+        input_channel_2 = vld1q_f32(input_channel+i+8);
+        input_channel_3 = vld1q_f32(input_channel+i+12);
 
         // apply exponential function to vectors 
-        original_image_0 = exp_ps(original_image_0);
-        original_image_1 = exp_ps(original_image_1);
-        original_image_2 = exp_ps(original_image_2);
-        original_image_3 = exp_ps(original_image_3);
+        input_channel_0 = exp_ps(input_channel_0);
+        input_channel_1 = exp_ps(input_channel_1);
+        input_channel_2 = exp_ps(input_channel_2);
+        input_channel_3 = exp_ps(input_channel_3);
 
         // multiply vectors scalar with inverted denominator
-        original_image_0 = vmulq_n_f32(original_image_0, inv_denominator);
-        original_image_1 = vmulq_n_f32(original_image_1, inv_denominator);
-        original_image_2 = vmulq_n_f32(original_image_2, inv_denominator);
-        original_image_3 = vmulq_n_f32(original_image_3, inv_denominator);
+        input_channel_0 = vmulq_n_f32(input_channel_0, inv_denominator);
+        input_channel_1 = vmulq_n_f32(input_channel_1, inv_denominator);
+        input_channel_2 = vmulq_n_f32(input_channel_2, inv_denominator);
+        input_channel_3 = vmulq_n_f32(input_channel_3, inv_denominator);
 
-        // store vectors in new image
-        vst1q_f32(new_image+i, original_image_0);
-        vst1q_f32(new_image+i+4, original_image_1);
-        vst1q_f32(new_image+i+8, original_image_2);
-        vst1q_f32(new_image+i+12, original_image_3);
+        // store vectors in output channel
+        vst1q_f32(output_channel+i, input_channel_0);
+        vst1q_f32(output_channel+i+4, input_channel_1);
+        vst1q_f32(output_channel+i+8, input_channel_2);
+        vst1q_f32(output_channel+i+12, input_channel_3);
     }
 
     // residual pixels
     for(i = i; i < height*width; i++) {
-        new_image[i] = expf(original_image[i]) * inv_denominator;
+        output_channel[i] = expf(input_channel[i]) * inv_denominator;
     }
 }
 
 /**
- * @brief performs a local response normalization (across channels) on original 
- * image and stores the result in new_image optimized for single CPU
+ * @brief performs a local response normalization (across channels) on 
+ * input_channel and stores the result in output_channel optimized for single 
+ * CPU
  *
  * Formula (Paper):
  * https://stats.stackexchange.com/questions/145768/importance-of-local-response-normalization-in-cnn/252343#252343
  * Formula (Implemented):
  * http://caffe.berkeleyvision.org/tutorial/layers/lrn.html
  *
- * @param original_image (height x width)
+ * @param input_channel (height x width)
  * @param height
  * @param width
  * @param depth
- * @param new_image
+ * @param output_channel
  * @param alpha
  * @param beta
  * @param n
  */
-void local_response_normalization_cpu_single(fp_t** original_image, const uint16_t height, const uint16_t width, const uint16_t depth, fp_t** new_image, const fp_t alpha, const fp_t beta, const uint16_t n) {
+void local_response_normalization_cpu_single(fp_t** input_channel, const uint16_t height, const uint16_t width, const uint16_t depth, fp_t** output_channel, const fp_t alpha, const fp_t beta, const uint16_t n) {
     int32_t channel, row, column, i;
     int32_t from;
     int32_t to;
@@ -342,13 +342,13 @@ void local_response_normalization_cpu_single(fp_t** original_image, const uint16
 
     float32x4_t denominator_0;
     float32x4_t sums_0 = {0.0, 0.0, 0.0, 0.0};
-    float32x4_t original_image_0 = {0.0, 0.0, 0.0, 0.0};
-    float32x4_t new_image_0;
+    float32x4_t input_channel_0 = {0.0, 0.0, 0.0, 0.0};
+    float32x4_t output_channel_0;
 
     float32x4_t one = {1.0, 1.0, 1.0, 1.0};
 
     fp_t denominator_temp[4];
-    fp_t new_image_temp[4];
+    fp_t output_channel_temp[4];
 
     for(channel = 0; channel < depth; channel++) {
         from = MAX(0,channel-(n/2));
@@ -359,22 +359,22 @@ void local_response_normalization_cpu_single(fp_t** original_image, const uint16
 
                 sum_0 = 0.0;
                 for(i = from; i <= to; i++) {
-                    sum_0 += original_image[i][row*width+column]*original_image[i][row*width+column];
+                    sum_0 += input_channel[i][row*width+column]*input_channel[i][row*width+column];
                 }
 
                 sum_1 = 0.0;
                 for(i = from; i <= to; i++) {
-                    sum_1 += original_image[i][row*width+column+1]*original_image[i][row*width+column+1];
+                    sum_1 += input_channel[i][row*width+column+1]*input_channel[i][row*width+column+1];
                 }
 
                 sum_2 = 0.0;
                 for(i = from; i <= to; i++) {
-                    sum_2 += original_image[i][row*width+column+2]*original_image[i][row*width+column+2];
+                    sum_2 += input_channel[i][row*width+column+2]*input_channel[i][row*width+column+2];
                 }
 
                 sum_3 = 0.0;
                 for(i = from; i <= to; i++) {
-                    sum_3 += original_image[i][row*width+column+3]*original_image[i][row*width+column+3];
+                    sum_3 += input_channel[i][row*width+column+3]*input_channel[i][row*width+column+3];
                 }
 
 
@@ -407,22 +407,22 @@ void local_response_normalization_cpu_single(fp_t** original_image, const uint16
                 // store denominator vector in array
                 vst1q_f32(denominator_temp, denominator_0);
 
-                // load original image into vector
-                original_image_0 = vsetq_lane_f32(original_image[channel][row*width+column],   original_image_0, 0);
-                original_image_0 = vsetq_lane_f32(original_image[channel][row*width+column+1], original_image_0, 1);
-                original_image_0 = vsetq_lane_f32(original_image[channel][row*width+column+2], original_image_0, 2);
-                original_image_0 = vsetq_lane_f32(original_image[channel][row*width+column+3], original_image_0, 3);
+                // load original input channel into vector
+                input_channel_0 = vsetq_lane_f32(input_channel[channel][row*width+column],   input_channel_0, 0);
+                input_channel_0 = vsetq_lane_f32(input_channel[channel][row*width+column+1], input_channel_0, 1);
+                input_channel_0 = vsetq_lane_f32(input_channel[channel][row*width+column+2], input_channel_0, 2);
+                input_channel_0 = vsetq_lane_f32(input_channel[channel][row*width+column+3], input_channel_0, 3);
 
-                // new_image = original_image * (1/denominator)
-                new_image_0 = vmulq_f32(original_image_0, denominator_0);
+                // output_channel = input_channel * (1/denominator)
+                output_channel_0 = vmulq_f32(input_channel_0, denominator_0);
 
-                // store new_image vector into array
-                vst1q_f32(new_image_temp, new_image_0);
+                // store output_channel vector into array
+                vst1q_f32(output_channel_temp, output_channel_0);
 
-                new_image[channel][row*width+column] =   new_image_temp[0]; 
-                new_image[channel][row*width+column+1] = new_image_temp[1];
-                new_image[channel][row*width+column+2] = new_image_temp[2];
-                new_image[channel][row*width+column+3] = new_image_temp[3];
+                output_channel[channel][row*width+column] =   output_channel_temp[0]; 
+                output_channel[channel][row*width+column+1] = output_channel_temp[1];
+                output_channel[channel][row*width+column+2] = output_channel_temp[2];
+                output_channel[channel][row*width+column+3] = output_channel_temp[3];
             }
 
             // residual columns
@@ -430,10 +430,10 @@ void local_response_normalization_cpu_single(fp_t** original_image, const uint16
                 sum_0 = 0.0;
 
                 for(i = from; i <= to; i++) {
-                    sum_0 += original_image[i][row*width+column]*original_image[i][row*width+column];
+                    sum_0 += input_channel[i][row*width+column]*input_channel[i][row*width+column];
                 }
 
-                new_image[channel][row*width+column] = original_image[channel][row*width+column] / powf((1+(alpha/n)*sum_0),beta);
+                output_channel[channel][row*width+column] = input_channel[channel][row*width+column] / powf((1+(alpha/n)*sum_0),beta);
             }
         }
     }

@@ -388,7 +388,7 @@ int main(int argc, char** argv) {
 
             for(k = 1; k < 20; k++) {
                 convolution2d_cpu_5x5_s1_valid_fixed16(s2_output[k], 12, 12, c3_intermediate[omp_get_thread_num()], c3_kernels[j*20+k], 0.0);
-                add_image2d_cpu_fixed16(c3_output[j], c3_intermediate[omp_get_thread_num()], 8, 8);
+                add_channel2d_cpu_fixed16(c3_output[j], c3_intermediate[omp_get_thread_num()], 8, 8);
             }
         }
 

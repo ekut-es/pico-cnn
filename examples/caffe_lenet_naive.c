@@ -247,7 +247,7 @@ int main(int argc, char** argv) {
 
             for(k = 1; k < 20; k++) {
                 convolution2d_naive(s2_output[k], 12, 12, c3_intermediate, c3_kernels[j*20+k], 5, 1, 0, 0.0);
-                add_image2d_naive(c3_output[j], c3_intermediate, 8, 8);
+                add_channel2d_naive(c3_output[j], c3_intermediate, 8, 8);
             }
         }
 
