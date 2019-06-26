@@ -340,7 +340,7 @@ class BackendRep(backend_base.BackendRep):
         output_names = ["output"+str(name) for name, type, shape in graph.outputs]
 
         input_defs = ["float **"+n for n in input_names]
-        output_defs = ["float **"+n for n in output_names]  # TODO: correct datatype?
+        output_defs = ["float *"+n for n in output_names]  # TODO: correct datatype?
         network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
 
         self.network_def = network_def + ";"
@@ -368,6 +368,7 @@ class BackendRep(backend_base.BackendRep):
             implementation_code += "    //Parameters\n"
             implementation_code += "    //Inputs: " + ",".join(node.inputs) + "\n"
             implementation_code += "    //Outputs: " + ",".join(node.outputs) + "\n"
+            #implementation_code += "    printf(\"Before " + node.name + "\\n\");" + "\n"  # TODO remove this
 
             print(impl)
             if impl:
