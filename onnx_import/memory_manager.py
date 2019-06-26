@@ -3,7 +3,8 @@ import numpy as np
 
 
 class Buffer(object):
-    def __init__(self, id, name, shape, size, dt, dtsize, alignment, is_managed, dt_string=None):
+    def __init__(self, id, name, shape, size, dt, dtsize, alignment,
+                 is_managed, dt_string=None, buffer_depth=None):
         self.id = id
         self.name = name
         self.shape = shape
@@ -15,6 +16,7 @@ class Buffer(object):
         self.alignment = alignment
         self.is_managed = 0
         self.offset = 0
+        self.buffer_depth = buffer_depth
 
     @property
     def start_ptr(self):
@@ -50,6 +52,13 @@ class Buffer(object):
         buffer_name += id        
         shape = graph.get_shape(id)
 
+        if len(shape) == 1 or len(shape) == 2:
+            buffer_depth = 1
+        elif len(shape) == 4:
+            buffer_depth = 2
+        else:
+            buffer_depth = 0
+
         # TODO infer datatypes
         dt = np.float
         dtsize = 4
@@ -59,7 +68,7 @@ class Buffer(object):
             alignment = dtsize
 
         return cls(id, buffer_name, shape, size,
-                   dt, dtsize, alignment, is_managed, dt_string)
+                   dt, dtsize, alignment, is_managed, dt_string, buffer_depth)
 
 
 class MemoryManager():

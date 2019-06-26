@@ -24,6 +24,8 @@ class BackendRep(backend_base.BackendRep):
         self.initialization_code = ""
         self.initialization_header = ""
         self.network_def = ""
+        self.cleanup_header = ""
+        self.cleanup_code = ""
         self._export_model()
 
     def run(self, inputs, **kwargs):
@@ -124,9 +126,12 @@ class BackendRep(backend_base.BackendRep):
     def _generate_network_initialization(self, graph, memory_manager):
         initialization_header = "#ifndef NETWORK_INITIALIZATION_H\n"
         initialization_header += "#define NETWORK_INITIALIZATION_H\n"
+        initialization_header += "#include <stdlib.h>\n"
         initialization_header += "#include \"pico-cnn/parameters.h\"\n\n"
+        initialization_header += "void initialize();\n\n"
 
         initialization_code = "#include \"network_initialization.h\"\n\n"
+        initialization_code += "void initialize() {\n"
 
         for node in graph.nodes:
 
@@ -151,10 +156,11 @@ class BackendRep(backend_base.BackendRep):
                 #     kernel_size = 1
 
                 initialization_header += "// " + str(buffer.shape) + "\n"
-                if len(buffer.shape) == 1 or len(buffer.shape) == 2:
-                    initialization_header += "fp_t *" + buffer.name + ";\n"
-                else:
-                    initialization_header += "fp_t **" + buffer.name + ";\n"
+                data_type = "fp_t "
+                for i in range(buffer.buffer_depth):
+                    data_type += "*"
+
+                initialization_header += data_type + buffer.name + ";\n"
 
                 initialization_code += "// " + str(buffer.shape) + "\n"
 
@@ -172,10 +178,11 @@ class BackendRep(backend_base.BackendRep):
 
                 initialization_header += "// " + str(buffer.shape) + "\n"
 
-                if len(buffer.shape) == 2:
-                    initialization_header += "fp_t *" + buffer.name + ";\n"
-                else:
-                    initialization_header += "fp_t **" + buffer.name + ";\n"
+                data_type = "fp_t "
+                for i in range(buffer.buffer_depth):
+                    data_type += "*"
+
+                initialization_header += data_type + buffer.name + ";\n"
 
                 initialization_code += "// " + str(buffer.shape) + "\n"
 
@@ -189,10 +196,38 @@ class BackendRep(backend_base.BackendRep):
             initialization_header += "\n\n"
             initialization_code += "\n\n"
 
-        initialization_header += "#endif \n"
+        initialization_header += "#endif //NETWORK_INITIALIZATION_H\n"
+        initialization_code += "}\n"
 
         self.initialization_header = initialization_header
         self.initialization_code = initialization_code
+
+    def _generate_network_cleanup(self, graph, memory_manager):
+        cleanup_header = "#ifndef NETWORK_CLEANUP_H\n"
+        cleanup_header += "#define NETWORK_CLEANUP_H\n"
+        cleanup_header += "#include <stdlib.h>\n"
+        cleanup_header += "#include \"pico-cnn/parameters.h\"\n\n"
+        cleanup_header += "void cleanup();\n\n"
+
+        cleanup_code = "#include \"network_cleanup.h\"\n\n"
+        cleanup_code += "#include \"network_initialization.h\"\n\n"
+        cleanup_code += "void cleanup() {\n"
+
+        for num, buffer_id in enumerate(memory_manager.buffers):
+            buffer = memory_manager.get_buffer(graph, buffer_id)
+
+            functionality = CodeRegistry.get_funct("BufferCleanup")
+            impl = functionality[0].create(buffer)
+
+            if impl:
+                cleanup_code += impl.generate_code()
+                cleanup_code += "\n"
+
+        cleanup_header += "#endif //NETWORK_CLEANUP_H\n"
+        cleanup_code += "}\n"
+
+        self.cleanup_header = cleanup_header
+        self.cleanup_code = cleanup_code
 
     def _select_implementations(self, graph, memory_manager):
         implementations = {}
@@ -291,9 +326,11 @@ class BackendRep(backend_base.BackendRep):
 
         memory_manager = MemoryManager()
 
-        self._generate_parameters(graph, memory_manager)
+        # self._generate_parameters(graph, memory_manager)
 
         self._generate_network_initialization(graph, memory_manager)
+
+        self._generate_network_cleanup(graph, memory_manager)
 
         implementations = self._select_implementations(graph, memory_manager)
         schedule = self._get_schedule(graph, implementations)
@@ -315,13 +352,12 @@ class BackendRep(backend_base.BackendRep):
         network_header += "#endif //NETWORK_H\n"
 
         network_code: Text = "#include \"network.h\"\n"
-        network_code += "#include \"network_parameters.h\"\n\n"
+        network_code += "#include \"network_initialization.h\"\n"
+        network_code += "#include \"network_cleanup.h\"\n\n"
         network_code += "#include \"pico-cnn/pico-cnn.h\"\n\n"
         network_code += network_def+"{\n"
 
         implementation_code = ""
-        buffer_code = ""
-        buffer_code_end = ""
 
         for task in schedule:
             num, node, impl = task
@@ -346,17 +382,15 @@ class BackendRep(backend_base.BackendRep):
             if graph.is_output(id):
                 continue
 
-            #buffer_code += "    // " + str(buffer.shape) + "\n"
-            #buffer_code += "  " + buffer.static_decl
-            #buffer_code += "    " + buffer.dynamic_decl  # TODO Remove the declaration
-            buffer_code += "\n"
-
-        buffer_code += buffer_code_end
-
-        network_code += buffer_code
         network_code += implementation_code
 
-        network_code += "}\n"
+        network_code += "}\n\n"
+
+        network_code += "int main(int argc, char** argv) { \n" \
+                        "    initialize();\n" \
+                        "    network();\n" \
+                        "    cleanup();\n" \
+                        "}\n"
 
         self.network_code = network_code
         self.network_header = network_header
@@ -376,17 +410,23 @@ class BackendRep(backend_base.BackendRep):
         with open(os.path.join(folder, "network.h"), "w") as f:
             f.write(self.network_header)
 
-        with open(os.path.join(folder, "network_parameters.h"), "w") as f:
-            f.write(self.parameter_header)
-
-        with open(os.path.join(folder, "network_parameters.c"), "w") as f:
-            f.write(self.parameter_code)
+        # with open(os.path.join(folder, "network_parameters.h"), "w") as f:
+        #     f.write(self.parameter_header)
+        #
+        # with open(os.path.join(folder, "network_parameters.c"), "w") as f:
+        #     f.write(self.parameter_code)
 
         with open(os.path.join(folder, "network_initialization.c"), "w") as f:
             f.write(self.initialization_code)
 
         with open(os.path.join(folder, "network_initialization.h"), "w") as f:
             f.write(self.initialization_header)
+
+        with open(os.path.join(folder, "network_cleanup.c"), "w") as f:
+            f.write(self.cleanup_code)
+
+        with open(os.path.join(folder, "network_cleanup.h"), "w")  as f:
+            f.write(self.cleanup_header)
 
 
 class Backend(object):

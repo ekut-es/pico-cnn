@@ -73,11 +73,11 @@ class OutputAllocation(BaseCode):
         buffer_shape = buffer.shape
 
         # print("Output buffer shape: {}".format(str(buffer_shape)))
-        if len(buffer_shape) == 4:
+        if buffer.buffer_depth == 2:
             num_outputs = buffer_shape[0] * buffer_shape[1]
             output_width = buffer_shape[2]
             output_height = buffer_shape[3]
-        elif len(buffer_shape) == 2:
+        elif buffer.buffer_depth == 1:
             operation.attributes['one_dimensional'] = 1
             num_outputs = buffer_shape[1]
             output_width = output_height = 0
@@ -96,3 +96,25 @@ class OutputAllocation(BaseCode):
 
 CodeRegistry.register(OutputAllocation)
 
+
+class BufferCleanup(BaseCode):
+    name = "BufferCleanup"
+    template_file = "buffer_cleanup.c"
+
+    @classmethod
+    def create(cls, buffer):
+        operation = cls(buffer)
+        buffer_shape = buffer.shape
+        buffer_depth = buffer.buffer_depth
+
+        if buffer_depth == 2:
+            num_buffers = buffer_shape[0] * buffer_shape[1]
+            operation.attributes["num_buffers"] = num_buffers
+
+        operation.attributes["buffer_name"] = buffer.name
+        operation.attributes["buffer_depth"] = buffer_depth
+
+        return operation
+
+
+CodeRegistry.register(BufferCleanup)
