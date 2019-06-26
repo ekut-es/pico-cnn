@@ -1,1 +1,1 @@
-softmax_naive({{input_buffer.name}}, {{input_height}}, {{input_width}}, {{output_buffer.name}})
+softmax_naive({{input_buffer.name}}, {{input_height}}, {{input_width}}, {{output_buffer.name}});
