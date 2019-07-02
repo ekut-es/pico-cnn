@@ -26,6 +26,7 @@ class BackendRep(backend_base.BackendRep):
         self.network_def = ""
         self.cleanup_header = ""
         self.cleanup_code = ""
+        self.weights_file = ""
         self._export_model()
 
     def run(self, inputs, **kwargs):
@@ -122,6 +123,81 @@ class BackendRep(backend_base.BackendRep):
 
         self.parameter_header = parameter_header
         self.parameter_code = parameter_code
+
+    def _generate_weights_file(self, graph, memory_manager):
+        weights_file = "FE\n"
+        weights_file += "tiny-dnn export\n"
+
+        num_layers = 0
+
+        for node in graph.nodes:
+            if len(node.input_tensors) > 0:
+                num_layers += 1
+
+        weights_file += str(num_layers) + "\n"
+
+        weight_data = ""
+
+        for node in graph.nodes:
+            for num, input in enumerate(node.input_tensors):
+                if node.op_type == "Reshape":
+                    continue
+
+                data = node.input_tensors[input]
+
+                if node.op_type == "Gemm":
+                    data = data.transpose()
+
+                if len(data.shape) == 4:
+                    weight_data += node.name + "\n"
+
+                    height = data.shape[2]  # height
+                    width = data.shape[3]  # width
+                    num_data = data.shape[0] * data.shape[1]  # num_kernels
+
+                    weight_data += str(height) + "\n"
+                    weight_data += str(width) + "\n"
+                    weight_data += str(num_data) + "\n"
+
+                    # for channel in data:
+                    #     for kernel in channel:
+                    #         for row in kernel:
+                    #             for number in row:
+                    #                 weight_data += float(number).hex() + "\n"
+
+                elif len(data.shape) == 2:
+                    weight_data += node.name + "\n"
+
+                    height = data.shape[0]  # height
+                    width = data.shape[1]  # width
+                    num_data = 1  # num_kernels
+
+                    weight_data += str(height) + "\n"
+                    weight_data += str(width) + "\n"
+                    weight_data += str(num_data) + "\n"
+
+                    # for row in data:
+                    #     for number in row:
+                    #         weight_data += float(number).hex() + "\n"
+
+                elif len(data.shape) == 1:
+                    num_data = data.shape[0]  # num_biases
+
+                    weight_data += str(num_data) + "\n"
+
+                    # for number in data:
+                    #     weight_data += float(number).hex() + "\n"
+
+                else:
+                    print("ERROR: Unknown input tensor shape!")
+                    weight_data = ""
+
+                temp = "\n".join((str(float(x).hex()) for x in data.flatten()))
+                weight_data += temp + "\n"
+
+        weights_file += weight_data
+
+        self.weights_file = weights_file
 
     def _generate_network_initialization(self, graph, memory_manager):
         initialization_header = "#ifndef NETWORK_INITIALIZATION_H\n"
@@ -326,7 +402,8 @@ class BackendRep(backend_base.BackendRep):
 
         memory_manager = MemoryManager()
 
-        # self._generate_parameters(graph, memory_manager)
+        #self._generate_parameters(graph, memory_manager)
+        self._generate_weights_file(graph, memory_manager)
 
         self._generate_network_initialization(graph, memory_manager)
 
@@ -428,6 +505,9 @@ class BackendRep(backend_base.BackendRep):
 
         with open(os.path.join(folder, "network_cleanup.h"), "w")  as f:
             f.write(self.cleanup_header)
+
+        with open(os.path.join(folder, "example.weights"), "w") as f:
+            f.write(self.weights_file)
 
 
 class Backend(object):
