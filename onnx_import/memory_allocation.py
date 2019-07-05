@@ -20,7 +20,7 @@ class BaseCode(object):
         return template.render(**self.attributes)
 
     @classmethod
-    def create(cls, buffer):
+    def create(cls, buffer, pos):
         pass
 
 
@@ -29,7 +29,7 @@ class KernelAllocationCode(BaseCode):
     template_file = "kernel_allocation.c"
 
     @classmethod
-    def create(cls, buffer):
+    def create(cls, buffer, pos):
         operation = cls(buffer)
         buffer_shape = buffer.shape
 
@@ -38,14 +38,17 @@ class KernelAllocationCode(BaseCode):
             num_kernels = buffer_shape[0] * buffer_shape[1]
             kernel_width = buffer_shape[2]
             kernel_height = buffer_shape[3]
+            buffer_type = "kernel"
         elif len(buffer_shape) == 1:
             operation.attributes['one_dimensional'] = 1
             num_kernels = buffer_shape[0]
             kernel_width = kernel_height = 0
+            buffer_type = "bias"
         elif len(buffer_shape) == 2:
             operation.attributes['one_dimensional'] = 1
             num_kernels = buffer_shape[0] * buffer_shape[1]
             kernel_width = kernel_height = 0
+            buffer_type = "kernel2"
         else:
             print("ERROR: Unknown kernel shape: {}, Buffer: {}".format(str(buffer_shape), buffer.name))
             num_kernels = 0
@@ -56,6 +59,8 @@ class KernelAllocationCode(BaseCode):
         operation.attributes['kernel_height'] = kernel_height
         operation.attributes['kernel_width'] = kernel_width
         operation.attributes['data_type'] = buffer.dt_string
+        operation.attributes['pos'] = pos
+        operation.attributes['buffer_type'] = buffer_type
 
         return operation
 
@@ -68,7 +73,7 @@ class OutputAllocation(BaseCode):
     template_file = "output_allocation.c"
 
     @classmethod
-    def create(cls, buffer):
+    def create(cls, buffer, pos):
         operation = cls(buffer)
         buffer_shape = buffer.shape
 

@@ -9,7 +9,7 @@ option(BUILD_ARM_EXAMPLES "ARM example programs from the 'examples' directory wi
 set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
-include_directories("${PROJECT_SOURCE_DIR}")
+include_directories("${PROJECT_SOURCE_DIR}" ${PROJECT_SOURCE_DIR}/onnx_import/generated_code)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 list(APPEND LINK_LIBS m)
@@ -28,6 +28,17 @@ if(BUILD_UTILS)
 	target_link_libraries(jpeg_to_rgb_pgms ${LINK_LIBS} jpeg)
 
     add_executable(find_max_min_weight ${PROJECT_SOURCE_DIR}/util/find_max_min_weight.c)
+endif()
+
+if(BUILD_GENERATED)
+    set(GENERATED_SRCS 
+    ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/test.c
+#    ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/network.c
+#    ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/network_initialization.c
+#    ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/network_cleanup.c
+    )
+    add_executable(generated_net ${GENERATED_SRCS})
+    target_link_libraries(generated_net ${LINK_LIBS})
 endif()
 
 if(BUILD_EXAMPLES)

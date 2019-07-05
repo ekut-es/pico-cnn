@@ -12,6 +12,7 @@ import onnx.backend.base as backend_base
 import onnx
 
 import os
+import struct
 
 
 class BackendRep(backend_base.BackendRep):
@@ -27,6 +28,7 @@ class BackendRep(backend_base.BackendRep):
         self.cleanup_header = ""
         self.cleanup_code = ""
         self.weights_file = ""
+        self.packed_file = list()
         self._export_model()
 
     def run(self, inputs, **kwargs):
@@ -128,15 +130,23 @@ class BackendRep(backend_base.BackendRep):
         weights_file = "FE\n"
         weights_file += "tiny-dnn export\n"
 
+        packed_file = list(bytes())
+
+        tupac = bytes("FD\n", "ascii")
+        packed_file.append(struct.pack('{}s'.format(len(tupac)), tupac))
+        packed_file.append(struct.pack('6s', b"lenet\n"))
+
         num_layers = 0
 
         for node in graph.nodes:
-            if len(node.input_tensors) > 0:
+            if len(node.input_tensors) > 0 and node.op_type != "Reshape":
                 num_layers += 1
 
         weights_file += str(num_layers) + "\n"
+        packed_file.append(struct.pack('i', num_layers))
 
         weight_data = ""
+        weights_packed = list(bytes())
 
         for node in graph.nodes:
             for num, input in enumerate(node.input_tensors):
@@ -151,6 +161,9 @@ class BackendRep(backend_base.BackendRep):
                 if len(data.shape) == 4:
                     weight_data += node.name + "\n"
 
+                    tupac = bytes(node.name+"\n", "ascii")
+                    weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
+
                     height = data.shape[2]  # height
                     width = data.shape[3]  # width
                     num_data = data.shape[0] * data.shape[1]  # num_kernels
@@ -159,14 +172,21 @@ class BackendRep(backend_base.BackendRep):
                     weight_data += str(width) + "\n"
                     weight_data += str(num_data) + "\n"
 
-                    # for channel in data:
-                    #     for kernel in channel:
-                    #         for row in kernel:
-                    #             for number in row:
-                    #                 weight_data += float(number).hex() + "\n"
+                    weights_packed.append(struct.pack('i', height))
+                    weights_packed.append(struct.pack('i', width))
+                    weights_packed.append(struct.pack('i', num_data))
+
+                    for channel in data:
+                        for kernel in channel:
+                            for row in kernel:
+                                weights_packed.append(struct.pack('f'*len(row), *row))
+                            # weights_packed.append(struct.pack('s', b"\n"))
 
                 elif len(data.shape) == 2:
                     weight_data += node.name + "\n"
+
+                    tupac = bytes(node.name + "\n", "ascii")
+                    weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
                     height = data.shape[0]  # height
                     width = data.shape[1]  # width
@@ -176,17 +196,23 @@ class BackendRep(backend_base.BackendRep):
                     weight_data += str(width) + "\n"
                     weight_data += str(num_data) + "\n"
 
-                    # for row in data:
-                    #     for number in row:
-                    #         weight_data += float(number).hex() + "\n"
+                    weights_packed.append(struct.pack('i', height))
+                    weights_packed.append(struct.pack('i', width))
+                    weights_packed.append(struct.pack('i', num_data))
+
+                    for row in data:
+                        weights_packed.append(struct.pack('f'*len(row), *row))
+
+                    # weights_packed .append(struct.pack('s', b"\n"))
 
                 elif len(data.shape) == 1:
                     num_data = data.shape[0]  # num_biases
 
                     weight_data += str(num_data) + "\n"
 
-                    # for number in data:
-                    #     weight_data += float(number).hex() + "\n"
+                    weights_packed.append(struct.pack('i', num_data))
+                    weights_packed.append(struct.pack('f'*len(data), *data))
+                    # weights_packed.append(struct.pack('s', b"\n"))
 
                 else:
                     print("ERROR: Unknown input tensor shape!")
@@ -196,20 +222,38 @@ class BackendRep(backend_base.BackendRep):
                 weight_data += temp + "\n"
 
         weights_file += weight_data
+        packed_file += weights_packed
 
         self.weights_file = weights_file
+        self.packed_file = packed_file
 
     def _generate_network_initialization(self, graph, memory_manager):
         initialization_header = "#ifndef NETWORK_INITIALIZATION_H\n"
         initialization_header += "#define NETWORK_INITIALIZATION_H\n"
         initialization_header += "#include <stdlib.h>\n"
         initialization_header += "#include \"pico-cnn/parameters.h\"\n\n"
-        initialization_header += "void initialize();\n\n"
+        # initialization_header += "void initialize();\n\n"
+        initialization_header += "fp_t*** kernels;\n"
+        initialization_header += "fp_t** biases;\n"
 
-        initialization_code = "#include \"network_initialization.h\"\n\n"
-        initialization_code += "void initialize() {\n"
+        # initialization_code = "#include \"network_initialization.h\"\n\n"
+        initialization_code = "void initialize() {\n\n"
+
+        num_layers = 0
 
         for node in graph.nodes:
+            if len(node.input_tensors) > 0 and node.op_type != "Reshape":
+                num_layers += 1
+
+        initialization_code += "kernels = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(num_layers)
+        initialization_code += "biases = (fp_t**) malloc({} * sizeof(fp_t*));\n\n".format(num_layers)
+
+        pos = -1
+
+        for node in graph.nodes:
+
+            if len(node.input_tensors) > 0 and node.op_type != "Reshape":
+                pos += 1
 
             initialization_header += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
             initialization_code += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
@@ -218,11 +262,12 @@ class BackendRep(backend_base.BackendRep):
             initialization_header += "// Inputs\n"
             initialization_code += "// Inputs\n"
             for num, input in enumerate(node.input_tensors):
+
+                if node.op_type == "Reshape":
+                    continue
+
                 buffer = memory_manager.get_buffer(graph, input)
                 data = node.input_tensors[input]
-
-                if input == "OC2_DUMMY_1" or input == "OC2_DUMMY_0":
-                    print(input, data)
 
                 # if len(data.shape) == 4:
                 #     num_kernels = data.shape[0] * data.shape[1]
@@ -241,7 +286,7 @@ class BackendRep(backend_base.BackendRep):
                 initialization_code += "// " + str(buffer.shape) + "\n"
 
                 functionality = CodeRegistry.get_funct("KernelAllocation")
-                impl = functionality[0].create(buffer)
+                impl = functionality[0].create(buffer, pos)
 
                 if impl:
                     initialization_code += impl.generate_code()
@@ -263,7 +308,7 @@ class BackendRep(backend_base.BackendRep):
                 initialization_code += "// " + str(buffer.shape) + "\n"
 
                 functionality = CodeRegistry.get_funct("OutputAllocation")
-                impl = functionality[0].create(buffer)
+                impl = functionality[0].create(buffer, -1)
 
                 if impl:
                     initialization_code += impl.generate_code()
@@ -272,8 +317,10 @@ class BackendRep(backend_base.BackendRep):
             initialization_header += "\n\n"
             initialization_code += "\n\n"
 
-        initialization_header += "#endif //NETWORK_INITIALIZATION_H\n"
         initialization_code += "}\n"
+
+        initialization_header += initialization_code  # TODO Everything to the .h file???
+        initialization_header += "#endif //NETWORK_INITIALIZATION_H\n"
 
         self.initialization_header = initialization_header
         self.initialization_code = initialization_code
@@ -283,11 +330,11 @@ class BackendRep(backend_base.BackendRep):
         cleanup_header += "#define NETWORK_CLEANUP_H\n"
         cleanup_header += "#include <stdlib.h>\n"
         cleanup_header += "#include \"pico-cnn/parameters.h\"\n\n"
-        cleanup_header += "void cleanup();\n\n"
+        # cleanup_header += "void cleanup();\n\n"
 
-        cleanup_code = "#include \"network_cleanup.h\"\n\n"
-        cleanup_code += "#include \"network_initialization.h\"\n\n"
-        cleanup_code += "void cleanup() {\n"
+        # cleanup_code = "#include \"network_cleanup.h\"\n\n"
+        # cleanup_code += "#include \"network_initialization.h\"\n\n"
+        cleanup_code = "void cleanup() {\n"
 
         for num, buffer_id in enumerate(memory_manager.buffers):
             buffer = memory_manager.get_buffer(graph, buffer_id)
@@ -299,8 +346,10 @@ class BackendRep(backend_base.BackendRep):
                 cleanup_code += impl.generate_code()
                 cleanup_code += "\n"
 
-        cleanup_header += "#endif //NETWORK_CLEANUP_H\n"
         cleanup_code += "}\n"
+
+        cleanup_header += cleanup_code
+        cleanup_header += "#endif //NETWORK_CLEANUP_H\n"
 
         self.cleanup_header = cleanup_header
         self.cleanup_code = cleanup_code
@@ -419,17 +468,18 @@ class BackendRep(backend_base.BackendRep):
         input_defs = ["float **"+n for n in input_names]
         output_defs = ["float *"+n for n in output_names]  # TODO: correct datatype?
         network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
+        # network_def = "int network(" + ", ".join(input_defs) + ")"
 
         self.network_def = network_def + ";"
 
-        network_header = "#ifndef NETWORK_H\n"
-        network_header += "#define NETWORK_H\n"
-        network_header += "#include \"pico-cnn/parameters.h\"\n\n"
-        network_header += network_def + ";\n"
-        network_header += "#endif //NETWORK_H\n"
+        # network_header = "#ifndef NETWORK_H\n"
+        # network_header += "#define NETWORK_H\n"
+        # network_header += "#include \"pico-cnn/parameters.h\"\n\n"
+        # network_header += network_def + ";\n"
+        # network_header += "#endif //NETWORK_H\n"
 
-        network_code: Text = "#include \"network.h\"\n"
-        network_code += "#include \"network_initialization.h\"\n"
+        # network_code: Text = "#include \"network.h\"\n"
+        network_code = "#include \"network_initialization.h\"\n"
         network_code += "#include \"network_cleanup.h\"\n\n"
         network_code += "#include \"pico-cnn/pico-cnn.h\"\n\n"
         network_code += network_def+"{\n"
@@ -464,11 +514,17 @@ class BackendRep(backend_base.BackendRep):
 
         network_code += "}\n\n"
 
-        network_code += "int main(int argc, char** argv) { \n" \
-                        "    initialize();\n" \
-                        "    network();\n" \
-                        "    cleanup();\n" \
-                        "}\n"
+        network_header = "#ifndef NETWORK_H\n"
+        network_header += "#define NETWORK_H\n"
+        network_header += "#include \"pico-cnn/parameters.h\"\n\n"
+        network_header += network_code + "\n"
+        network_header += "#endif //NETWORK_H\n"
+
+        # network_code += "int main(int argc, char** argv) { \n" \
+        #                 "    initialize();\n" \
+        #                 "    network();\n" \
+        #                 "    cleanup();\n" \
+        #                 "}\n"
 
         self.network_code = network_code
         self.network_header = network_header
@@ -482,8 +538,8 @@ class BackendRep(backend_base.BackendRep):
         except FileExistsError:
             pass
 
-        with open(os.path.join(folder, "network.c"), "w") as f:
-            f.write(self.network_code)
+        # with open(os.path.join(folder, "network.c"), "w") as f:
+        #     f.write(self.network_code)
 
         with open(os.path.join(folder, "network.h"), "w") as f:
             f.write(self.network_header)
@@ -494,20 +550,24 @@ class BackendRep(backend_base.BackendRep):
         # with open(os.path.join(folder, "network_parameters.c"), "w") as f:
         #     f.write(self.parameter_code)
 
-        with open(os.path.join(folder, "network_initialization.c"), "w") as f:
-            f.write(self.initialization_code)
+        # with open(os.path.join(folder, "network_initialization.c"), "w") as f:
+        #     f.write(self.initialization_code)
 
         with open(os.path.join(folder, "network_initialization.h"), "w") as f:
             f.write(self.initialization_header)
 
-        with open(os.path.join(folder, "network_cleanup.c"), "w") as f:
-            f.write(self.cleanup_code)
+        # with open(os.path.join(folder, "network_cleanup.c"), "w") as f:
+        #     f.write(self.cleanup_code)
 
-        with open(os.path.join(folder, "network_cleanup.h"), "w")  as f:
+        with open(os.path.join(folder, "network_cleanup.h"), "w") as f:
             f.write(self.cleanup_header)
 
         with open(os.path.join(folder, "example.weights"), "w") as f:
             f.write(self.weights_file)
+
+        with open(os.path.join(folder, "example.weights.bin"), "wb") as f:
+            for packed_struct in self.packed_file:
+                f.write(packed_struct)
 
 
 class Backend(object):
