@@ -4,6 +4,8 @@ build
 .*.swp
 *ubyte
 .vscode
+.idea
+__pycache__
 data/imagenet_dataset
 onnx_import/venv
 onnx_import/.idea
