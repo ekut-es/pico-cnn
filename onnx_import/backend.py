@@ -16,8 +16,9 @@ import struct
 
 
 class BackendRep(backend_base.BackendRep):
-    def __init__(self, onnx_model):
+    def __init__(self, onnx_model, model_name):
         self.onnx_model = onnx_model
+        self.model_name = model_name
         self.network_code = ""
         self.network_header = ""
         self.parameter_code = ""
@@ -29,6 +30,7 @@ class BackendRep(backend_base.BackendRep):
         self.cleanup_code = ""
         self.weights_file = ""
         self.packed_file = list()
+        self.makefile = ""
         self._export_model()
 
     def run(self, inputs, **kwargs):
@@ -451,7 +453,6 @@ class BackendRep(backend_base.BackendRep):
 
         memory_manager = MemoryManager()
 
-        #self._generate_parameters(graph, memory_manager)
         self._generate_weights_file(graph, memory_manager)
 
         self._generate_network_initialization(graph, memory_manager)
@@ -520,16 +521,14 @@ class BackendRep(backend_base.BackendRep):
         network_header += network_code + "\n"
         network_header += "#endif //NETWORK_H\n"
 
-        # network_code += "int main(int argc, char** argv) { \n" \
-        #                 "    initialize();\n" \
-        #                 "    network();\n" \
-        #                 "    cleanup();\n" \
-        #                 "}\n"
-
         self.network_code = network_code
         self.network_header = network_header
 
-        self.save("./generated_code")
+        # TODO: Does this need to be more sophisticated?
+        self.makefile = "all: {}.c network.h network_initialization.h network_cleanup.h\n\tgcc {}.c -I../../.. -lm -o {}".format(self.model_name, self.model_name, self.model_name)
+        self.makefile += "\n\nclean:\n\t rm -rf {}".format(self.model_name)
+
+        self.save("./generated_code/{}".format(self.model_name))
 
     def save(self, folder):
         try:
@@ -544,12 +543,6 @@ class BackendRep(backend_base.BackendRep):
         with open(os.path.join(folder, "network.h"), "w") as f:
             f.write(self.network_header)
 
-        # with open(os.path.join(folder, "network_parameters.h"), "w") as f:
-        #     f.write(self.parameter_header)
-        #
-        # with open(os.path.join(folder, "network_parameters.c"), "w") as f:
-        #     f.write(self.parameter_code)
-
         # with open(os.path.join(folder, "network_initialization.c"), "w") as f:
         #     f.write(self.initialization_code)
 
@@ -562,25 +555,29 @@ class BackendRep(backend_base.BackendRep):
         with open(os.path.join(folder, "network_cleanup.h"), "w") as f:
             f.write(self.cleanup_header)
 
-        with open(os.path.join(folder, "example.weights"), "w") as f:
+        with open(os.path.join(folder, "network.weights"), "w") as f:
             f.write(self.weights_file)
 
-        with open(os.path.join(folder, "example.weights.bin"), "wb") as f:
+        with open(os.path.join(folder, "network.weights.bin"), "wb") as f:
             for packed_struct in self.packed_file:
                 f.write(packed_struct)
+
+        with open(os.path.join(folder, "Makefile"), "w") as f:
+            f.write(self.makefile)
 
 
 class Backend(object):
     @classmethod
     def prepare(cls,
                 model,  # type: ModelProto
+                model_name,  # type: Text
                 device='CPU',  # type: Text
                 **kwargs  # type: Any
                 ):  # type: (...) -> Optional[BackendRep]
         # TODO Remove Optional from return type
         onnx.checker.check_model(model)
 
-        rep = BackendRep(model)
+        rep = BackendRep(model, model_name)
 
         return rep
 

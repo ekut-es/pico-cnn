@@ -32,7 +32,9 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
             fclose(binary_file);
             return 1;
         }
+        #ifdef DEBUG
         printf("%s", magic_number);
+        #endif
 
         // Read name
         char buffer[100];
@@ -47,7 +49,10 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
             buffer[i] = c;
         }
         buffer[i-1] = '\0'; //terminate string correctly
+
+        #ifdef DEBUG
         printf("%s\n", buffer);
+        #endif
 
         // Read number of layers
         uint32_t num_layers;
@@ -56,7 +61,9 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
             fclose(binary_file);
             return 1;
         } else {
+            #ifdef DEBUG
             printf("Number of layers: %d\n", num_layers);
+            #endif
         }
 
         for(uint32_t layer = 0; layer < num_layers; layer++) {
@@ -72,7 +79,10 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 buffer[i] = c;
             }
             buffer[i-1] = '\0'; //terminate string correctly
+
+            #ifdef DEBUG
             printf("Layer %d: %s\n", layer, buffer);
+            #endif
 
             uint32_t kernel_height = 0;
             uint32_t kernel_width = 0;
@@ -93,7 +103,10 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 fclose(binary_file);
                 return 1;
             }
+
+            #ifdef DEBUG
             printf("Height: %d, width: %d, num: %d\n", kernel_height, kernel_width, num_kernels);
+            #endif
 
             uint32_t kernel;
             float *values = (float*) malloc(kernel_height*kernel_width*sizeof(float));
@@ -113,7 +126,10 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 fclose(binary_file);
                 return 1;
             }
+
+            #ifdef DEBUG
             printf("Number of biases: %d\n", num_biases);
+            #endif
 
             uint32_t bias;
             float *bias_values = (float*) malloc(num_biases*sizeof(float));

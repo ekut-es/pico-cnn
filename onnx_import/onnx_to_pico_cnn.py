@@ -13,7 +13,7 @@ from constprop import constant_propagation
 from backend import Backend, BackendRep
 
 
-def onnx_to_pico_cnn(onnx_model):
+def onnx_to_pico_cnn(onnx_model, model_name):
 
     # Set input batch size to 1
     onnx_model.graph.input[0].type.tensor_type.shape.dim[0].dim_value = 1
@@ -31,9 +31,9 @@ def onnx_to_pico_cnn(onnx_model):
     optimized_model = optimizer.optimize(onnx_model, ["eliminate_nop_dropout"])
     optimized_model = utils.polish_model(optimized_model)
 
-    onnx.save(optimized_model, "polished_model.onnx")
+    onnx.save(optimized_model, "{}_polished.onnx".format(model_name))
 
-    backend_model = Backend.prepare(optimized_model)
+    backend_model = Backend.prepare(optimized_model, model_name)
 
     #inputs = []
 
@@ -63,9 +63,13 @@ def main():
     )
     args = parser.parse_args()
 
-    onnx_model = import_model(args.input)
+    onnx_model = onnx.load(args.input)
 
-    onnx_to_pico_cnn(onnx_model)
+    file_name = args.input.split("/")[-1]
+    model_name = file_name.split(".")[0]
+    print(model_name)
+
+    onnx_to_pico_cnn(onnx_model, model_name)
 
     return 0
 
