@@ -498,7 +498,6 @@ class BackendRep(backend_base.BackendRep):
             implementation_code += "    //Outputs: " + ",".join(node.outputs) + "\n"
             #implementation_code += "    printf(\"Before " + node.name + "\\n\");" + "\n"  # TODO remove this
 
-            print(impl)
             if impl:
                 implementation_code += impl.generate_code()
                 implementation_code += "\n"

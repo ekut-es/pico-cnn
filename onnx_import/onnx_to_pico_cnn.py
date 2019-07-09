@@ -35,23 +35,7 @@ def onnx_to_pico_cnn(onnx_model, model_name):
 
     backend_model = Backend.prepare(optimized_model, model_name)
 
-    #inputs = []
-
-    #backend_model.run(inputs)
-
     return 0
-
-    # graph = ComputeGraph.from_onnx(optimized_model.graph)
-    # for node in graph.nodes:
-    #
-    #     if node.op_type == "Conv":
-    #         for op in OperationRegistry.get_ops(node.op_type):
-    #             impl = op.create(node, graph, None)
-    #
-    #         implementation_code = impl.generate_code()
-    #         implementation_code += "\n"
-    #
-    #         print(implementation_code)
 
 
 def main():
@@ -67,7 +51,7 @@ def main():
 
     file_name = args.input.split("/")[-1]
     model_name = file_name.split(".")[0]
-    print(model_name)
+    print("Generating Pico-CNN Code for model: {}".format(model_name))
 
     onnx_to_pico_cnn(onnx_model, model_name)
 
