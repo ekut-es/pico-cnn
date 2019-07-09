@@ -129,8 +129,8 @@ class BackendRep(backend_base.BackendRep):
         self.parameter_code = parameter_code
 
     def _generate_weights_file(self, graph, memory_manager):
-        weights_file = "FE\n"
-        weights_file += "tiny-dnn export\n"
+        # weights_file = "FE\n"
+        # weights_file += "tiny-dnn export\n"
 
         packed_file = list(bytes())
 
@@ -144,10 +144,10 @@ class BackendRep(backend_base.BackendRep):
             if len(node.input_tensors) > 0 and node.op_type != "Reshape":
                 num_layers += 1
 
-        weights_file += str(num_layers) + "\n"
+        # weights_file += str(num_layers) + "\n"
         packed_file.append(struct.pack('i', num_layers))
 
-        weight_data = ""
+        # weight_data = ""
         weights_packed = list(bytes())
 
         for node in graph.nodes:
@@ -161,7 +161,7 @@ class BackendRep(backend_base.BackendRep):
                     data = data.transpose()
 
                 if len(data.shape) == 4:
-                    weight_data += node.name + "\n"
+                    # weight_data += node.name + "\n"
 
                     tupac = bytes(node.name+"\n", "ascii")
                     weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
@@ -170,9 +170,9 @@ class BackendRep(backend_base.BackendRep):
                     width = data.shape[3]  # width
                     num_data = data.shape[0] * data.shape[1]  # num_kernels
 
-                    weight_data += str(height) + "\n"
-                    weight_data += str(width) + "\n"
-                    weight_data += str(num_data) + "\n"
+                    # weight_data += str(height) + "\n"
+                    # weight_data += str(width) + "\n"
+                    # weight_data += str(num_data) + "\n"
 
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
@@ -182,10 +182,9 @@ class BackendRep(backend_base.BackendRep):
                         for kernel in channel:
                             for row in kernel:
                                 weights_packed.append(struct.pack('f'*len(row), *row))
-                            # weights_packed.append(struct.pack('s', b"\n"))
 
                 elif len(data.shape) == 2:
-                    weight_data += node.name + "\n"
+                    # weight_data += node.name + "\n"
 
                     tupac = bytes(node.name + "\n", "ascii")
                     weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
@@ -194,9 +193,9 @@ class BackendRep(backend_base.BackendRep):
                     width = data.shape[1]  # width
                     num_data = 1  # num_kernels
 
-                    weight_data += str(height) + "\n"
-                    weight_data += str(width) + "\n"
-                    weight_data += str(num_data) + "\n"
+                    # weight_data += str(height) + "\n"
+                    # weight_data += str(width) + "\n"
+                    # weight_data += str(num_data) + "\n"
 
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
@@ -205,28 +204,25 @@ class BackendRep(backend_base.BackendRep):
                     for row in data:
                         weights_packed.append(struct.pack('f'*len(row), *row))
 
-                    # weights_packed .append(struct.pack('s', b"\n"))
-
                 elif len(data.shape) == 1:
                     num_data = data.shape[0]  # num_biases
 
-                    weight_data += str(num_data) + "\n"
+                    # weight_data += str(num_data) + "\n"
 
                     weights_packed.append(struct.pack('i', num_data))
                     weights_packed.append(struct.pack('f'*len(data), *data))
-                    # weights_packed.append(struct.pack('s', b"\n"))
 
                 else:
                     print("ERROR: Unknown input tensor shape!")
-                    weight_data = ""
+                    # weight_data = ""
 
-                temp = "\n".join((str(float(x).hex()) for x in data.flatten()))
-                weight_data += temp + "\n"
+                # temp = "\n".join((str(float(x).hex()) for x in data.flatten()))
+                # weight_data += temp + "\n"
 
-        weights_file += weight_data
+        # weights_file += weight_data
         packed_file += weights_packed
 
-        self.weights_file = weights_file
+        # self.weights_file = weights_file
         self.packed_file = packed_file
 
     def _generate_network_initialization(self, graph, memory_manager):
@@ -347,6 +343,8 @@ class BackendRep(backend_base.BackendRep):
             if impl:
                 cleanup_code += impl.generate_code()
                 cleanup_code += "\n"
+
+        cleanup_code += "\nfree(kernels);\nfree(biases);\n"
 
         cleanup_code += "}\n"
 
@@ -554,8 +552,8 @@ class BackendRep(backend_base.BackendRep):
         with open(os.path.join(folder, "network_cleanup.h"), "w") as f:
             f.write(self.cleanup_header)
 
-        with open(os.path.join(folder, "network.weights"), "w") as f:
-            f.write(self.weights_file)
+        # with open(os.path.join(folder, "network.weights"), "w") as f:
+        #     f.write(self.weights_file)
 
         with open(os.path.join(folder, "network.weights.bin"), "wb") as f:
             for packed_struct in self.packed_file:
