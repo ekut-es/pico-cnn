@@ -30,8 +30,6 @@ if(BUILD_UTILS)
     add_executable(find_max_min_weight ${PROJECT_SOURCE_DIR}/util/find_max_min_weight.c)
 endif()
 
-endif()
-
 if(BUILD_EXAMPLES)
     add_executable(caffe_lenet_naive ${PROJECT_SOURCE_DIR}/examples/caffe_lenet_naive.c)
     target_link_libraries(caffe_lenet_naive ${LINK_LIBS})
