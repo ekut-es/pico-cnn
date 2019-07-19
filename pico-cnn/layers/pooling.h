@@ -73,8 +73,8 @@ void max_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const
     output_channel_row = 0;
     output_channel_column = 0;
     
-    output_channel_height = height/stride;
-    output_channel_width = width/stride;
+    output_channel_height = (height-kernel_size)/stride+1;
+    output_channel_width = (width-kernel_size)/stride+1;
 
     for(channel_row = 0; channel_row < height && output_channel_row < output_channel_height; channel_row += stride) {
         for(channel_column = 0; channel_column < width && output_channel_column < output_channel_width; channel_column += stride) {

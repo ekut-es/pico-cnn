@@ -613,3 +613,36 @@ class Softmax(BaseLayer):
 
 
 OperationRegistry.register(Softmax)
+
+
+class LocalResponseNormalization(BaseLayer):
+    name = "LocalResponseNormalizationGeneric"
+    operator = "LRN"
+    template_file = "pico_cnn_lrn.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shape = input_buffer.shape
+        height = input_shape[2]
+        width = input_shape[3]
+
+        depth = input_shape[1]
+
+        operation = cls(node, graph)
+        operation.attributes["input_buffer"] = input_buffer
+        operation.attributes["output_buffer"] = output_buffer
+        operation.attributes["height"] = height
+        operation.attributes["width"] = width
+        operation.attributes["depth"] = depth
+        operation.attributes["alpha"] = attrs["alpha"]
+        operation.attributes["beta"] = attrs["beta"]
+        operation.attributes["size"] = attrs["size"]
+
+        return operation
+
+
+OperationRegistry.register(LocalResponseNormalization)
