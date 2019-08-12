@@ -118,11 +118,7 @@ void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const
 
     // padding valid
     if(padding == 0) {
-        if(stride == 1) {
-            output_channel_width = ((width-2*crop)/stride);
-        } else {
-            output_channel_width = ((width-2*crop)/stride)+1;
-        }
+        output_channel_width = (width-kernel_size)/stride+1;
 
         for(channel_row = crop; channel_row < height-crop; channel_row+=stride) {
             for(channel_column = crop; channel_column < width-crop; channel_column+=stride) {
@@ -146,7 +142,7 @@ void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const
 
     // padding same
     else if(padding == kernel_size/2) {
-        output_channel_width = width;
+        output_channel_width = (width+2*(kernel_size/2)-kernel_size)/stride+1;
 
         for(channel_row = 0; channel_row < height; channel_row+=stride) {
             for(channel_column = 0; channel_column < width; channel_column+=stride) {

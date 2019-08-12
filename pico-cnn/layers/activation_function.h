@@ -33,7 +33,11 @@
  */
 void tanh_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
-    uint16_t i;
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    #else
+    uint32_t i;
+    #endif
 
     for(i = 0; i < height*width; i++) {
         output_channel[i] = tanhf(input_channel[i]);
@@ -51,7 +55,11 @@ void tanh_naive(const fp_t* input_channel, const uint16_t height, const uint16_t
  */
 void relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
-    uint16_t i;
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    #else
+    uint32_t i;
+    #endif
 
     for(i = 0; i < height*width; i++) {
         output_channel[i] = (input_channel[i] < 0.0) ? 0.0 : input_channel[i];
@@ -69,7 +77,11 @@ void relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t
  */
 void softmax_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
-    uint16_t i;
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    #else
+    uint32_t i;
+    #endif
 
     fp_t denominator = 0.0;
 
@@ -140,7 +152,11 @@ void local_response_normalization_naive(fp_t** input_channel, const uint16_t hei
  */
 void relu_naive_fixed16(const fixed16_t* input_channel, const uint16_t height, const uint16_t width, fixed16_t* output_channel) {
 
-    uint16_t i;
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    #else
+    uint32_t i;
+    #endif
 
     for(i = 0; i < height*width; i++) {
         output_channel[i] = ((input_channel[i] & 0x8000) == 0x8000) ? 0 : input_channel[i];
@@ -162,7 +178,11 @@ void relu_cpu_fixed16(const fixed16_t* input_channel, const uint16_t height, con
  */
 void softmax_naive_fixed16(const fixed16_t* input_channel, const uint16_t height, const uint16_t width, fixed16_t* output_channel) {
 
-    uint16_t i;
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    #else
+    uint32_t i;
+    #endif
 
     fixed16_t denominator = FIXED_ZERO;
 
@@ -200,7 +220,11 @@ void relu_cpu(const fp_t* input_channel, const uint16_t height, const uint16_t w
 
     float32x4_t zero = {0.0, 0.0, 0.0, 0.0};
 
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    #else
     uint32_t i;
+    #endif
 
     for(i = 0; i < height*width-BLOCK_SIZE; i += BLOCK_SIZE) {
 
@@ -240,7 +264,11 @@ void relu_cpu(const fp_t* input_channel, const uint16_t height, const uint16_t w
  */
 void softmax_cpu_single(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
-    uint16_t i;
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    #else
+    uint32_t i;
+    #endif
 
     fp_t denominator = 0.0;
 
@@ -331,7 +359,14 @@ void softmax_cpu_single(const fp_t* input_channel, const uint16_t height, const 
  * @param n
  */
 void local_response_normalization_cpu_single(fp_t** input_channel, const uint16_t height, const uint16_t width, const uint16_t depth, fp_t** output_channel, const fp_t alpha, const fp_t beta, const uint16_t n) {
-    int32_t channel, row, column, i;
+
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    #else
+    uint32_t i;
+    #endif
+
+    int32_t channel, row, column;
     int32_t from;
     int32_t to;
 
