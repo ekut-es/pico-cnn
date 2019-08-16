@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
 
     unsigned int i, j;
 
-    initialize();
+    initialize_network();
 
     printf("reading binary weights from '%s'\n", weights_path);
 
@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
 
     printf("after CNN\n");
 
-    cleanup();
+    cleanup_network();
 
     // free memory
     // input

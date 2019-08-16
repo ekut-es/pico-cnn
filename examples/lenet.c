@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
     write_float(t10k_images[INDEX], 28, 28, "input.float");
     #endif
 
-    initialize();
+    initialize_network();
 
     printf("reading weights from '%s'\n", weights_path);
 
@@ -183,7 +183,7 @@ int main(int argc, char** argv) {
 
     }
 
-    cleanup();
+    cleanup_network();
 
     for(i = 0; i < NUM; i++) {
         free(t10k_images[i]);
