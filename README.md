@@ -17,8 +17,9 @@ cd onnx_import
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/model.onnx
 cd generated_code/model
 make dummy_input
-./dummy_input network.weights.bin
+./dummy_input network.weights.bin NUM_RUNS
 ```
+If you might want to monitor overall progress by uncommenting `#define PRINT` in `dummy_input.c`.
 
 ### LeNet-5
 LeNet-5 implementation as proposed by Yann LeCun et. al <a id="cit_LeCun1998">[[LeCun1998]](#LeCun1998)</a>

@@ -1,6 +1,7 @@
-#define RUNS 1
 #define LOWER_BOUND 0.0
 #define UPPER_BOUND 1.0
+
+//#define PRINT
 
 #include "network.h"
 #include "network_initialization.h"
@@ -13,7 +14,7 @@
 #include "pico-cnn/pico-cnn.h"
 
 void usage() {
-    printf("./dummy_input PATH_TO_BINARY_WEIGHTS_FILE\n");
+    printf("./dummy_input PATH_TO_BINARY_WEIGHTS_FILE RUNS\n");
 }
 
 /**
@@ -28,14 +29,15 @@ static inline fp_t urand(fp_t min, fp_t max) {
 
 int main(int argc, char** argv) {
 
-    if(argc != 2) {
-        fprintf(stderr, "No path to weights file provided!\n");
+    if(argc != 3) {
         usage();
         return 1;
     }
 
     char weights_path[1024];
     strcpy(weights_path, argv[1]);
+
+    int RUNS = atoi(argv[2]);
 
     srand(time(NULL));
 
@@ -70,9 +72,12 @@ int main(int argc, char** argv) {
 
     fp_t* output = (fp_t*) malloc({{output_size}}*sizeof(fp_t));
 
-    printf("Starting CNN\n");
+    printf("Starting CNN for %d runs...\n", RUNS);
 
     for(int run = 0; run < RUNS; run++) {
+        #ifdef PRINT
+        printf("Run %d of %d\n", run+1, RUNS);
+        #endif
 
         network(input, output);
 
