@@ -2,6 +2,7 @@ import argparse
 from typing import Text
 import os
 from PIL import Image
+import math
 
 
 def main():
@@ -112,10 +113,10 @@ def center_crop_images(args):
 
             orig_width, orig_height = orig_img.size
 
-            left = (orig_width - width)/2
-            top = (orig_height - height)/2
-            right = (orig_width + width)/2
-            bottom = (orig_height + height)/2
+            left = math.floor((orig_width - width)/2)
+            top = math.floor((orig_height - height)/2)
+            right = math.floor((orig_width + width)/2)
+            bottom = math.floor((orig_height + height)/2)
 
             new_image = orig_img.crop((left, top, right, bottom))
             new_image.save(os.path.join(destination_folder, "{}x{}_center_crop_".format(width, height) + file))
