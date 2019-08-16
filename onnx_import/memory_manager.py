@@ -6,7 +6,7 @@ class Buffer(object):
     def __init__(self, id, name, shape, size, dt, dtsize, alignment,
                  is_managed, dt_string=None, buffer_depth=None):
         self.id = id
-        self.name = name
+        self._name = name
         self.shape = shape
         self.size = size
         self.dt = dt
@@ -19,30 +19,38 @@ class Buffer(object):
         self.buffer_depth = buffer_depth
 
     @property
+    def name(self):
+        return self._name.replace('.', '')
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    @property
     def start_ptr(self):
         if self.offset != 0:
             return "((float*)("+self.name+"+"+str(self.offset)+"))"  # TODO make dependent on dt
-        
+
         return "((float*)"+self.name+")"
 
     @property
     def static_decl(self):
         return "static float " + self.name + "[" + str(self.typed_size) + "]" + ";"
 
-    @property
-    def dynamic_decl(self):  # TODO Can be removed probably
-        return "float **" + self.name + ";"
+    # @property
+    # def dynamic_decl(self):  # TODO Can be removed probably
+    #     return "float **" + self.name + ";"
 
 
     @classmethod
     def get(cls, graph, id: str, name="", alignment=None, dt_string=None):
-        buffer_name = "buffer"
+        buffer_name = "buffer_"
         is_managed = True
         if graph.is_input(id):
-            buffer_name = "input"
+            buffer_name = "input_"
             is_managed = False
         elif graph.is_output(id):
-            buffer_name = "output"
+            buffer_name = "output_"
             is_managed = False
             
         if name != "":

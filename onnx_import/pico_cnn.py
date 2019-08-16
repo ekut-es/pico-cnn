@@ -213,13 +213,17 @@ class MaxPool2D(BaseLayer):
 
         input_id = node.inputs[0]
         input_shape = graph.get_shape(input_id)
-        input_buffer = "buffer" + input_id
+
+        # input_buffer = "buffer" + input_id
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+
         num_input_channels = input_shape[1]
 
-        output_buffer = "buffer" + node.outputs[0]
-
-        if graph.is_output(node.outputs[0]):
-            output_buffer = "output" + node.outputs[0]
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+        # output_buffer = "buffer" + node.outputs[0]
+        #
+        # if graph.is_output(node.outputs[0]):
+        #     output_buffer = "output" + node.outputs[0]
 
         #output_width = graph.get_shape(node.outputs[0], node)[2]
 

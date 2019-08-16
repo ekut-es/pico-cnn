@@ -15,8 +15,10 @@ from backend import Backend, BackendRep
 
 def onnx_to_pico_cnn(onnx_model, model_name):
 
+    # print(onnx_model.graph)
     # Set input batch size to 1
     onnx_model.graph.input[0].type.tensor_type.shape.dim[0].dim_value = 1
+    onnx_model.graph.output[0].type.tensor_type.shape.dim[0].dim_param = "?"
 
     # Remove dropouts
     for op_id, op in enumerate(onnx_model.graph.node):
@@ -27,7 +29,7 @@ def onnx_to_pico_cnn(onnx_model, model_name):
     onnx.checker.check_model(onnx_model)
 
     print("Running model optimization")
-    #TODO: There are more optimizations available
+    # TODO: There are more optimizations available
     optimized_model = optimizer.optimize(onnx_model, ["eliminate_nop_dropout"])
     optimized_model = utils.polish_model(optimized_model)
 

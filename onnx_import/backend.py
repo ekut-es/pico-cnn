@@ -6,7 +6,7 @@ from ir import OperationRegistry
 from ir import CodeRegistry
 from pico_cnn import *
 from memory_allocation import *
-import cffi
+# import cffi
 
 import onnx.backend.base as backend_base
 import onnx
@@ -136,7 +136,7 @@ class BackendRep(backend_base.BackendRep):
 
         tupac = bytes("FD\n", "ascii")
         packed_file.append(struct.pack('{}s'.format(len(tupac)), tupac))
-        packed_file.append(struct.pack('6s', b"lenet\n"))
+        packed_file.append(struct.pack('{}s'.format(len(self.model_name)+1), bytes(self.model_name+"\n", "ascii")))
 
         num_layers = 0
 
@@ -235,7 +235,7 @@ class BackendRep(backend_base.BackendRep):
         initialization_header += "fp_t** biases;\n"
 
         # initialization_code = "#include \"network_initialization.h\"\n\n"
-        initialization_code = "void initialize() {\n\n"
+        initialization_code = "void initialize_network() {\n\n"
 
         num_layers = 0
 
@@ -281,7 +281,7 @@ class BackendRep(backend_base.BackendRep):
 
                 initialization_header += data_type + buffer.name + ";\n"
 
-                initialization_code += "// " + str(buffer.shape) + "\n"
+                initialization_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
 
                 functionality = CodeRegistry.get_funct("KernelAllocation")
                 impl = functionality[0].create(buffer, pos)
@@ -303,7 +303,7 @@ class BackendRep(backend_base.BackendRep):
 
                 initialization_header += data_type + buffer.name + ";\n"
 
-                initialization_code += "// " + str(buffer.shape) + "\n"
+                initialization_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
 
                 functionality = CodeRegistry.get_funct("OutputAllocation")
                 impl = functionality[0].create(buffer, -1)
@@ -332,7 +332,7 @@ class BackendRep(backend_base.BackendRep):
 
         # cleanup_code = "#include \"network_cleanup.h\"\n\n"
         # cleanup_code += "#include \"network_initialization.h\"\n\n"
-        cleanup_code = "void cleanup() {\n"
+        cleanup_code = "void cleanup_network() {\n"
 
         for num, buffer_id in enumerate(memory_manager.buffers):
             buffer = memory_manager.get_buffer(graph, buffer_id)
@@ -461,10 +461,28 @@ class BackendRep(backend_base.BackendRep):
         schedule = self._get_schedule(graph, implementations)
         allocation = self._allocate_memory(graph, schedule)
 
-        input_names = ["input"+str(name) for name, type, shape in graph.inputs]
-        output_names = ["output"+str(name) for name, type, shape in graph.outputs]
+        input_names = ["input_"+name.replace('.', '') for name, type, shape in graph.inputs]
+        output_names = ["output_"+name.replace('.', '') for name, type, shape in graph.outputs]
 
-        input_defs = ["float **"+n for n in input_names]
+        inputs = graph.inputs
+        if len(inputs) > 1:
+            print("ERROR: Multiple inputs not supported!")
+            return
+        else:
+            input_shape = inputs[0].shape
+            print("Input shape: {}".format(input_shape))
+
+            if len(input_shape) == 4:
+                if input_shape[0] != 1:
+                    print("ERROR: Inference for batch_size > 1 currently not supported!")
+                    return
+
+                input_defs = ["float **"+n for n in input_names]
+
+            elif len(input_shape) == 2:
+                print("Input is one-dimensional (batch_size = 1 and num_input_channels = 1")
+                input_defs = ["float *"+n for n in input_names]
+
         output_defs = ["float *"+n for n in output_names]  # TODO: correct datatype?
         network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
         # network_def = "int network(" + ", ".join(input_defs) + ")"
@@ -494,7 +512,7 @@ class BackendRep(backend_base.BackendRep):
             implementation_code += "    //Parameters\n"
             implementation_code += "    //Inputs: " + ",".join(node.inputs) + "\n"
             implementation_code += "    //Outputs: " + ",".join(node.outputs) + "\n"
-            #implementation_code += "    printf(\"Before " + node.name + "\\n\");" + "\n"  # TODO remove this
+            # implementation_code += "    printf(\"Before " + node.name + "\\n\");" + "\n"  # TODO remove this
 
             if impl:
                 implementation_code += impl.generate_code()
@@ -522,8 +540,11 @@ class BackendRep(backend_base.BackendRep):
         self.network_header = network_header
 
         # TODO: Does this need to be more sophisticated?
-        self.makefile = "all: {}.c network.h network_initialization.h network_cleanup.h\n\tgcc {}.c -I../../.. -lm -o {}".format(self.model_name, self.model_name, self.model_name)
-        self.makefile += "\n\nclean:\n\t rm -rf {}".format(self.model_name)
+        self.makefile = "CC = gcc\n"
+        self.makefile += "CFLAGS = -Wall -g\n"
+        self.makefile += "LDFLAGS = -lm\n"
+        self.makefile += "all: {}.c network.h network_initialization.h network_cleanup.h\n\t$(CC) {}.c -I../../.. $(LDFLAGS) -o {}".format(self.model_name, self.model_name, self.model_name)
+        self.makefile += "\n\nclean:\n\t rm -rf {}\n".format(self.model_name)
 
         self.save("./generated_code/{}".format(self.model_name))
 
