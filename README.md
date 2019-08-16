@@ -11,6 +11,15 @@ sudo apt install libjpeg-dev
 sudo yum install libjpeg-devel
 ```
 
+### All networks
+```{bash}
+cd onnx_import
+python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/model.onnx
+cd generated_code/model
+make dummy_input
+./dummy_input network.weights.bin
+```
+
 ### LeNet-5
 LeNet-5 implementation as proposed by Yann LeCun et. al <a id="cit_LeCun1998">[[LeCun1998]](#LeCun1998)</a>
 ```{bash}
@@ -20,7 +29,7 @@ python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/lenet.on
 Copy `lenet.c` from examples folder to `generated_code/lenet`
 ```{bash}
 cd generated_code/lenet
-make
+make lenet
 ./lenet PATH_TO_MNIST network.weights.bin
 ```
 
@@ -35,7 +44,7 @@ cd generated_code/alexnet
 ```
 Add `-ljpeg` to `LDFLAGS` in `Makefile`
 ```{bash}
-make
+make alexnet
 ./alexnet network.weights.bin PATH_TO_IMAGE_MEANS PATH_TO_LABELS PATH_TO_IMAGE
 ```
 
