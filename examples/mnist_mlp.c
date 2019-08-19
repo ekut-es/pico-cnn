@@ -116,8 +116,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    
-
     int correct_predictions = 0;
 
     int confusion_matrix[10][10] = {
@@ -142,7 +140,7 @@ int main(int argc, char** argv) {
 
     for(i = 0; i < NUM; i++) {
 
-        network(&t10k_images[i], output);
+        network(t10k_images[i], output);
 
         float max = output[0];
         int label = 0;

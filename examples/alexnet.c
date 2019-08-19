@@ -14,7 +14,7 @@
 #include "pico-cnn/pico-cnn.h"
 
 void usage() {
-    printf("./ekut_es_alexnet_naive \\\n"); 
+    printf("./ekut_es_alexnet_naive \\\n");
     printf("PATH_TO_EKUT_ES_ALEXNET_WEIGHTS.weights \\\n");
     printf("PATH_TO_MEANS_FILE.means \\\n");
     printf("PATH_TO_IMAGE_NET_LABELS.txt \\\n");
@@ -81,20 +81,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-//    memcpy(&bufferconv2_w_0[12288], &bufferconv2_w_0[0], 12288*sizeof(float));
-//    memcpy(&bufferconv4_w_0[73728], &bufferconv4_w_0[0], 73728*sizeof(float));
-//    memcpy(&bufferconv5_w_0[49152], &bufferconv5_w_0[0], 49152*sizeof(float));
-
-
-
-//    for (int tmp = 0; tmp < 25; tmp++){
-//        printf("%f ", bufferconv2_w_0[0][tmp]);
-//        if(tmp % 5 == 4)
-//            printf("\n");
-//    }
-//    printf("\n");
-
-
     // read means
     printf("reading means from '%s'\n", means_path);
 
@@ -131,31 +117,31 @@ int main(int argc, char** argv) {
 
     printf("After read_jpeg\n");
 
-     // substract mean from each channel
-     fp_t** input = (fp_t**) malloc(3*sizeof(fp_t*));
-     input[0] = (fp_t*) malloc(227*227*sizeof(fp_t));
-     input[1] = (fp_t*) malloc(227*227*sizeof(fp_t));
-     input[2] = (fp_t*) malloc(227*227*sizeof(fp_t));
+    // substract mean from each channel
+    fp_t** input = (fp_t**) malloc(3*sizeof(fp_t*));
+    input[0] = (fp_t*) malloc(227*227*sizeof(fp_t));
+    input[1] = (fp_t*) malloc(227*227*sizeof(fp_t));
+    input[2] = (fp_t*) malloc(227*227*sizeof(fp_t));
 
-     uint16_t row;
-     uint16_t column;
+    uint16_t row;
+    uint16_t column;
 
-     for(i = 0; i < 3; i++) {
-         for(row = 0; row < height; row++) {
-             for(column = 0; column < height; column++) {
-                 input[i][row*width+column] = pre_mean_input[i][row*width+column] - means[i];
-             }
-         }
-     }
+    for(i = 0; i < 3; i++) {
+        for(row = 0; row < height; row++) {
+            for(column = 0; column < height; column++) {
+                input[i][row*width+column] = pre_mean_input[i][row*width+column] - means[i];
+            }
+        }
+    }
 
-     // free pre mean input image
-     for(i = 0; i < 3; i++) {
-         free(pre_mean_input[i]);
-     }
-     free(pre_mean_input);
+    // free pre mean input image
+    for(i = 0; i < 3; i++) {
+        free(pre_mean_input[i]);
+    }
+    free(pre_mean_input);
 
-     // free means
-     free(means);
+    // free means
+    free(means);
 
 //    fp_t** input = pre_mean_input;
 
@@ -175,7 +161,7 @@ int main(int argc, char** argv) {
     free(input[1]);
     free(input[2]);
     free(input);
-    
+
     // print prediction
     uint16_t* labels_pos;
     labels_pos = (uint16_t*) malloc(1000*sizeof(uint16_t));
