@@ -14,7 +14,7 @@
 #include "pico-cnn/pico-cnn.h"
 
 void usage() {
-    printf("./dummy_input PATH_TO_BINARY_WEIGHTS_FILE RUNS\n");
+    printf("./dummy_input PATH_TO_BINARY_WEIGHTS_FILE RUNS GENERATE_ONCE\n");
 }
 
 /**
@@ -29,7 +29,7 @@ static inline fp_t urand(fp_t min, fp_t max) {
 
 int main(int argc, char** argv) {
 
-    if(argc != 3) {
+    if(argc != 4) {
         usage();
         return 1;
     }
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 
     int RUNS = atoi(argv[2]);
 
-    srand(time(NULL));
+    int GENERATE_ONCE = atoi(argv[3]);
 
     {% if input_shape_len == 4 %}
     fp_t** input = (fp_t**) malloc({{num_input_channels}}*sizeof(fp_t*));
@@ -47,19 +47,31 @@ int main(int argc, char** argv) {
     for(int i = 0; i < {{num_input_channels}}; i++){
         input[i] = (fp_t*) malloc({{input_channel_width}}*{{input_channel_height}}*sizeof(fp_t));
     }
-
-    for(int channel = 0; channel < {{num_input_channels}}; channel++) {
-        for(int pos = 0; pos < {{input_channel_width}}*{{input_channel_height}}; pos++) {
-            input[channel][pos] = urand(LOWER_BOUND, UPPER_BOUND);
-        }
-    }
-
     {% elif input_shape_len == 2 %}
     fp_t* input = (fp_t*) malloc({{input_channel_width}}*{{input_channel_height}}*sizeof(fp_t));
-    for(int pos = 0; pos < {{input_channel_width}}*{{input_channel_height}}; pos++) {
-            input[pos] = urand(LOWER_BOUND, UPPER_BOUND);
-        }
     {% endif %}
+
+
+    if(GENERATE_ONCE) {
+        printf("Random input will be generated once for all inference runs.\n");
+
+        srand(time(NULL));
+
+        {% if input_shape_len == 4 %}
+        for(int channel = 0; channel < {{num_input_channels}}; channel++) {
+            for(int pos = 0; pos < {{input_channel_width}}*{{input_channel_height}}; pos++) {
+                input[channel][pos] = urand(LOWER_BOUND, UPPER_BOUND);
+            }
+        }
+        {% elif input_shape_len == 2 %}
+        for(int pos = 0; pos < {{input_channel_width}}*{{input_channel_height}}; pos++) {
+                input[pos] = urand(LOWER_BOUND, UPPER_BOUND);
+            }
+        {% endif %}
+
+    } else {
+        printf("Random input will be generated with new seed for each inference run.\n");
+    }
 
     initialize_network();
 
@@ -79,8 +91,22 @@ int main(int argc, char** argv) {
         printf("Run %d of %d\n", run+1, RUNS);
         #endif
 
-        network(input, output);
+        if(!GENERATE_ONCE) {
+            srand(time(NULL));
 
+            {% if input_shape_len == 4 %}
+            for(int channel = 0; channel < {{num_input_channels}}; channel++) {
+                for(int pos = 0; pos < {{input_channel_width}}*{{input_channel_height}}; pos++) {
+                    input[channel][pos] = urand(LOWER_BOUND, UPPER_BOUND);
+                }
+            }
+            {% elif input_shape_len == 2 %}
+            for(int pos = 0; pos < {{input_channel_width}}*{{input_channel_height}}; pos++) {
+                    input[pos] = urand(LOWER_BOUND, UPPER_BOUND);
+                }
+            {% endif %}
+        }
+        network(input, output);
     }
 
     printf("After CNN\n");

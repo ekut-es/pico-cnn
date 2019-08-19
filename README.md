@@ -24,8 +24,11 @@ cd onnx_import
 python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/model.onnx
 cd generated_code/model
 make dummy_input
-./dummy_input network.weights.bin NUM_RUNS
+./dummy_input network.weights.bin NUM_RUNS GENERATE_ONCE
 ```
+`GENERATE_ONCE = 0` will lead to new random input for each inference run.  
+`GENERATE_ONCE = 1` will lead to the same random input for each inference run.
+
 If you might want to monitor overall progress by uncommenting `#define PRINT` in `dummy_input.c`.
 
 ### LeNet-5
