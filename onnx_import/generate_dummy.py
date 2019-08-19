@@ -8,6 +8,11 @@ template_env = Environment(loader=FileSystemLoader(template_dir))
 
 
 def generate_dummy_main(graph):
+    """
+    Generate code that creates random input values and calls the CNN.
+    :param graph: ComputeGraph representing the CNN.
+    :return: String containing the generated code.
+    """
     template = template_env.get_template("dummy_input.c")
 
     attributes = {}

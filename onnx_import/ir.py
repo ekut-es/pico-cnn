@@ -2,6 +2,9 @@ from collections import defaultdict
 
 
 class OperationRegistry(object):
+    """
+    This class is used to register, store and return the operations inheriting from BaseLayer.
+    """
     ops = []
     ops_by_name = defaultdict(list)
     ops_by_operator = defaultdict(list)
@@ -19,6 +22,10 @@ class OperationRegistry(object):
 
 
 class CodeRegistry(object):
+    """
+    This class is used to register, store and return the memory
+    allocation code generation objects inheriting from BaseCode.
+    """
     functionality = []
     functionality_by_name = defaultdict(list)
 

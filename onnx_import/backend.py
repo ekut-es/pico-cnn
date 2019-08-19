@@ -104,6 +104,12 @@ class BackendRep(backend_base.BackendRep):
                                 node.inputs[num] = removed_input
 
     def _generate_parameters(self, graph, memory_manager):
+        """
+        Legacy function to generate a .h and .c file containing all kernel and bias values.
+        :param graph: ComputeGraph of the parsed onnx model.
+        :param memory_manager: MemoryManager containing information about input and output buffers of each operation.
+        :return:
+        """
         # Generate Node Parameters
         parameter_header = "#ifndef NETWORK_PARAMETERS_H\n"
         parameter_header += "#define NETWORK_PARAMETERS_H\n"
@@ -130,7 +136,13 @@ class BackendRep(backend_base.BackendRep):
         self.parameter_header = parameter_header
         self.parameter_code = parameter_code
 
-    def _generate_weights_file(self, graph, memory_manager):
+    def _generate_weights_file(self, graph):
+        """
+        Generate a binary file containing all kernel and bias values.
+        This generated file can then be read by the pico-cnn function in io/read_binary_weights.h
+        :param graph: ComputeGraph of the parsed onnx model.
+        :return:
+        """
         # weights_file = "FE\n"
         # weights_file += "tiny-dnn export\n"
 
@@ -228,6 +240,13 @@ class BackendRep(backend_base.BackendRep):
         self.packed_file = packed_file
 
     def _generate_network_initialization(self, graph, memory_manager):
+        """
+        Generate code that allocates all necessary input and output buffers of all operations.
+        At the moment everything will be written to a single .h file. This should be changed in the future.
+        :param graph: ComputeGraph of the parsed onnx model.
+        :param memory_manager: MemoryManager containing information about input and output buffers of each operation.
+        :return:
+        """
         initialization_header = "#ifndef NETWORK_INITIALIZATION_H\n"
         initialization_header += "#define NETWORK_INITIALIZATION_H\n"
         initialization_header += "#include <stdlib.h>\n"
@@ -242,14 +261,17 @@ class BackendRep(backend_base.BackendRep):
         num_layers = 0
 
         for node in graph.nodes:
+            """Do not count the reshape layers as the input tensor will only define the dimensions"""
             if len(node.input_tensors) > 0 and node.op_type != "Reshape":
                 num_layers += 1
 
+        """The arrays kernels and biases will be used to pass only two variables to read_binary_weights"""
         initialization_code += "kernels = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(num_layers)
         initialization_code += "biases = (fp_t**) malloc({} * sizeof(fp_t*));\n\n".format(num_layers)
 
         pos = -1
 
+        """Iterate over all nodes in the graph and generate the corresponding allocation code."""
         for node in graph.nodes:
 
             if len(node.input_tensors) > 0 and node.op_type != "Reshape":
@@ -308,7 +330,7 @@ class BackendRep(backend_base.BackendRep):
                 initialization_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
 
                 functionality = CodeRegistry.get_funct("OutputAllocation")
-                impl = functionality[0].create(buffer, -1)
+                impl = functionality[0].create(buffer)
 
                 if impl:
                     initialization_code += impl.generate_code()
@@ -326,6 +348,12 @@ class BackendRep(backend_base.BackendRep):
         self.initialization_code = initialization_code
 
     def _generate_network_cleanup(self, graph, memory_manager):
+        """
+        Generate code that frees all previously allocated buffer memory of all operations.
+        :param graph: ComputeGraph of the parsed onnx model.
+        :param memory_manager: MemoryManager containing information about input and output buffers of each operation.
+        :return:
+        """
         cleanup_header = "#ifndef NETWORK_CLEANUP_H\n"
         cleanup_header += "#define NETWORK_CLEANUP_H\n"
         cleanup_header += "#include <stdlib.h>\n"
@@ -357,6 +385,14 @@ class BackendRep(backend_base.BackendRep):
         self.cleanup_code = cleanup_code
 
     def _select_implementations(self, graph, memory_manager):
+        """
+        Function to select the first of possibly multiple implementation candidates
+        for a each operation in the ComputeGraph.
+        TODO: In the future this function will be extended to select different implementations (naive/armPerfLibs/openMP)
+        :param graph: ComputeGraph of the parsed onnx model.
+        :param memory_manager: MemoryManager containing information about input and output buffers of each operation.
+        :return: Dictionary containing implementations of all the nodes in the ComputeGraph
+        """
         implementations = {}
         for node in graph.nodes:
             choices = []
@@ -373,9 +409,13 @@ class BackendRep(backend_base.BackendRep):
         return implementations
 
     def _get_schedule(self, graph, implementations):
-        # This is not a real scheduler, for now, just assume
-        # the onnx defines a valid schedule
-
+        """
+        This is not a real scheduler, for now, just assume the onnx defines a valid schedule.
+        The functions just enumerates all implementations and returns a list.
+        :param graph: ComputeGraph of the parsed onnx model.
+        :param implementations: Dictionary containing the previously selected implementations of all operations in the ComputeGraph.
+        :return: List of named tuples ("SchedulerTask", ["time", "node", "implementation"])
+        """
         SchedulerTask = namedtuple("SchedulerTask", ["time", "node", "implementation"])
         schedule = []
         for num, node in enumerate(graph.nodes):
@@ -383,9 +423,12 @@ class BackendRep(backend_base.BackendRep):
 
         return schedule
 
-    def _allocate_memory(self, graph, schedule):
-        # Calculate Live Ranges
-
+    def _allocate_memory(self, schedule):
+        """
+        Calculate Live Ranges and print them. For debug purposes.
+        :param schedule: Previously comuted pseudo-schedule.
+        :return:
+        """
         range_starts = {}
         range_ends = {}
 
@@ -416,6 +459,11 @@ class BackendRep(backend_base.BackendRep):
             print()
 
     def _export_model(self):
+        """
+        Parses the onnx model to be represented as a ComputeGraph and then calls all
+        functions needed for generating the pico-cnn code.
+        :return:
+        """
         graph = ComputeGraph.from_onnx(self.onnx_model.graph)
 
         # BUG: Problem in constant propagation for Pooling Layer
@@ -453,7 +501,7 @@ class BackendRep(backend_base.BackendRep):
 
         memory_manager = MemoryManager()
 
-        self._generate_weights_file(graph, memory_manager)
+        self._generate_weights_file(graph)
 
         self.dummy_input = generate_dummy_main(graph)
 
@@ -463,11 +511,12 @@ class BackendRep(backend_base.BackendRep):
 
         implementations = self._select_implementations(graph, memory_manager)
         schedule = self._get_schedule(graph, implementations)
-        allocation = self._allocate_memory(graph, schedule)
+        self._allocate_memory(schedule)
 
         input_names = ["input_"+name.replace('.', '') for name, type, shape in graph.inputs]
         output_names = ["output_"+name.replace('.', '') for name, type, shape in graph.outputs]
 
+        """Currently we only allow single input (no batch processing) to the CNN, but this may be multi-channel input"""
         inputs = graph.inputs
         if len(inputs) > 1:
             print("ERROR: Multiple inputs not supported!")
@@ -487,12 +536,14 @@ class BackendRep(backend_base.BackendRep):
                 print("Input is one-dimensional (batch_size = 1 and num_input_channels = 1")
                 input_defs = ["float *"+n for n in input_names]
 
-        output_defs = ["float *"+n for n in output_names]  # TODO: correct datatype?
+        # TODO: Has to be changed as soon as be want to support multiple other data types (e.g. fixed-point)
+        output_defs = ["float *"+n for n in output_names]
         network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
         # network_def = "int network(" + ", ".join(input_defs) + ")"
 
         self.network_def = network_def + ";"
 
+        # TODO: Separate definition and implementation in the future.
         # network_header = "#ifndef NETWORK_H\n"
         # network_header += "#define NETWORK_H\n"
         # network_header += "#include \"pico-cnn/parameters.h\"\n\n"
@@ -507,6 +558,7 @@ class BackendRep(backend_base.BackendRep):
 
         implementation_code = ""
 
+        """Iterate over all tasks in the schedule, put some debug info in the code and the pico-cnn implementation."""
         for task in schedule:
             num, node, impl = task
             implementation_code += "    //Layer " + str(num) + " " + node.name + " " + node.op_type + "\n"
@@ -516,12 +568,12 @@ class BackendRep(backend_base.BackendRep):
             implementation_code += "    //Parameters\n"
             implementation_code += "    //Inputs: " + ",".join(node.inputs) + "\n"
             implementation_code += "    //Outputs: " + ",".join(node.outputs) + "\n"
-            # implementation_code += "    printf(\"Before " + node.name + "\\n\");" + "\n"  # TODO remove this
 
             if impl:
                 implementation_code += impl.generate_code()
                 implementation_code += "\n"
 
+        # TODO: What does this loop do?
         for id, buffer in memory_manager.buffers.items():
             if graph.is_tensor(id):
                 continue
@@ -543,6 +595,10 @@ class BackendRep(backend_base.BackendRep):
         self.network_code = network_code
         self.network_header = network_header
 
+        """
+        Create Makefile containing a target for the generated dummy input and a network specific one.
+        The code for the network specific input has to be written manually.
+        """
         # TODO: Does this need to be more sophisticated?
         self.makefile = "CC = gcc\n"
         self.makefile += "CFLAGS = -Wall -g\n"
@@ -555,6 +611,11 @@ class BackendRep(backend_base.BackendRep):
         self.save("./generated_code/{}".format(self.model_name))
 
     def save(self, folder):
+        """
+        Save the generated code and binary weights to files in the specified directory.
+        :param folder: Directory where files should be saved to.
+        :return:
+        """
         try:
             os.makedirs(folder)
             print("Created directory for generated code.")

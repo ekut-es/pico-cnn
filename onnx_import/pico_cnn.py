@@ -14,6 +14,9 @@ template_env = Environment(loader=FileSystemLoader(template_dir))
 
 
 class BaseLayer(object):
+    """
+    Base layer class to inherit from. Operator implementations see below.
+    """
     def __init__(self, node, graph):
         print("Generating layer", node.name)
         self.node = node
@@ -30,12 +33,22 @@ class BaseLayer(object):
 
 
 class Conv2D(BaseLayer):
+    """
+    2-dimensional convolution layer.
+    """
     name = "PicoCNNConv2D"
     operator = "Conv"
     template_file = "pico_cnn_conv2d.c"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
         operation = cls(node, graph)
 
         attrs = node.attrs
@@ -156,12 +169,23 @@ OperationRegistry.register(Conv2D)
 
 
 class FullyConnected(BaseLayer):
+    """
+    Fully-connected layer. The corresponding operator in an onnx model is "Gemm".
+    Basically this is a simple matrix x matrix multiplication.
+    """
     name = "PicoCNNFullyConnected"
     operator = "Gemm"
     template_file = "pico_cnn_fc.c"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
         attrs = node.attrs
 
         if 'alpha' in node.attrs:
@@ -200,12 +224,23 @@ OperationRegistry.register(FullyConnected)
 
 
 class MaxPool2D(BaseLayer):
+    """
+    2-dimensional max-pooling operation.
+    Kernel size defines the amount of entries from which the maximum will be chosen.
+    """
     name = "PicoCNNMaxPool2D"
     operator = "MaxPool"
     template_file = "pico_cnn_max_pool2d.c"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
         attrs = node.attrs
 
         assert len(attrs["kernel_shape"]) == 2
@@ -282,12 +317,22 @@ OperationRegistry.register(MaxPool2D)
 
 
 class Relu(BaseLayer):
+    """
+    Rectified linear unit activation function.
+    """
     name = "PicoCNNRelu"
     operator = "Relu"
     template_file = "pico_cnn_relu.c"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
         print("generating relu layer")
 
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
@@ -519,12 +564,22 @@ OperationRegistry.register(Relu)
 
 
 class Reshape(BaseLayer):
+    """
+    Transposes the input and writes it to the output buffer.
+    """
     name = "ReshapeGeneric"
     operator = "Reshape"
     template_file = "reshape.c"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
         attrs = node.attrs
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
@@ -548,7 +603,6 @@ class Reshape(BaseLayer):
         operation.attributes['input_height'] = input_height
 
         operation.attributes['output_buffer'] = output_buffer
-
 
         return operation
 
@@ -593,12 +647,22 @@ OperationRegistry.register(Reshape)
 
 
 class Softmax(BaseLayer):
+    """
+    Softmax function.
+    """
     name = "SoftmaxGeneric"
     operator = "Softmax"
     template_file = "pico_cnn_softmax.c"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
         attrs = node.attrs
         input_buffers = [memory_manager.get_buffer(graph, i) for i in node.inputs]
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
@@ -620,12 +684,22 @@ OperationRegistry.register(Softmax)
 
 
 class LocalResponseNormalization(BaseLayer):
+    """
+    Local response normalization function.
+    """
     name = "LocalResponseNormalizationGeneric"
     operator = "LRN"
     template_file = "pico_cnn_lrn.c"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
         attrs = node.attrs
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])

@@ -6,9 +6,9 @@ import numpy as np
 
 def _convertAttributeProto(onnx_arg): 
     """
-    Convert an ONNX AttributeProto into an appropriate Python object
-    for the type.
-    NB: Tensor attribute gets returned as numpy array
+    Convert an ONNX AttributeProto into an appropriate Python object for the type.
+    :param onnx_arg: A node of the graph representing the CNN
+    :return: Tensor attribute gets returned as numpy array
     """
     if onnx_arg.HasField('f'):
         return onnx_arg.f
@@ -31,7 +31,12 @@ def _convertAttributeProto(onnx_arg):
 EdgeInfo = namedtuple('EdgeInfo', ['name', 'type', 'shape'])
 
 
-def _input_from_onnx_input(input) -> EdgeInfo: 
+def _input_from_onnx_input(input) -> EdgeInfo:
+    """
+    Create EdgeInfo named tupel containing name, type and shape of the input.
+    :param input: Input or output of the graph representation of the CNN.
+    :return: EdgeInfo tupel
+    """
     name = input.name
     type = input.type.tensor_type.elem_type
     shape = tuple([d.dim_value for d in input.type.tensor_type.shape.dim])
@@ -39,6 +44,9 @@ def _input_from_onnx_input(input) -> EdgeInfo:
 
 
 class Attributes(Dict[Text, Any]):
+    """
+    Custom dictionary object containing the parsed information from the protobuf attributes.
+    """
     @staticmethod
     def from_onnx(args: AttributeProto) -> Any:
         d = Attributes()
@@ -48,7 +56,9 @@ class Attributes(Dict[Text, Any]):
 
 
 class ComputeNode(object):
-
+    """
+    Contains all important information of a node in the graph representing the CNN.
+    """
     def __init__(self, name: str,
                  op_type: str,
                  attrs: Attributes,
@@ -75,7 +85,9 @@ class ComputeNode(object):
 
 
 class ComputeGraph(object):
-
+    """
+    Graph representing the CNN.
+    """
     def __init__(self, nodes: List[ComputeNode], inputs, outputs, shape_dict):
         self.nodes: List[ComputeNode] = nodes
         self.inputs = inputs
@@ -83,7 +95,12 @@ class ComputeGraph(object):
         self.shape_dict: Dict[str, np.ndarray] = shape_dict
 
     @staticmethod
-    def from_onnx(graph) -> Any:  
+    def from_onnx(graph) -> Any:
+        """
+        Create the ComputeGraph from the onnx model.
+        :param graph: The graph stored in the onnx file.
+        :return: ComputeGraph representing the CNN.
+        """
         input_tensors = {
             t.name: numpy_helper.to_array(t) for t in graph.initializer
         }
@@ -157,7 +174,7 @@ class ComputeGraph(object):
         for child in node.children:
             child.parents.remove(node)
 
-    def get_shape(self, name : Text) -> Iterable[int]:
+    def get_shape(self, name: Text) -> Iterable[int]:
         for input in self.inputs:
             if input.name == name:
                 return input.shape
@@ -165,7 +182,6 @@ class ComputeGraph(object):
         for output in self.outputs:
             if output.name == name:
                 return output.shape
-
 
         for node in self.nodes:
             if name in node.input_tensors:
