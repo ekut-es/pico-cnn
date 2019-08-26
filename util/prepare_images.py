@@ -49,13 +49,6 @@ def main():
 
 def scale_images(args):
 
-    destination_folder = args.directory + "/scaled"
-
-    try:
-        os.makedirs(destination_folder)
-    except FileExistsError:
-        pass
-
     size = args.size
     if len(size) == 1:
         width = height = size[0]
@@ -65,6 +58,13 @@ def scale_images(args):
     else:
         print("Dimensions to be scaled to is unknown: {}".format(size))
         return 1
+
+    destination_folder = args.directory + "/scaled_{}x{}".format(width, height)
+
+    try:
+        os.makedirs(destination_folder)
+    except FileExistsError:
+        pass
 
     print("Scaling images to {} x {} (width x height)...".format(width, height))
 
@@ -85,13 +85,6 @@ def scale_images(args):
 
 def center_crop_images(args):
 
-    destination_folder = args.directory + "/center_cropped"
-
-    try:
-        os.makedirs(destination_folder)
-    except FileExistsError:
-        pass
-
     size = args.size
     if len(size) == 1:
         width = height = size[0]
@@ -102,13 +95,20 @@ def center_crop_images(args):
         print("Dimensions to be cropped to is unknown: {}".format(size))
         return 1
 
+    destination_folder = args.directory + "/center_cropped_{}x{}".format(width, height)
+
+    try:
+        os.makedirs(destination_folder)
+    except FileExistsError:
+        pass
+
     print("Center cropping images to {}x{} (width x height)...".format(width, height))
 
     files = os.listdir(args.directory)
 
     for num, file in enumerate(files):
         print("Processing {} ({}/{})".format(file, num+1, len(files)))
-        if file.endswith(".JPEG") and file.startswith("ILSVRC"):
+        if file.endswith(".JPEG"):
             orig_img = Image.open(os.path.join(args.directory, file), "r")
 
             orig_width, orig_height = orig_img.size
@@ -128,13 +128,6 @@ def center_crop_images(args):
 
 
 def crop_images(args):
-
-    destination_folder = args.directory + "/cropped"
-
-    try:
-        os.makedirs(destination_folder)
-    except FileExistsError:
-        pass
 
     size = args.size
     if len(size) == 1:
@@ -159,6 +152,14 @@ def crop_images(args):
         pos_y = position[1]
     else:
         print("Position of top left crop corner is unknown: {}".format(position))
+        return 1
+
+    destination_folder = args.directory + "/cropped_{}x{}".format(width, height)
+
+    try:
+        os.makedirs(destination_folder)
+    except FileExistsError:
+        pass
 
     print("Cropping images to {}x{} (width x height)...".format(width, height))
 
