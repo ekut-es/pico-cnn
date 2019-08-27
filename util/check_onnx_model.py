@@ -1,7 +1,10 @@
-import numpy as np
-import onnx
+import argparse
+from typing import Text
 import os
 import glob
+
+import numpy as np
+import onnx
 import caffe2.python.onnx.backend as backend
 
 from onnx import numpy_helper
@@ -9,8 +12,22 @@ from onnx import numpy_helper
 
 def main():
 
-    model = onnx.load('/home/junga/Downloads/vgg16/vgg16/vgg16.onnx')
-    test_data_dir = '/home/junga/Downloads/vgg16/vgg16/test_data_set_0'
+    parser = argparse.ArgumentParser(description="Tool to compare output of onnx model to sample data.")
+    parser.add_argument(
+        "--input",
+        type=Text,
+        required=True,
+        help="Path to onnx model."
+    )
+    args = parser.parse_args()
+
+    input_path = args.input
+    test_data_dir = os.path.join(os.path.dirname(os.path.abspath(input_path)), "test_data_set_0")
+
+    print(input_path)
+    print(test_data_dir)
+
+    model = onnx.load(input_path)
 
     # Load inputs
     inputs = []
@@ -37,7 +54,7 @@ def main():
 
     # Compare the results with reference outputs.
     for ref_o, o in zip(ref_outputs, outputs):
-        np.testing.assert_almost_equal(ref_o, o)
+        np.testing.assert_almost_equal(ref_o, o, decimal=2)
 
 
 if __name__ == '__main__':
