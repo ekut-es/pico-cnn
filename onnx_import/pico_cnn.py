@@ -608,6 +608,66 @@ class Reshape(BaseLayer):
 
 
 OperationRegistry.register(Reshape)
+
+
+class Flatten(BaseLayer):
+    """
+    Transposes the input and writes it to the output buffer.
+    """
+    name = "FlattenGeneric"
+    operator = "Flatten"
+    template_file = "reshape.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
+        attrs = node.attrs
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_id = node.inputs[0]
+        input_shape = graph.get_shape(input_id)
+
+        output_id = node.outputs[0]
+        output_shape = graph.get_shape(output_id)
+
+        assert(reduce_mult(input_shape) == reduce_mult(output_shape))
+
+        if len(input_shape) == 4:
+            num_input_channels = input_shape[1]
+            input_width = input_shape[2]
+            input_height = input_shape[3]
+            no_change = 0
+        elif len(input_shape) == 2:
+            num_input_channels = 1
+            input_width = input_shape[1]
+            input_height = 1
+            no_change = 1
+        else:
+            print("ERROR: Unsupported tensor shape in flatten operation: {}".format(input_shape))
+            return 1
+
+        operation = cls(node, graph)
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['num_input_channels'] = num_input_channels
+        operation.attributes['input_width'] = input_width
+        operation.attributes['input_height'] = input_height
+
+        operation.attributes['output_buffer'] = output_buffer
+
+        operation.attributes['no_change'] = no_change
+
+        return operation
+
+
+OperationRegistry.register(Flatten)
+
 #
 #
 # class Add(BaseLayer):
