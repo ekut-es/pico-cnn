@@ -228,6 +228,7 @@ class BackendRep(backend_base.BackendRep):
 
                 else:
                     print("ERROR: Unknown input tensor shape!")
+                    return 1
                     # weight_data = ""
 
                 # temp = "\n".join((str(float(x).hex()) for x in data.flatten()))
@@ -520,7 +521,7 @@ class BackendRep(backend_base.BackendRep):
         inputs = graph.inputs
         if len(inputs) > 1:
             print("ERROR: Multiple inputs not supported!")
-            return
+            return 1
         else:
             input_shape = inputs[0].shape
             print("Input shape: {}".format(input_shape))
@@ -528,7 +529,7 @@ class BackendRep(backend_base.BackendRep):
             if len(input_shape) == 4:
                 if input_shape[0] != 1:
                     print("ERROR: Inference for batch_size > 1 currently not supported!")
-                    return
+                    return 1
 
                 input_defs = ["float **"+n for n in input_names]
 
@@ -572,6 +573,9 @@ class BackendRep(backend_base.BackendRep):
             if impl:
                 implementation_code += impl.generate_code()
                 implementation_code += "\n"
+            else:
+                print("ERROR: Unsupported layer: {}! Aborting code generation.".format(node.op_type))
+                return 1
 
         # TODO: What does this loop do?
         for id, buffer in memory_manager.buffers.items():

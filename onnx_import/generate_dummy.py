@@ -22,14 +22,14 @@ def generate_dummy_main(graph):
 
     if len(inputs) > 1:
         print("ERROR: Multiple inputs not supported!")
-        return
+        return 1
     else:
         input_shape = inputs[0].shape
 
         if len(input_shape) == 4:
             if input_shape[0] != 1:
                 print("ERROR: Inference for batch_size > 1 currently not supported!")
-                return
+                return 1
 
             num_input_channels = input_shape[1]
 
@@ -44,17 +44,17 @@ def generate_dummy_main(graph):
 
         else:
             print("ERROR: Creation of dummy input not supported for this input shape: {}".format(input_shape))
-            return
+            return 1
 
     if len(outputs) > 1:
         print("ERROR: Multiple outputs not supported!")
-        return
+        return 1
     else:
         output_shape = outputs[0].shape
 
         if len(output_shape) != 2:
             print("ERROR: Unsupported output shape: {}".format(output_shape))
-            return
+            return 1
         else:
             output_size = output_shape[1]
 
