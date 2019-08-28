@@ -33,6 +33,7 @@ class BackendRep(backend_base.BackendRep):
         self.packed_file = list()
         self.makefile = ""
         self.dummy_input = ""
+        self.reference_input = ""
         self._export_model()
 
     def run(self, inputs, **kwargs):
@@ -506,6 +507,8 @@ class BackendRep(backend_base.BackendRep):
 
         self.dummy_input = generate_dummy_main(graph)
 
+        self.reference_input = generate_reference_main(graph)
+
         self._generate_network_initialization(graph, memory_manager)
 
         self._generate_network_cleanup(graph, memory_manager)
@@ -608,9 +611,10 @@ class BackendRep(backend_base.BackendRep):
         self.makefile += "CFLAGS = -Wall -g\n"
         self.makefile += "LDFLAGS = -lm\n"
         self.makefile += "dummy_input: dummy_input.c network.h network_initialization.h network_cleanup.h\n\t$(CC) dummy_input.c -I../../.. $(LDFLAGS) -o dummy_input"
+        self.makefile += "\n\nreference_input: reference_input.c network.h network_initialization.h network_cleanup.h\n\t$(CC) reference_input.c -I../../.. $(LDFLAGS) -o reference_input"
         self.makefile += "\n\n{}: {}.c network.h network_initialization.h network_cleanup.h\n\t$(CC) {}.c -I../../.. $(LDFLAGS) -o {}".format(self.model_name, self.model_name, self.model_name, self.model_name)
         self.makefile += "\n\nall: dummy_input {}".format(self.model_name)
-        self.makefile += "\n\nclean:\n\t rm -rf {} dummy_input\n".format(self.model_name)
+        self.makefile += "\n\nclean:\n\t rm -rf {} dummy_input reference_input\n".format(self.model_name)
 
         self.save("./generated_code/{}".format(self.model_name))
 
@@ -656,6 +660,9 @@ class BackendRep(backend_base.BackendRep):
 
         with open(os.path.join(folder, "dummy_input.c"), "w") as f:
             f.write(self.dummy_input)
+
+        with open(os.path.join(folder, "reference_input.c"), "w") as f:
+            f.write(self.reference_input)
 
 
 class Backend(object):
