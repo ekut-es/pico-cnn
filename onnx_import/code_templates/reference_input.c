@@ -83,6 +83,7 @@ int main(int argc, char** argv) {
         printf("WARNING: Output is not almost equal (epsilon=%f) to reference output!\n", EPSILON);
 
     free(output);
+    free(ref_output);
 
     {% if input_shape_len == 4 %}
     for(int i = 0; i < {{num_input_channels}}; i++) {
