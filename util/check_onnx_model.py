@@ -56,6 +56,8 @@ def main():
     for ref_o, o in zip(ref_outputs, outputs):
         np.testing.assert_almost_equal(ref_o, o, decimal=2)
 
+    print("Reference output matches computed output of network.")
+
 
 if __name__ == '__main__':
     main()
