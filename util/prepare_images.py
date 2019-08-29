@@ -72,7 +72,8 @@ def scale_images(args):
 
     for num, file in enumerate(files):
         print("Processing {} ({}/{})".format(file, num+1, len(files)))
-        if file.endswith(".JPEG") and file.startswith("ILSVRC"):
+        # if file.endswith(".JPEG") and file.startswith("ILSVRC"):
+        if file.endswith(".JPEG"):
             orig_img = Image.open(os.path.join(args.directory, file), "r")
             new_img = orig_img.resize((width, height), Image.ANTIALIAS)
             new_img.save(os.path.join(destination_folder, "{}x{}_scale_".format(width, height) + file))
