@@ -112,7 +112,7 @@ void softmax_naive(const fp_t* input_channel, const uint16_t height, const uint1
  * @param beta
  * @param n
  */
-void local_response_normalization_naive(fp_t** input_channel, const uint16_t height, const uint16_t width, const uint16_t depth, fp_t** output_channel, const fp_t alpha, const fp_t beta, const uint16_t n) {
+void local_response_normalization_naive(fp_t** input_channels, const uint16_t height, const uint16_t width, const uint16_t depth, fp_t** output_channels, const fp_t alpha, const fp_t beta, const uint16_t n) {
     
     int32_t channel, row, column, i;
     int32_t from;
@@ -130,10 +130,10 @@ void local_response_normalization_naive(fp_t** input_channel, const uint16_t hei
                 sum = 0.0;
 
                 for(i = from; i <= to; i++) {
-                    sum += powf(input_channel[i][row*width+column], 2);
+                    sum += powf(input_channels[i][row*width+column], 2);
                 }
 
-                output_channel[channel][row*width+column] = input_channel[channel][row*width+column] / powf((1+(alpha/n)*sum),beta);
+                output_channels[channel][row*width+column] = input_channels[channel][row*width+column] / powf((1+(alpha/n)*sum),beta);
             }
         }
     }
