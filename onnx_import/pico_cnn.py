@@ -67,6 +67,8 @@ class Conv2D(BaseLayer):
         stride = attrs["strides"][0]
         #dilation = attrs["dilations"][0]
 
+        num_groups = attrs.get("group", 1)
+
         # TODO: handle auto padding
         if "auto_pad" in attrs:
             print("{} auto padding is currently not supported".format(node.name))
@@ -93,6 +95,8 @@ class Conv2D(BaseLayer):
         operation.attributes['output_buffer'] = output_buffers[0]
         operation.attributes['output_feature_size'] = output_size
         operation.attributes['num_output_channels'] = num_output_channels
+
+        operation.attributes['num_groups'] = num_groups
 
         if len(input_buffers) > 2:
             operation.attributes['bias_buffer'] = input_buffers[2]
