@@ -67,16 +67,22 @@ class Conv2D(BaseLayer):
         stride = attrs["strides"][0]
         #dilation = attrs["dilations"][0]
 
+        num_groups = attrs.get("group", 1)
+
+        if num_groups > 1:
+            print("ERROR: Parameter group > 1 not yet supported. Abort code generation.")
+            exit(1)
+
         # TODO: handle auto padding
         if "auto_pad" in attrs:
             print("{} auto padding is currently not supported".format(node.name))
-            return None
+            exit(1)
 
         pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
 
         if pads[0] != pads[1]:
             print("PicoCNN only supports same padding in all directions")
-            return None
+            exit(1)
 
         padding = pads[0]
 
