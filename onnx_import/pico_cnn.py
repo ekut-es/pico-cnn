@@ -616,7 +616,7 @@ class Flatten(BaseLayer):
     """
     name = "FlattenGeneric"
     operator = "Flatten"
-    template_file = "reshape.c"
+    template_file = "flatten.c"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
