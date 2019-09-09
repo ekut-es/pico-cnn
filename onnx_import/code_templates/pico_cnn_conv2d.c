@@ -27,10 +27,10 @@ for(int g = 0; g < {{num_groups}}; g++) {
                                 {{padding}},
                                 0.0);
 
-             add_channel2d_naive({{output_buffer.name}}[i],
-                               temp_buffer,
-                               {{output_feature_size}},
-                               {{output_feature_size}});
+            add_channel2d_naive({{output_buffer.name}}[i],
+                                temp_buffer,
+                                {{output_feature_size}},
+                                {{output_feature_size}});
             cnt+=1;
         }
         {% endif %}
