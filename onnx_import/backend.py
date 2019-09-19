@@ -198,6 +198,26 @@ class BackendRep(backend_base.BackendRep):
                             for row in kernel:
                                 weights_packed.append(struct.pack('f'*len(row), *row))
 
+                elif len(data.shape) == 3:
+                    tupac = bytes(node.name + "\n", "ascii")
+                    weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
+
+                    height = 1
+                    width = data.shape[2]
+                    num_data = data.shape[0] * data.shape[1]
+
+                    # weight_data += str(height) + "\n"
+                    # weight_data += str(width) + "\n"
+                    # weight_data += str(num_data) + "\n"
+
+                    weights_packed.append(struct.pack('i', height))
+                    weights_packed.append(struct.pack('i', width))
+                    weights_packed.append(struct.pack('i', num_data))
+
+                    for channel in data:
+                        for kernel in channel:
+                            weights_packed.append(struct.pack('f'*len(kernel), *kernel))
+
                 elif len(data.shape) == 2:
                     # weight_data += node.name + "\n"
 
@@ -229,7 +249,7 @@ class BackendRep(backend_base.BackendRep):
 
                 else:
                     print("ERROR: Unknown input tensor shape!")
-                    return 1
+                    exit(1)
                     # weight_data = ""
 
                 # temp = "\n".join((str(float(x).hex()) for x in data.flatten()))
@@ -468,25 +488,23 @@ class BackendRep(backend_base.BackendRep):
         """
         graph = ComputeGraph.from_onnx(self.onnx_model.graph)
 
-        # BUG: Problem in constant propagation for Pooling Layer
-        # print("Running constant propagation")
-        # constant_states = constant_propagation(graph)
-        #
-        # print(constant_states)
-        #
-        # self._remove_constants(graph, constant_states)
-        # self._remove_nops(graph, constant_states)
-        #
-        # # Add shape information from constant propagation:
-        # for var, res in constant_states.items():
-        #     if var in graph.shape_dict:
-        #         shape = graph.shape_dict[var]
-        #         if res.shape != shape:
-        #             print("Warning: Shapes do not match: ", var, res.shape, shape)
-        #             if res.shape is not None:
-        #                 graph.shape_dict[var] = res.shape
-        #     elif res.shape is not None:
-        #         graph.shape_dict[var] = res.shape
+        print("Running constant propagation")
+        constant_states = constant_propagation(graph)
+
+        self._remove_constants(graph, constant_states)
+        self._remove_nops(graph, constant_states)
+
+        # Add shape information from constant propagation:
+        for var, res in constant_states.items():
+            if var in graph.shape_dict:
+                shape = graph.shape_dict[var]
+                if res.shape != shape:
+                    print("Warning: Shapes do not match: ", var, res.shape, shape)
+                    if res.shape is not None:
+                        print("Replacing shape {} with {}".format(shape, res.shape))
+                        graph.shape_dict[var] = res.shape
+            elif res.shape is not None:
+                graph.shape_dict[var] = res.shape
 
         print("Inference graph:")
         for node in graph.nodes:
@@ -524,7 +542,7 @@ class BackendRep(backend_base.BackendRep):
         inputs = graph.inputs
         if len(inputs) > 1:
             print("ERROR: Multiple inputs not supported!")
-            return 1
+            exit(1)
         else:
             input_shape = inputs[0].shape
             print("Input shape: {}".format(input_shape))
@@ -532,12 +550,19 @@ class BackendRep(backend_base.BackendRep):
             if len(input_shape) == 4:
                 if input_shape[0] != 1:
                     print("ERROR: Inference for batch_size > 1 currently not supported!")
-                    return 1
+                    exit(1)
+
+                input_defs = ["float **"+n for n in input_names]
+
+            elif len(input_shape) == 3:
+                if input_shape[0] != 1:
+                    print("ERROR: Inference for batch_size > 1 currently not supported!")
+                    exit(1)
 
                 input_defs = ["float **"+n for n in input_names]
 
             elif len(input_shape) == 2:
-                print("Input is one-dimensional (batch_size = 1 and num_input_channels = 1")
+                print("Input is one-dimensional (batch_size = 1 and num_input_channels = 1)")
                 input_defs = ["float *"+n for n in input_names]
 
         # TODO: Has to be changed as soon as be want to support multiple other data types (e.g. fixed-point)

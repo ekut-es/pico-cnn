@@ -42,6 +42,15 @@ def generate_dummy_main(graph):
             input_channel_width = input_shape[0]
             input_channel_height = input_shape[1]
 
+        elif len(input_shape) == 3:
+            if input_shape[0] != 1:
+                print("ERROR: Inference for batch_size > 1 currently not supported!")
+                return 1
+
+            num_input_channels = input_shape[1]
+            input_channel_width = input_shape[2]
+            input_channel_height = 1
+
         else:
             print("ERROR: Creation of dummy input not supported for this input shape: {}".format(input_shape))
             return 1
@@ -101,6 +110,15 @@ def generate_reference_main(graph):
             num_input_channels = 1
             input_channel_width = input_shape[0]
             input_channel_height = input_shape[1]
+
+        elif len(input_shape) == 3:
+            if input_shape[0] != 1:
+                print("ERROR: Inference for batch_size > 1 currently not supported!")
+                return 1
+
+            num_input_channels = input_shape[1]
+            input_channel_width = input_shape[2]
+            input_channel_height = 1
 
         else:
             print("ERROR: Creation of dummy input not supported for this input shape: {}".format(input_shape))

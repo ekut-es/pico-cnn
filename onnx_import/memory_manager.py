@@ -80,10 +80,14 @@ class Buffer(object):
         buffer_name += id        
         shape = graph.get_shape(id)
 
+        # TODO: Refactor this because buffer_depth is a terrible name that does not represent what it should.
+        # This variable is about whether we have multiple channels or not
         if len(shape) == 1 or len(shape) == 2:
             buffer_depth = 1
         elif len(shape) == 4:
             buffer_depth = 2
+        elif len(shape) == 3:
+            buffer_depth = 2  # TODO: When do we actually need depth = 3???
         else:
             buffer_depth = 0
 
