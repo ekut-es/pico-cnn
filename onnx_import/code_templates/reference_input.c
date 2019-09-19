@@ -1,4 +1,4 @@
-#define EPSILON 0.01
+#define EPSILON 0.001
 //#define PRINT
 
 #include "network.h"
@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     char sample_output_path[1024];
     strcpy(sample_output_path, argv[3]);
 
-    {% if input_shape_len == 4 %}
+    {% if input_shape_len == 4 or input_shape_len == 3 %}
     fp_t** input = (fp_t**) malloc({{num_input_channels}}*sizeof(fp_t*));
 
     for(int i = 0; i < {{num_input_channels}}; i++){
@@ -72,6 +72,9 @@ int main(int argc, char** argv) {
     int all_equal = 1;
 
     for(int i = 0; i < {{output_size}}; i++) {
+        #ifdef PRINT
+        printf("Position: %d\toutput: %f\tref_output: %f\n", i, output[i], ref_output[i]);
+        #endif
         if(!almost_equal(output[i], ref_output[i], EPSILON)) {
             all_equal = 0;
             printf("Not equal at position: %d, output: %f, ref_output: %f\n", i, output[i], ref_output[i]);
