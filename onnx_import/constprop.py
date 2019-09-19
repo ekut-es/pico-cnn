@@ -4,16 +4,16 @@ import math
 
 
 class ConstPropState(object):
-    def __init__ (self, value = None, shape = None):
+    def __init__(self, value=None, shape=None):
         assert type(shape) == tuple or shape == None
         self.value = value
         self.shape = shape
         
     def __str__(self):
-        return "shape: " + str(self.shape) + " " + "value: " + str(self.value)
+        return "value: " + str(self.value) + " " + "shape: " + str(self.shape)
 
     def __repr__(self):
-        return "shape: " + str(self.shape) + " " + "value: " + repr(self.value)
+        return "value: " + repr(self.value) + " " + "shape: " + str(self.shape)
 
     def __iter__(self):
         return iter((self.value, self.shape))
@@ -43,13 +43,14 @@ class PoolImpl(ConstImpl):
         input_value, input_shape = input_states[0]
         out = ConstPropState(None, None)
         kernel = attrs["kernel_shape"]
+        stride = attrs["strides"]
         if input_shape is not None:
             output_shape = list(input_shape)
             for num, dim in enumerate(input_shape[2:]):
-                output_shape[num+2] = math.floor((dim - kernel[num]) / 1 + 1)
+                output_shape[num+2] = math.floor((dim - kernel[num]) / stride[num] + 1)
                 out = ConstPropState(None, tuple(output_shape))
 
-        return {node.outputs[0] : out}
+        return {node.outputs[0]: out}
 
 
 class TransposeImpl(ConstImpl):
@@ -67,7 +68,7 @@ class TransposeImpl(ConstImpl):
                 
             out = ConstPropState(None, transposed.shape)
 
-        return {node.outputs[0] : out}
+        return {node.outputs[0]: out}
 
 
 class KeepDimsImpl(ConstImpl):
@@ -123,6 +124,11 @@ def constant_propagation(graph):
 
     for node in graph.nodes:
         worklist.append(node)
+        for input_n, input_t in node.input_tensors.items():
+            state_dict[input_n] = ConstPropState(input_t, input_t.shape)
+
+    for input in graph.inputs:
+        state_dict[input.name] = ConstPropState(None, input.shape)
     
     while worklist:
         node = worklist[0]
@@ -151,7 +157,7 @@ def constant_propagation(graph):
 
             changed = False
             for output in node.outputs:
-                if state_dict[output] !=  outputs[output]:
+                if state_dict[output] != outputs[output]:
                     state_dict[output] = outputs[output]
                     changed = True
         elif node.op_type == 'Shape':
@@ -277,7 +283,7 @@ def constant_propagation(graph):
             input_shape = state_dict[node.inputs[0]].shape
             out = ConstPropState(None, None)
 
-            matrix_shape = node.input_tensors[node.inputs[1]].shape
+            matrix_shape = state_dict[node.inputs[1]].shape
             
             if input_shape is not None:
                 out = ConstPropState(None, (input_shape[0], matrix_shape[0]))
@@ -312,7 +318,7 @@ def constant_propagation(graph):
                     
         else:
             # raise Exception ("ConstProp: Unhandled op {}".format(node.op_type))
-            print("ConstProp: Unhandled op {} using shape information from onnx shape_dict".format(node.op_type))
+            print("ConstProp: Unhandled op {} (layer: {}) using shape information from onnx shape_dict".format(node.op_type, node.name))
             
             changed = False
             for o in node.outputs:

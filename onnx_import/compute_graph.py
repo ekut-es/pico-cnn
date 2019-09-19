@@ -104,6 +104,12 @@ class ComputeGraph(object):
         input_tensors = {
             t.name: numpy_helper.to_array(t) for t in graph.initializer
         }
+
+        # Dictionary to hold the "value_info" field from ONNX graph
+        shape_dict: Dict[Text, Any] = {}
+
+        for input_t in input_tensors:
+            shape_dict[input_t] = input_tensors[input_t].shape
        
         nodes_ = []
         nodes_by_input: Dict[str, List[ComputeNode]] = {}
@@ -127,11 +133,15 @@ class ComputeGraph(object):
         inputs = []
         for i in graph.input:
             if i.name not in input_tensors:
-                inputs.append(_input_from_onnx_input(i))
+                inp = _input_from_onnx_input(i)
+                inputs.append(inp)
+                shape_dict[inp.name] = inp.shape
 
         outputs = []
         for o in graph.output:
-            outputs.append(_input_from_onnx_input(o))
+            out = _input_from_onnx_input(o)
+            outputs.append(out)
+            shape_dict[out.name] = out.shape
 
         for node_ in nodes_:
             for input_ in node_.inputs:
@@ -141,13 +151,7 @@ class ComputeGraph(object):
                 if output_ in nodes_by_input:
                     node_.children.extend(nodes_by_input[output_])
 
-        # Dictionary to hold the "value_info" field from ONNX graph
-        shape_dict: Dict[Text, Any] = {}
-
-        def extract_value_info(shape_dict, 
-                               value_info, 
-                               ):
-           
+        def extract_value_info(shape_dict, value_info):
             t = tuple([int(dim.dim_value) for dim in value_info.type.tensor_type.shape.dim])
             if t:
                 shape_dict[value_info.name] = t
@@ -175,18 +179,6 @@ class ComputeGraph(object):
             child.parents.remove(node)
 
     def get_shape(self, name: Text) -> Iterable[int]:
-        for input in self.inputs:
-            if input.name == name:
-                return input.shape
-            
-        for output in self.outputs:
-            if output.name == name:
-                return output.shape
-
-        for node in self.nodes:
-            if name in node.input_tensors:
-                return node.input_tensors[name].shape
-        
         if name in self.shape_dict:
             return self.shape_dict[name]
      
