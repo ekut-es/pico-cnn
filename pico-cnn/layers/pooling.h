@@ -35,8 +35,8 @@ void max_pooling1d_naive(const fp_t* input_channel, const uint16_t input_width, 
     uint16_t output_channel_width;
     uint16_t kernel_idx;
 
-    output_channel_idx = 0;    
-    output_channel_width = input_width/stride;
+    output_channel_idx = 0;
+    output_channel_width = (input_width-kernel_size)/stride+1;
 
     for(input_channel_idx = 0; input_channel_idx < input_width && output_channel_idx < output_channel_width; input_channel_idx += stride) {
         fp_t pixel = input_channel[input_channel_idx];
