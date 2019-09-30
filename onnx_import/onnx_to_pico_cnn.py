@@ -19,6 +19,11 @@ def onnx_to_pico_cnn(onnx_model, model_name):
     # Set input batch size to 1
     onnx_model.graph.input[0].type.tensor_type.shape.dim[0].dim_value = 1
     onnx_model.graph.output[0].type.tensor_type.shape.dim[0].dim_param = "?"
+    # onnx_model.graph.output[0].type.tensor_type.shape.dim[0].dim_value = 1
+    # inputs = onnx_model.graph.input
+    # for input in inputs:
+    #     dim1 = input.type.tensor_type.shape.dim[0]
+    #     dim1.dim_value = 1
 
     # Remove dropouts
     for op_id, op in enumerate(onnx_model.graph.node):
@@ -33,7 +38,13 @@ def onnx_to_pico_cnn(onnx_model, model_name):
     optimized_model = optimizer.optimize(onnx_model, ["eliminate_nop_dropout"])
     optimized_model = utils.polish_model(optimized_model)
 
-    onnx.save(optimized_model, "{}_polished.onnx".format(model_name))
+    try:
+        os.makedirs("./polished_models")
+        print("Created directory for polished models.")
+    except FileExistsError:
+        pass
+
+    onnx.save(optimized_model, os.path.join("./polished_models", "{}_polished.onnx".format(model_name)))
 
     backend_model = Backend.prepare(optimized_model, model_name)
 

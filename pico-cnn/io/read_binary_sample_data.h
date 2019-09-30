@@ -36,7 +36,7 @@ int read_binary_sample_input_data(const char* path_to_sample_data, fp_t*** input
         printf("%s", magic_number);
         #endif
 
-        // Read number of layers
+        // Read number of channels
         uint32_t num_channels;
         if(fread((void*)&num_channels, sizeof(num_channels), 1, binary_file) != 1) {
             printf("ERROR reading number of channels\n");

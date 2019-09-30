@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
 
     int GENERATE_ONCE = atoi(argv[3]);
 
-    {% if input_shape_len == 4 %}
+    {% if input_shape_len == 4 or input_shape_len == 3 %}
     fp_t** input = (fp_t**) malloc({{num_input_channels}}*sizeof(fp_t*));
 
     for(int i = 0; i < {{num_input_channels}}; i++){

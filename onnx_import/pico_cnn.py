@@ -59,6 +59,10 @@ class Conv2D(BaseLayer):
         input_size = input_shape[2]
         num_input_channels = input_shape[1]
 
+        if not (len(input_shape) == 4 and input_shape[3] != 1):
+            print("{} is not a 2DConvolution".format(node.name))
+            return None
+
         output_shape = output_buffers[0].shape
         output_size = output_shape[2]
         num_output_channels = output_shape[1]
@@ -72,13 +76,13 @@ class Conv2D(BaseLayer):
         # TODO: handle auto padding
         if "auto_pad" in attrs:
             print("{} auto padding is currently not supported".format(node.name))
-            return None
+            exit(1)
 
         pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
 
         if pads[0] != pads[1]:
             print("PicoCNN only supports same padding in all directions")
-            return None
+            exit(1)
 
         padding = pads[0]
 
@@ -107,69 +111,69 @@ class Conv2D(BaseLayer):
 OperationRegistry.register(Conv2D)
 
 
-# class Conv1D(BaseLayer):
-#     name = "PicoCNNConv1D"
-#     operator = "Conv"
-#     template_file = "pico_cnn_conv1d.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         operation = cls(node, graph)
-#
-#         attrs = node.attrs
-#         input_buffers = [memory_manager.get_buffer(graph, id) for id in node.inputs]
-#         output_buffers = [memory_manager.get_buffer(graph, id) for id in node.outputs]
-#
-#         input_shape = input_buffers[0].shape
-#
-#         if not (len(input_shape) == 3 or (len(input_shape) == 4 and input_shape[3] == 1)):
-#             print("{} is not a 1DConvolution".format(node.name))
-#             return None
-#
-#         input_size = input_shape[2]
-#         input_channels = input_shape[1]
-#
-#         output_shape = output_buffers[0].shape
-#         output_channels = output_shape[1]
-#         output_size = output_shape[2]
-#
-#         size = attrs["kernel_shape"][0]
-#         stride = attrs["strides"][0]
-#         dilation = attrs["dilations"][0]
-#
-#         # TODO: handle auto padding
-#         if "auto_pad" in attrs:
-#             print("{} auto padding is currently not supported".format(node.name))
-#             return None
-#
-#         pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
-#
-#         if pads[0] != pads[1]:
-#             print("PicoCNN only supports same padding in all directions")
-#             return None
-#
-#         padding = pads[0]
-#
-#         operation.attributes['size'] = size
-#         operation.attributes['stride'] = stride
-#         operation.attributes['padding'] = padding
-#         operation.attributes['input_channels'] = input_channels
-#         operation.attributes['input_size'] = input_size
-#         operation.attributes['output_channels'] = output_channels
-#         operation.attributes['padding'] = padding
-#         operation.attributes['input_buffer'] = input_buffers[0]
-#         operation.attributes['weight_buffer'] = input_buffers[1]
-#         operation.attributes['output_feature_size'] = output_buffers[0].shape[2]
-#         if len(input_buffers) > 2:
-#             operation.attributes['bias_buffer'] = input_buffers[2]
-#
-#         operation.attributes['output_buffer'] = output_buffers[0]
-#         operation.attributes['dilation'] = dilation
-#
-#         return operation
-#
-#
-# OperationRegistry.register(Conv1D)
+class Conv1D(BaseLayer):
+    name = "PicoCNNConv1D"
+    operator = "Conv"
+    template_file = "pico_cnn_conv1d.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        operation = cls(node, graph)
+
+        attrs = node.attrs
+        input_buffers = [memory_manager.get_buffer(graph, id) for id in node.inputs]
+        output_buffers = [memory_manager.get_buffer(graph, id) for id in node.outputs]
+
+        input_shape = input_buffers[0].shape
+
+        if not (len(input_shape) == 3 or (len(input_shape) == 4 and input_shape[3] == 1)):
+            print("{} is not a 1DConvolution".format(node.name))
+            return None
+
+        input_size = input_shape[2]
+        num_input_channels = input_shape[1]
+
+        output_shape = output_buffers[0].shape
+        num_output_channels = output_shape[1]
+        output_feature_size = output_shape[2]
+
+        kernel_size = attrs["kernel_shape"][0]
+        stride = attrs["strides"][0]
+        dilation = attrs["dilations"][0]
+
+        # TODO: handle auto padding
+        if "auto_pad" in attrs:
+            print("{} auto padding is currently not supported".format(node.name))
+            return None
+
+        pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
+
+        if pads[0] != pads[1]:
+            print("PicoCNN only supports same padding in all directions")
+            return None
+
+        padding = pads[0]
+
+        operation.attributes['kernel_size'] = kernel_size
+        operation.attributes['stride'] = stride
+        operation.attributes['padding'] = padding
+        operation.attributes['num_input_channels'] = num_input_channels
+        operation.attributes['input_size'] = input_size
+        operation.attributes['num_output_channels'] = num_output_channels
+        operation.attributes['padding'] = padding
+        operation.attributes['input_buffer'] = input_buffers[0]
+        operation.attributes['kernel'] = input_buffers[1]
+        operation.attributes['output_feature_size'] = output_feature_size
+        if len(input_buffers) > 2:
+            operation.attributes['bias_buffer'] = input_buffers[2]
+
+        operation.attributes['output_buffer'] = output_buffers[0]
+        operation.attributes['dilation'] = dilation
+
+        return operation
+
+
+OperationRegistry.register(Conv1D)
 
 
 class FullyConnected(BaseLayer):
@@ -247,8 +251,10 @@ class MaxPool2D(BaseLayer):
         """
         attrs = node.attrs
 
-        assert len(attrs["kernel_shape"]) == 2
-        #assert tuple(attrs["pads"]) == (0, 0)  # TODO Check if we need those assertions
+        # assert tuple(attrs["pads"]) == (0, 0)  # TODO Check if we need this assertion
+        if not (len(attrs["kernel_shape"]) == 2):
+            print("{} is not a 2DMaxPool".format(node.name))
+            return None
 
         input_id = node.inputs[0]
         input_shape = graph.get_shape(input_id)
@@ -286,38 +292,53 @@ class MaxPool2D(BaseLayer):
 
 OperationRegistry.register(MaxPool2D)
 
-#
-# class MaxPool1D(BaseLayer):
-#     name = "PicoCNNMaxPool1D"
-#     operator = "MaxPool"
-#     template_file = "pico_cnn_max_pool1d.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#
-#         assert len(attrs["kernel_shape"]) == 1
-#         assert tuple(attrs["pads"]) == (0, 0)
-#
-#         input_id = node.inputs[0]
-#         input_shape = graph.get_shape(input_id, node)
-#         input_buffer = "buffer" + input_id
-#         input_channels = input_shape[1]
-#
-#         output_buffer = "buffer" + node.outputs[0]
-#
-#         if graph.is_output(node.outputs[0]):
-#             output_buffer = "output" + node.outputs[0]
-#
-#         output_width = graph.get_shape(node.outputs[0], node)[2]
-#
-#         kernel_size = attrs["kernel_shape"][0]
-#         kernel_stride = attrs["strides"][0]
-#
-#         input_buffer_size = reduce_mult(input_shape)
-#
-#
-# OperationRegistry.register(MaxPool1D)
+
+class MaxPool1D(BaseLayer):
+    name = "PicoCNNMaxPool1D"
+    operator = "MaxPool"
+    template_file = "pico_cnn_max_pool1d.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        # assert tuple(attrs["pads"]) == (0, 0)
+        if not (len(attrs["kernel_shape"]) == 1):
+            print("{} is not a 1DMaxPool".format(node.name))
+            return None
+
+        input_id = node.inputs[0]
+        input_shape = graph.get_shape(input_id)
+        # input_buffer = "buffer" + input_id
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        num_input_channels = input_shape[1]
+
+        # output_buffer = "buffer" + node.outputs[0]
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        if graph.is_output(node.outputs[0]):
+            output_buffer = "output" + node.outputs[0]
+
+        # output_width = graph.get_shape(node.outputs[0], node)[2]
+
+        kernel_size = attrs["kernel_shape"][0]
+        kernel_stride = attrs["strides"][0]
+
+        input_buffer_size = reduce_mult(input_shape)
+
+        operation = cls(node, graph)
+
+        operation.attributes['num_input_channels'] = num_input_channels
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['input_width'] = input_shape[2]
+        operation.attributes['kernel_size'] = kernel_size
+        operation.attributes['kernel_stride'] = kernel_stride
+
+        return operation
+
+
+OperationRegistry.register(MaxPool1D)
 
 
 class Relu(BaseLayer):
@@ -598,7 +619,10 @@ class Reshape(BaseLayer):
 
         num_input_channels = input_shape[1]
         input_width = input_shape[2]
-        input_height = input_shape[3]
+        if len(input_shape) == 4:
+            input_height = input_shape[3]
+        else:
+            input_height = 1
 
         operation = cls(node, graph)
         operation.attributes['input_buffer'] = input_buffer

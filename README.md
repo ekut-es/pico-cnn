@@ -109,7 +109,7 @@ VGG-16 model retrieved from https://github.com/onnx/models/tree/master/vision/cl
 **Note: ImageNet dataset required to run the VGG-16 specific code.**
 ```{bash}
 cd onnx_import
-python 3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/vgg16.onnx
+python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/vgg16.onnx
 ```
 Copy `examples/vgg.c` to `onnx_import/generated_code/vgg16.c`.
 ```{bash}
@@ -127,7 +127,7 @@ VGG-19 model retrieved from https://github.com/onnx/models/tree/master/vision/cl
 **Note: ImageNet dataset required to run the VGG-19 specific code.**
 ```{bash}
 cd onnx_import
-python 3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/vgg19.onnx
+python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/vgg19.onnx
 ```
 Copy `examples/vgg.c` to `onnx_import/generated_code/vgg19.c`.
 ```{bash}
@@ -137,6 +137,43 @@ Add `-ljpeg` to `LDFLAGS` in `Makefile`
 ```{bash}
 make vgg19
 ./vgg19 network.weights.bin PATH_TO_IMAGE_MEANS PATH_TO_LABELS PATH_TO_IMAGE
+```
+
+### EKUT-Raw
+For those models the reference data has been generated with the script `util/create_sample_data.py` by running an inference using `caffe2` as backend:
+```{bash}
+python3.6 util/create_sample_data.py --model PATH_TO_ONNX/model.onnx --file PATH_TO_WAV/soundfile.wav --shape 1 1 16000
+```
+#### CNN-3-Relu
+```{bash}
+cd onnx_import
+python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/ekut-raw-cnn3-relu.onnx
+make reference_input
+./reference_input network.weights.bin PATH_TO_WAV/soundfile_model_input.data PATH_TO_WAV/soundfile_model_output.data
+```
+
+#### CNN-3-Relu-2
+```{bash}
+cd onnx_import
+python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/ekut-raw-cnn3-relu-2.onnx
+make reference_input
+./reference_input network.weights.bin PATH_TO_WAV/soundfile_model_input.data PATH_TO_WAV/soundfile_model_output.data
+```
+
+#### CNN-6-Relu
+```{bash}
+cd onnx_import
+python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/ekut-raw-cnn6-relu.onnx
+make reference_input
+./reference_input network.weights.bin PATH_TO_WAV/soundfile_model_input.data PATH_TO_WAV/soundfile_model_output.data
+```
+
+#### CNN-6-Relu-Simple
+```{bash}
+cd onnx_import
+python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/ekut-raw-cnn6-relu-simple.onnx
+make reference_input
+./reference_input network.weights.bin PATH_TO_WAV/soundfile_model_input.data PATH_TO_WAV/soundfile_model_output.data
 ```
 
 ## References
