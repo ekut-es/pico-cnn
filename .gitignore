@@ -13,3 +13,4 @@ onnx_import/generated_code
 *.onnx
 *.pb
 *.pbtxt
+*.o
