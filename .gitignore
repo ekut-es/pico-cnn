@@ -15,5 +15,4 @@ onnx_import/generated_code
 *.pbtxt
 *.o
 pico-cnn/lib
-pico-cnn/lib.a
-pico-cnn/lib.a
+pico-cnn/libpico-cnn.a 
