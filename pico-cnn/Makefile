@@ -6,17 +6,15 @@ makedirs:
 
 clean:
 	rm -rf ./lib
-	rm libpico-cnn.a
+	rm -f libpico-cnn.a
 
+# driver_x86 or driver_ARM
+DRIVER = driver_x86
 
-# todo: change layers rules to include ARM
-libx86: makedirs driver_x86 io layers
+library: makedirs $(DRIVER) io layers
 	ar -rcs $(@D)/libpico-cnn.a $(@D)/lib/driver/*.o $(@D)/lib/io/*.o $(@D)/lib/layers/*.o
 
-libARM: makedirs driver_ARM io
-
 #-------------------- driver ----------------------
-# todo: create different rules for x86 and ARM
 
 fixed16.o: parameters.h ./driver/fixed16.h ./driver/fixed16.c
 	gcc ./driver/fixed16.c -c -o ./lib/driver/fixed16.o
@@ -24,7 +22,6 @@ fixed16.o: parameters.h ./driver/fixed16.h ./driver/fixed16.c
 # shouldn't work as this is not an ARM-PC
 neon_mathfun.o: ./driver/neon_mathfun.h ./driver/neon_mathfun.c
 	gcc ./driver/neon_mathfun.c -lm -c -o ./lib/driver/neon_mathfun.o
-
 
 driver_ARM: neon_mathfun.o
 
@@ -92,18 +89,17 @@ IO_FILES = ./lib/io/read_binary_sample_data.o \
 io: $(IO_LIST)
 
 #---------------- layers -------------------------
-#todo : include ARM rule (arm_NEON)
-#  (first, consistens inclusion of fixed16)
 
-activation_function.o: parameters.h ./layers/activation_function.h ./layers/activation_function.c fixed16.o
-	gcc ./layers/activation_function.c -c -o  ./lib/layers/activation_function.o
+activation_function.o: parameters.h ./layers/activation_function.h ./layers/activation_function.c $(DRIVER)
+	gcc ./layers/activation_function.c -c -o ./lib/layers/activation_function.o
 
-convolution.o: parameters.h ./layers/convolution.h ./layers/convolution.c
+convolution.o: parameters.h ./layers/convolution.h ./layers/convolution.c $(DRIVER)
 	gcc ./layers/convolution.c -c -o ./lib/layers/convolution.o
 
-pooling.o: parameters.h ./layers/pooling.h ./layers/pooling.c
+pooling.o: parameters.h ./layers/pooling.h ./layers/pooling.c $(DRIVER)
 	gcc ./layers/pooling.c -c -o ./lib/layers/pooling.o
 
-fully_connected.o: parameters.h ./layers/fully_connected.h ./layers/fully_connected.c fixed16.o
+fully_connected.o: parameters.h ./layers/fully_connected.h ./layers/fully_connected.c $(DRIVER)
 	gcc ./layers/fully_connected.c -c -o ./lib/layers/fully_connected.o
+
 layers: activation_function.o convolution.o fully_connected.o pooling.o
