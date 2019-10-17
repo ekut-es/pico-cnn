@@ -1,7 +1,3 @@
-
-
-#TODO: check whether -c and -o need to be added here
-
 CC = gcc
 CFLAGS = -Wall -g3
 LDFLAGS = -lm -ljpeg
@@ -20,7 +16,7 @@ makedirs:
 clean:
 	rm -rf ./lib
 
-# create the pico-cnn library 
+# create the pico-cnn library
 library: makedirs $(DRIVER) io layers
 	ar -rcs $(@D)/lib/libpico-cnn.a $(@D)/lib/driver/*.o $(@D)/lib/io/*.o $(@D)/lib/layers/*.o
 
