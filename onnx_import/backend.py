@@ -635,9 +635,15 @@ class BackendRep(backend_base.BackendRep):
         self.makefile = "CC = gcc\n"
         self.makefile += "CFLAGS = -Wall -g\n"
         self.makefile += "LDFLAGS = -lm\n"
-        self.makefile += "dummy_input: dummy_input.c network.h network_initialization.h network_cleanup.h\n\t$(CC) dummy_input.c -I../../.. $(LDFLAGS) -o dummy_input"
-        self.makefile += "\n\nreference_input: reference_input.c network.h network_initialization.h network_cleanup.h\n\t$(CC) reference_input.c -I../../.. $(LDFLAGS) -o reference_input"
-        self.makefile += "\n\n{}: {}.c network.h network_initialization.h network_cleanup.h\n\t$(CC) {}.c -I../../.. $(LDFLAGS) -o {}".format(self.model_name, self.model_name, self.model_name, self.model_name)
+        self.makefile += "dummy_input: dummy_input.c network.h network_initialization.h network_cleanup.h\n\t"
+        self.makefile += "make library --directory=../../../pico-cnn\n\t"
+        self.makefile += "$(CC) dummy_input.c ../../../pico-cnn/lib/libpico-cnn.a -I../../.. $(CFLAGS) $(LDFLAGS) -o dummy_input"
+        self.makefile += "\n\nreference_input: reference_input.c network.h network_initialization.h network_cleanup.h\n\t"
+        self.makefile += "make library --directory=../../../pico-cnn\n\t"
+        self.makefile += "$(CC) reference_input.c ../../../pico-cnn/lib/libpico-cnn.a -I../../.. $(CFLAGS) $(LDFLAGS) -o reference_input"
+        self.makefile += "\n\n{}: {}.c network.h network_initialization.h network_cleanup.h\n\t".format(self.model_name, self.model_name)
+        self.makefile += "make library --directory=../../../pico-cnn"
+        self.makefile += "\n\t$(CC) {}.c ../../../pico-cnn/lib/libpico-cnn.a -I../../.. $(CFLAGS) $(LDFLAGS) -o {}".format(self.model_name, self.model_name)
         self.makefile += "\n\nall: dummy_input reference_input {}".format(self.model_name)
         self.makefile += "\n\nclean:\n\t rm -rf {} dummy_input reference_input\n".format(self.model_name)
 
@@ -720,4 +726,3 @@ def export_data(config):
     data_code += "#endif //INPUT_DATA_H\n"
     with open("input_data.h", "w") as f:
         f.write(data_code)
-

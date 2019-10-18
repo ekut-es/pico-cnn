@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
     strcpy(mnist_path, argv[1]);
     strcpy(weights_path, argv[2]);
 
-    unsigned int i, j, k;
+    unsigned int i, j;
 
     // read mnist t10k images
     char t10k_images_path[strlen(mnist_path) + 20];
@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    
+
 
     int correct_predictions = 0;
 
@@ -133,12 +133,12 @@ int main(int argc, char** argv) {
         {0,0,0,0,0,0,0,0,0,0}
     };
 
-  
+
 
     printf("starting CNN\n");
 
     float *output  = (float*) malloc(10*sizeof(float));
-    
+
 
     for(i = 0; i < NUM; i++) {
 
@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
                 max = output[idx];
                 label = idx;
             }
-                
+
         }
 
         if(t10k_labels[i] == label) {
