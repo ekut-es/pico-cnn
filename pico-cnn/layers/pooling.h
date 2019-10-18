@@ -62,7 +62,7 @@ void max_pooling1d_naive(const fp_t* input_channel, const uint16_t input_width, 
  * @param kernel_size
  * @param stride
  */
-void max_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride) {
+void max_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride, const int* padding) {
 
     uint16_t channel_row, channel_column;
     uint16_t output_channel_row, output_channel_column;
@@ -72,21 +72,34 @@ void max_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const
 
     output_channel_row = 0;
     output_channel_column = 0;
-    
-    output_channel_height = (height-kernel_size)/stride+1;
-    output_channel_width = (width-kernel_size)/stride+1;
 
-    for(channel_row = 0; channel_row < height && output_channel_row < output_channel_height; channel_row += stride) {
-        for(channel_column = 0; channel_column < width && output_channel_column < output_channel_width; channel_column += stride) {
-            fp_t pixel = input_channel[channel_row*width+channel_column];
+    uint16_t height_padded = height + padding[0] + padding[2];
+    uint16_t width_padded = width + padding[1] + padding[3];
     
-            for(kernel_row = channel_row; kernel_row < channel_row+kernel_size && kernel_row < height; kernel_row++) {
-                for(kernel_column = channel_column; kernel_column < channel_column+kernel_size && kernel_column < width; kernel_column++) {
-                    if(input_channel[kernel_row*width+kernel_column] > pixel) {
-                        pixel = input_channel[kernel_row*width+kernel_column];
+    output_channel_height = (height_padded-kernel_size)/stride+1;
+    output_channel_width = (width_padded-kernel_size)/stride+1;
+
+    for(channel_row = padding[0]; channel_row < height+padding[2] && output_channel_row < output_channel_height; channel_row += stride) {
+        for(channel_column = padding[1]; channel_column < width+padding[3] && output_channel_column < output_channel_width; channel_column += stride) {
+            fp_t pixel = 0.0;
+            if(channel_row >= 0 && channel_row < height && channel_column >= 0 && channel_column < width) {
+                pixel = input_channel[channel_row * width + channel_column];
+            }
+    
+            for(kernel_row = channel_row; kernel_row < channel_row+kernel_size && kernel_row < height+padding[2]; kernel_row++) {
+                for(kernel_column = channel_column; kernel_column < channel_column+kernel_size && kernel_column < width+padding[3]; kernel_column++) {
+                    fp_t input_pixel = 0.0;
+                    if(kernel_row >= 0 && kernel_row < height && kernel_column >= 0 && kernel_column < width) {
+                        input_pixel = input_channel[kernel_row * width + kernel_column];
+                    }
+//                    printf("%f ", input_pixel);
+                    if(input_pixel > pixel) {
+                        pixel = input_pixel;
                     }
                 }
+//                printf("\n");
             }
+//            printf("\n\n");
             
             output_channel[output_channel_row*output_channel_width+output_channel_column] = pixel;
             output_channel_column++;
