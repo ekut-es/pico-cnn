@@ -252,6 +252,12 @@ class BackendRep(backend_base.BackendRep):
                     exit(1)
                     # weight_data = ""
 
+                # This handles the case that no bias values are available in the onnx file.
+                # So we need to add num_biases = 0 into the binary file.
+                if len(node.input_tensors) == 1:
+                    print("No biases in onnx file.")
+                    weights_packed.append(struct.pack('i', 0))
+
                 # temp = "\n".join((str(float(x).hex()) for x in data.flatten()))
                 # weight_data += temp + "\n"
 
