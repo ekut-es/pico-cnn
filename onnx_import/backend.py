@@ -643,15 +643,23 @@ class BackendRep(backend_base.BackendRep):
         self.makefile = "CC = gcc\n"
         self.makefile += "CFLAGS = -Wall -g\n"
         self.makefile += "LDFLAGS = -lm\n\n"
-        self.makefile += "dummy_input: dummy_input.c network.h network_initialization.h network_cleanup.h\n\t"
-        self.makefile += "make library --directory=../../../pico-cnn\n\t"
-        self.makefile += "$(CC) dummy_input.c ../../../pico-cnn/lib/libpico-cnn.a -I../../.. $(CFLAGS) $(LDFLAGS) -o dummy_input"
-        self.makefile += "\n\nreference_input: reference_input.c network.h network_initialization.h network_cleanup.h\n\t"
-        self.makefile += "make library --directory=../../../pico-cnn\n\t"
-        self.makefile += "$(CC) reference_input.c ../../../pico-cnn/lib/libpico-cnn.a -I../../.. $(CFLAGS) $(LDFLAGS) -o reference_input"
-        self.makefile += "\n\n{}: {}.c network.h network_initialization.h network_cleanup.h\n\t".format(self.model_name, self.model_name)
+        self.makefile += "# path to the pico-cnn library\n"
+        self.makefile += "LIBPATH = ../../../pico-cnn/lib/libpico-cnn.a\n\n"
+        self.makefile += "# list of all object files compiled from generated code\n"
+        self.makefile += "NETWORK_LIST = network_initialization.o network_cleanup.o network.o\n\n"
+        self.makefile += "# compile all network .c files into object files\n"
+        self.makefile += "$(NETWORK_LIST): %.o: %.c %.h $(LIBPATH)\n\t"
+        self.makefile += "$(CC) $< $(CFLAGS) -I../../.. -c -o $@\n\n"
+        self.makefile += "# todo: include the library file/parameters.h/ pico-cnn.h here as a depency?\n"
+        self.makefile += "network: $(NETWORK_LIST)\n\t"
         self.makefile += "make library --directory=../../../pico-cnn"
-        self.makefile += "\n\t$(CC) {}.c ../../../pico-cnn/lib/libpico-cnn.a -I../../.. $(CFLAGS) $(LDFLAGS) -o {}".format(self.model_name, self.model_name)
+        self.makefile += "\n\ndummy_input: dummy_input.c network\n\t"
+        self.makefile += "$(CC) dummy_input.c $(NETWORK_LIST) $(LIBPATH) -I../../.. $(CFLAGS) $(LDFLAGS) -o dummy_input"
+        self.makefile += "\n\nreference_input: reference_input.c network \n\t"
+        self.makefile += "$(CC) reference_input.c $(NETWORK_LIST) $(LIBPATH) -I../../.. $(CFLAGS) $(LDFLAGS) -o reference_input"
+        self.makefile += "\n\n# todo: remove the .o files automatically?\n"
+        self.makefile += "{}: {}.c network \n\t".format(self.model_name, self.model_name)
+        self.makefile += "$(CC) {}.c $(NETWORK_LIST) $(LIBPATH) -I../../.. $(CFLAGS) $(LDFLAGS) -o {}".format(self.model_name, self.model_name)
         self.makefile += "\n\nall: dummy_input reference_input {}".format(self.model_name)
         self.makefile += "\n\nclean:\n\t rm -rf {} dummy_input reference_input\n".format(self.model_name)
 
