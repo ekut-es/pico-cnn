@@ -79,8 +79,8 @@ void max_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const
     output_channel_height = (height_padded-kernel_size)/stride+1;
     output_channel_width = (width_padded-kernel_size)/stride+1;
 
-    for(channel_row = padding[0]; channel_row < height+padding[2] && output_channel_row < output_channel_height; channel_row += stride) {
-        for(channel_column = padding[1]; channel_column < width+padding[3] && output_channel_column < output_channel_width; channel_column += stride) {
+    for(channel_row = (!padding[0]) ? padding[0] : -padding[0]; channel_row < height+padding[2] && output_channel_row < output_channel_height; channel_row += stride) {
+        for(channel_column = (!padding[1]) ? padding[1] : -padding[1]; channel_column < width+padding[3] && output_channel_column < output_channel_width; channel_column += stride) {
             fp_t pixel = 0.0;
             if(channel_row >= 0 && channel_row < height && channel_column >= 0 && channel_column < width) {
                 pixel = input_channel[channel_row * width + channel_column];
@@ -92,14 +92,11 @@ void max_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const
                     if(kernel_row >= 0 && kernel_row < height && kernel_column >= 0 && kernel_column < width) {
                         input_pixel = input_channel[kernel_row * width + kernel_column];
                     }
-//                    printf("%f ", input_pixel);
                     if(input_pixel > pixel) {
                         pixel = input_pixel;
                     }
                 }
-//                printf("\n");
             }
-//            printf("\n\n");
             
             output_channel[output_channel_row*output_channel_width+output_channel_column] = pixel;
             output_channel_column++;
