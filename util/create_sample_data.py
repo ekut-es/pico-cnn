@@ -96,7 +96,10 @@ def main():
     elif file_type == 'image/png':
         pass
     elif file_type == 'image/jpeg':
-        pass
+        input_data = imageio.imread(input_file)
+        # input_data = list(input_data.getdata())
+        tmp = np.array(input_data, dtype=float)
+        tmp2 = tmp.reshape((3,227,227))
     else:
         print("ERROR: Something went wrong during input data processing...")
         exit(1)
