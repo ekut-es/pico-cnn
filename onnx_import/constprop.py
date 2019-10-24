@@ -44,10 +44,11 @@ class PoolImpl(ConstImpl):
         out = ConstPropState(None, None)
         kernel = attrs["kernel_shape"]
         stride = attrs["strides"]
+        pads = attrs["pads"]
         if input_shape is not None:
             output_shape = list(input_shape)
             for num, dim in enumerate(input_shape[2:]):
-                output_shape[num+2] = math.floor((dim - kernel[num]) / stride[num] + 1)
+                output_shape[num+2] = math.floor(((dim+pads[num]+pads[num+int(len(pads)/2)]) - kernel[num]) / stride[num] + 1)  # TODO: Add padding in this calculation!!!
                 out = ConstPropState(None, tuple(output_shape))
 
         return {node.outputs[0]: out}
