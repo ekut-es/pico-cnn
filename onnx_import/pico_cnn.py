@@ -73,10 +73,6 @@ class Conv2D(BaseLayer):
 
         num_groups = attrs.get("group", 1)
 
-        if num_groups > 1:
-            print("ERROR: Parameter group > 1 not yet supported. Abort code generation.")
-            exit(1)
-
         # TODO: handle auto padding
         if "auto_pad" in attrs:
             print("{} auto padding is currently not supported".format(node.name))
@@ -103,6 +99,8 @@ class Conv2D(BaseLayer):
         operation.attributes['output_buffer'] = output_buffers[0]
         operation.attributes['output_feature_size'] = output_size
         operation.attributes['num_output_channels'] = num_output_channels
+
+        operation.attributes['num_groups'] = num_groups
 
         if len(input_buffers) > 2:
             operation.attributes['bias_buffer'] = input_buffers[2]
@@ -267,17 +265,11 @@ class MaxPool2D(BaseLayer):
         num_input_channels = input_shape[1]
 
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-        # output_buffer = "buffer" + node.outputs[0]
-        #
-        # if graph.is_output(node.outputs[0]):
-        #     output_buffer = "output" + node.outputs[0]
-
-        #output_width = graph.get_shape(node.outputs[0], node)[2]
 
         kernel_size = attrs["kernel_shape"][0]
         kernel_stride = attrs["strides"][0]
 
-        #input_buffer_size = reduce_mult(input_shape)
+        padding = attrs["pads"]
 
         operation = cls(node, graph)
 
@@ -288,6 +280,7 @@ class MaxPool2D(BaseLayer):
         operation.attributes['output_buffer'] = output_buffer
         operation.attributes['kernel_size'] = kernel_size
         operation.attributes['kernel_stride'] = kernel_stride
+        operation.attributes['padding'] = padding
 
         return operation
 
