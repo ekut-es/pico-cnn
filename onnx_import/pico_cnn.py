@@ -265,17 +265,11 @@ class MaxPool2D(BaseLayer):
         num_input_channels = input_shape[1]
 
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-        # output_buffer = "buffer" + node.outputs[0]
-        #
-        # if graph.is_output(node.outputs[0]):
-        #     output_buffer = "output" + node.outputs[0]
-
-        #output_width = graph.get_shape(node.outputs[0], node)[2]
 
         kernel_size = attrs["kernel_shape"][0]
         kernel_stride = attrs["strides"][0]
 
-        #input_buffer_size = reduce_mult(input_shape)
+        padding = attrs["pads"]
 
         operation = cls(node, graph)
 
@@ -286,6 +280,7 @@ class MaxPool2D(BaseLayer):
         operation.attributes['output_buffer'] = output_buffer
         operation.attributes['kernel_size'] = kernel_size
         operation.attributes['kernel_stride'] = kernel_stride
+        operation.attributes['padding'] = padding
 
         return operation
 
