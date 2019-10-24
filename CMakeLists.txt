@@ -51,6 +51,32 @@ if(BUILD_ARM_EXAMPLES)
     target_link_libraries(ekut_es_alexnet_arm_cpu ${LINK_LIBS} jpeg)
 endif()
 
+add_executable(clion_lenet ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_1_1_28_28/lenet_1_1_28_28.c)
+target_link_libraries(clion_lenet ${LINK_LIBS})
+
+add_executable(alexnet_trained ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/alexnet_trained/alexnet_trained.c)
+target_link_libraries(alexnet_trained ${LINK_LIBS} jpeg)
+
+add_executable(clion_alexnet ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/alexnet/reference_input.c)
+target_link_libraries(clion_alexnet ${LINK_LIBS})
+
+add_executable(clion_mnist_mlp ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mnist_mlp/mnist_mlp.c)
+target_link_libraries(clion_mnist_mlp ${LINK_LIBS})
+
+add_executable(clion_mnist_p_1 ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mnist_simple_mlp_batch1/mnist_simple_mlp_batch1.c)
+target_link_libraries(clion_mnist_p_1 ${LINK_LIBS})
+
+add_executable(clion_mnist_p_50 ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mnist_simple_mlp_batch50/mnist_simple_mlp_batch50.c)
+target_link_libraries(clion_mnist_p_50 ${LINK_LIBS})
+
+add_executable(clion_vgg16 ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/vgg16/vgg16.c)
+target_link_libraries(clion_vgg16 ${LINK_LIBS} jpeg)
+
+add_executable(clion_ekut-raw-cnn6-relu ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-cnn6-relu/reference_input.c)
+target_link_libraries(clion_ekut-raw-cnn6-relu ${LINK_LIBS})
+
+add_executable(debug-max-pool ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/alexnet/dummy_input.c)
+target_link_libraries(debug-max-pool ${LINK_LIBS})
 
 # removes pgm and float files
 add_custom_target(remove_output_data
