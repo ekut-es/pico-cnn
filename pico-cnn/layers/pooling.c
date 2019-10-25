@@ -13,6 +13,16 @@ void extend_2d_input_with_padding(const fp_t* input_channel, const uint16_t heig
     }
 }
 
+void extend_1d_input_with_padding(const fp_t* input_channel, const uint16_t width,
+                                  fp_t** extended_input, const int* padding) {
+
+    uint16_t width_padded = width + padding[0] + padding[1];
+
+    *extended_input = (fp_t*) calloc(width_padded, sizeof(fp_t));
+
+    memcpy((*extended_input)+padding[0], input_channel, width*sizeof(fp_t));
+}
+
 void max_pooling1d_naive(const fp_t* input_channel, const uint16_t input_width,
                          fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride) {
 
@@ -35,6 +45,18 @@ void max_pooling1d_naive(const fp_t* input_channel, const uint16_t input_width,
         output_channel[output_channel_idx] = pixel;
         output_channel_idx++;
     }
+}
+
+void max_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t input_width,
+                                fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
+                                const int* padding) {
+    fp_t* new_input_channel;
+    extend_1d_input_with_padding(input_channel, input_width, &new_input_channel, padding);
+
+    max_pooling1d_naive(new_input_channel, input_width+padding[0]+padding[1],
+                        output_channel, kernel_size, stride);
+
+    free(new_input_channel);
 }
 
 void max_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
@@ -105,6 +127,18 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
             output_channel[(row/kernel_size)*(height/kernel_size)+(column/kernel_size)] = pixel/((fp_t) kernel_size*kernel_size) + bias;
         }
     }
+}
+
+void average_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height, const uint16_t width,
+                                    fp_t* output_channel, const uint16_t kernel_size, fp_t bias,
+                                    const int* padding) {
+    fp_t* new_input_channel;
+    extend_2d_input_with_padding(input_channel, height, width, &new_input_channel, padding);
+
+    average_pooling2d_naive(new_input_channel, height+padding[0]+padding[2], width+padding[1]+padding[3],
+                            output_channel, kernel_size, bias);
+
+    free(new_input_channel);
 }
 
 #ifdef FIXED16

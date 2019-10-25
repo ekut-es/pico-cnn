@@ -36,6 +36,17 @@ void extend_2d_input_with_padding(const fp_t* input_channel, const uint16_t heig
                                   fp_t** extended_input, const int* padding);
 
 /**
+ * @brief Extends input_channel with padding by copying the data into a bigger array.
+ *
+ * @param input_channel
+ * @param width
+ * @param extended_input
+ * @param padding
+ */
+void extend_1d_input_with_padding(const fp_t* input_channel, const uint16_t width,
+                                  fp_t** extended_input, const int* padding);
+
+/**
  * @brief applies max pooling of kernel_size to input_channel
  *
  * @param input_channel
@@ -46,6 +57,19 @@ void extend_2d_input_with_padding(const fp_t* input_channel, const uint16_t heig
 void max_pooling1d_naive(const fp_t* input_channel, const uint16_t input_width, fp_t* output_channel,
                          const uint16_t kernel_size, const uint16_t stride);
 
+/**
+ * @brief Extends the input channel with the given padding and passes the extended input channel to max_pooling1d_naive
+ *
+ * @param input_channel
+ * @param input_width
+ * @param output_channel
+ * @param kernel_size
+ * @param stride
+ * @param padding
+ */
+void max_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t input_width,
+                                fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
+                                const int* padding);
 
 /**
  * @brief applies max pooling of kernel_size x kernel_size to input_channel
@@ -63,7 +87,7 @@ void max_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const
 /**
  * @brief Extends the input channel with the given padding and passes the extended input channel to max_pooling2d_naive
  *
- * @param input_channel  (height x width)
+ * @param input_channel (height x width)
  * @param height
  * @param width
  * @param output_channel (((height+padding[0]+padding[2]-kernel_size)/stride+1) x ((width+padding[1]+padding[3]-kernel_size)/stride+1))
@@ -71,10 +95,6 @@ void max_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const
  * @param stride
  * @param padding integer array of length 4 containing the number of padding pixels for each dimension (x1_begin, x2_begin, x1_end, x2_end)
  */
-void max_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height, const uint16_t width,
-                                fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
-                                const int* padding);
-
 void max_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height, const uint16_t width,
                                 fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
                                 const int* padding);
@@ -90,6 +110,20 @@ void max_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height
  */
 void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
                              fp_t* output_channel, const uint16_t kernel_size, fp_t bias);
+
+/**
+ * @brief Extends the input channel with the given padding and passes the extended input channel to average_pooling2d_naive
+ *
+ * @param input_channel (height x width)
+ * @param height
+ * @param width
+ * @param output_channel
+ * @param kernel_size
+ * @param bias
+ */
+void average_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height, const uint16_t width,
+                                    fp_t* output_channel, const uint16_t kernel_size, fp_t bias,
+                                    const int* padding);
 
 
 #ifdef FIXED16

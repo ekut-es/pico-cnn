@@ -270,6 +270,10 @@ class MaxPool2D(BaseLayer):
         kernel_stride = attrs["strides"][0]
 
         padding = attrs["pads"]
+        padding_needed = False
+        for num in padding:
+            if num != 0:
+                padding_needed = True
 
         operation = cls(node, graph)
 
@@ -280,6 +284,7 @@ class MaxPool2D(BaseLayer):
         operation.attributes['output_buffer'] = output_buffer
         operation.attributes['kernel_size'] = kernel_size
         operation.attributes['kernel_stride'] = kernel_stride
+        operation.attributes['padding_needed'] = padding_needed
         operation.attributes['padding'] = padding
 
         return operation
@@ -319,6 +324,12 @@ class MaxPool1D(BaseLayer):
         kernel_size = attrs["kernel_shape"][0]
         kernel_stride = attrs["strides"][0]
 
+        padding = attrs["pads"]
+        padding_needed = False
+        for num in padding:
+            if num != 0:
+                padding_needed = True
+
         input_buffer_size = reduce_mult(input_shape)
 
         operation = cls(node, graph)
@@ -329,6 +340,8 @@ class MaxPool1D(BaseLayer):
         operation.attributes['input_width'] = input_shape[2]
         operation.attributes['kernel_size'] = kernel_size
         operation.attributes['kernel_stride'] = kernel_stride
+        operation.attributes['padding_needed'] = padding_needed
+        operation.attributes['padding'] = padding
 
         return operation
 
