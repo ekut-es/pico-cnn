@@ -1,4 +1,4 @@
-{% if padding %}
+{% if padding_needed %}
 const int {{input_buffer.name}}_padding[4] = { {{padding.0}}, {{padding.1}}, {{padding.2}}, {{padding.3}} };
 for (int i = 0; i < {{num_input_channels}}; i++) {
     max_pooling2d_naive_padded({{input_buffer.name}}[i],
