@@ -279,12 +279,13 @@ class BackendRep(backend_base.BackendRep):
         initialization_header += "#define NETWORK_INITIALIZATION_H\n"
         initialization_header += "#include <stdlib.h>\n"
         initialization_header += "#include \"pico-cnn/parameters.h\"\n\n"
+        initialization_header += "void initialize_network();\n\n"
         # initialization_header += "void initialize();\n\n"
         initialization_header += "fp_t*** kernels;\n"
         initialization_header += "fp_t** biases;\n"
 
-        # initialization_code = "#include \"network_initialization.h\"\n\n"
-        initialization_code = "void initialize_network() {\n\n"
+        initialization_code = "#include \"network_initialization.h\"\n\n"
+        initialization_code += "void initialize_network() {\n\n"
 
         num_layers = 0
 
@@ -369,7 +370,7 @@ class BackendRep(backend_base.BackendRep):
 
         initialization_code += "}\n"
 
-        initialization_header += initialization_code  # TODO Everything to the .h file???
+        #initialization_header += initialization_code  # TODO Everything to the .h file???
         initialization_header += "#endif //NETWORK_INITIALIZATION_H\n"
 
         self.initialization_header = initialization_header
@@ -385,12 +386,16 @@ class BackendRep(backend_base.BackendRep):
         cleanup_header = "#ifndef NETWORK_CLEANUP_H\n"
         cleanup_header += "#define NETWORK_CLEANUP_H\n"
         cleanup_header += "#include <stdlib.h>\n"
-        cleanup_header += "#include \"pico-cnn/parameters.h\"\n\n"
+        cleanup_header += "#include \"pico-cnn/parameters.h\"\n"
+        cleanup_header += "#include \"network_initialization.h\" \n\n"
+        cleanup_header += "void cleanup_network(); \n\n"
+        cleanup_header += "#endif //NETWORK_CLEANUP_H\n"
+
         # cleanup_header += "void cleanup();\n\n"
 
-        # cleanup_code = "#include \"network_cleanup.h\"\n\n"
-        # cleanup_code += "#include \"network_initialization.h\"\n\n"
-        cleanup_code = "void cleanup_network() {\n"
+        cleanup_code = "#include \"network_cleanup.h\"\n\n"
+        #cleanup_code += "#include \"network_initialization.h\"\n\n"
+        cleanup_code += "void cleanup_network() {\n"
 
         for num, buffer_id in enumerate(memory_manager.buffers):
             buffer = memory_manager.get_buffer(graph, buffer_id)
@@ -406,8 +411,8 @@ class BackendRep(backend_base.BackendRep):
 
         cleanup_code += "}\n"
 
-        cleanup_header += cleanup_code
-        cleanup_header += "#endif //NETWORK_CLEANUP_H\n"
+        #cleanup_header += cleanup_code
+
 
         self.cleanup_header = cleanup_header
         self.cleanup_code = cleanup_code
@@ -579,16 +584,16 @@ class BackendRep(backend_base.BackendRep):
         self.network_def = network_def + ";"
 
         # TODO: Separate definition and implementation in the future.
-        # network_header = "#ifndef NETWORK_H\n"
-        # network_header += "#define NETWORK_H\n"
-        # network_header += "#include \"pico-cnn/parameters.h\"\n\n"
+        #network_header = "#ifndef NETWORK_H\n"
+        #network_header += "#define NETWORK_H\n"
+        #network_header += "#include \"pico-cnn/parameters.h\"\n\n"
         # network_header += network_def + ";\n"
         # network_header += "#endif //NETWORK_H\n"
 
-        # network_code: Text = "#include \"network.h\"\n"
-        network_code = "#include \"network_initialization.h\"\n"
-        network_code += "#include \"network_cleanup.h\"\n\n"
-        network_code += "#include \"pico-cnn/pico-cnn.h\"\n\n"
+        network_code: Text = "#include \"network.h\"\n\n"
+        #network_code = "#include \"network_initialization.h\"\n"
+        #network_code += "#include \"network_cleanup.h\"\n\n"
+        #network_code += "#include \"pico-cnn/pico-cnn.h\"\n\n"
         network_code += network_def+"{\n"
 
         implementation_code = ""
@@ -625,9 +630,12 @@ class BackendRep(backend_base.BackendRep):
         network_code += "}\n\n"
 
         network_header = "#ifndef NETWORK_H\n"
-        network_header += "#define NETWORK_H\n"
-        network_header += "#include \"pico-cnn/parameters.h\"\n\n"
-        network_header += network_code + "\n"
+        network_header += "#define NETWORK_H\n\n"
+        network_header += "#include \"pico-cnn/parameters.h\"\n"
+        network_header += "#include \"network_initialization.h\"\n"
+        network_header += "#include \"network_cleanup.h\"\n"
+        network_header += "#include \"pico-cnn/pico-cnn.h\"\n\n"
+        network_header += network_def + "; \n\n"
         network_header += "#endif //NETWORK_H\n"
 
         self.network_code = network_code
@@ -640,10 +648,21 @@ class BackendRep(backend_base.BackendRep):
         # TODO: Does this need to be more sophisticated?
         self.makefile = "CC = gcc\n"
         self.makefile += "CFLAGS = -Wall -g\n"
-        self.makefile += "LDFLAGS = -lm\n"
-        self.makefile += "dummy_input: dummy_input.c network.h network_initialization.h network_cleanup.h\n\t$(CC) dummy_input.c -I../../.. $(LDFLAGS) -o dummy_input"
-        self.makefile += "\n\nreference_input: reference_input.c network.h network_initialization.h network_cleanup.h\n\t$(CC) reference_input.c -I../../.. $(LDFLAGS) -o reference_input"
-        self.makefile += "\n\n{}: {}.c network.h network_initialization.h network_cleanup.h\n\t$(CC) {}.c -I../../.. $(LDFLAGS) -o {}".format(self.model_name, self.model_name, self.model_name, self.model_name)
+        self.makefile += "LDFLAGS = -lm\n\n"
+        self.makefile += "# path to the pico-cnn library\n"
+        self.makefile += "LIBPATH = ../../../pico-cnn/lib/libpico-cnn.a\n\n"
+        self.makefile += "# list of all generated .c files.\n"
+        self.makefile += "#TODO: right now, all .c files are compiled in each make call: change for higher effiency?\n"
+        self.makefile += "NETWORK_LIST = network_initialization.c network_cleanup.c network.c"
+        self.makefile += "\n\ndummy_input: dummy_input.c $(NETWORK_LIST)\n\t"
+        self.makefile += "make library --directory=../../../pico-cnn\n\t"
+        self.makefile += "$(CC) dummy_input.c $(NETWORK_LIST) $(LIBPATH) -I../../.. $(CFLAGS) $(LDFLAGS) -o dummy_input"
+        self.makefile += "\n\nreference_input: reference_input.c $(NETWORK_LIST) \n\t"
+        self.makefile += "make library --directory=../../../pico-cnn\n\t"
+        self.makefile += "$(CC) reference_input.c $(NETWORK_LIST) $(LIBPATH) -I../../.. $(CFLAGS) $(LDFLAGS) -o reference_input"
+        self.makefile += "\n\n{}: {}.c $(NETWORK_LIST) \n\t".format(self.model_name, self.model_name)
+        self.makefile += "make library --directory=../../../pico-cnn\n\t"
+        self.makefile += "$(CC) {}.c $(NETWORK_LIST) $(LIBPATH) -I../../.. $(CFLAGS) $(LDFLAGS) -o {}".format(self.model_name, self.model_name)
         self.makefile += "\n\nall: dummy_input reference_input {}".format(self.model_name)
         self.makefile += "\n\nclean:\n\t rm -rf {} dummy_input reference_input\n".format(self.model_name)
 
@@ -661,20 +680,20 @@ class BackendRep(backend_base.BackendRep):
         except FileExistsError:
             pass
 
-        # with open(os.path.join(folder, "network.c"), "w") as f:
-        #     f.write(self.network_code)
+        with open(os.path.join(folder, "network.c"), "w") as f:
+             f.write(self.network_code)
 
         with open(os.path.join(folder, "network.h"), "w") as f:
             f.write(self.network_header)
 
-        # with open(os.path.join(folder, "network_initialization.c"), "w") as f:
-        #     f.write(self.initialization_code)
+        with open(os.path.join(folder, "network_initialization.c"), "w") as f:
+            f.write(self.initialization_code)
 
         with open(os.path.join(folder, "network_initialization.h"), "w") as f:
             f.write(self.initialization_header)
 
-        # with open(os.path.join(folder, "network_cleanup.c"), "w") as f:
-        #     f.write(self.cleanup_code)
+        with open(os.path.join(folder, "network_cleanup.c"), "w") as f:
+            f.write(self.cleanup_code)
 
         with open(os.path.join(folder, "network_cleanup.h"), "w") as f:
             f.write(self.cleanup_header)
@@ -726,4 +745,3 @@ def export_data(config):
     data_code += "#endif //INPUT_DATA_H\n"
     with open("input_data.h", "w") as f:
         f.write(data_code)
-
