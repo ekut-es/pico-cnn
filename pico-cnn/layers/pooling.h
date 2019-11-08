@@ -109,7 +109,7 @@ void max_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height
  * @param kernel_size
  */
 void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
-                             fp_t* output_channel, const uint16_t kernel_size, fp_t bias);
+                             fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride, fp_t bias);
 
 /**
  * @brief Extends the input channel with the given padding and passes the extended input channel to average_pooling2d_naive
@@ -122,8 +122,8 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
  * @param bias
  */
 void average_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height, const uint16_t width,
-                                    fp_t* output_channel, const uint16_t kernel_size, fp_t bias,
-                                    const int* padding);
+                                    fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
+                                    fp_t bias, const int* padding);
 
 
 #ifdef FIXED16

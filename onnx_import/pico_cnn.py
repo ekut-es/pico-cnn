@@ -279,8 +279,8 @@ class MaxPool2D(BaseLayer):
 
         operation.attributes['num_input_channels'] = num_input_channels
         operation.attributes['input_buffer'] = input_buffer
-        operation.attributes['input_width'] = input_shape[2]
-        operation.attributes['input_height'] = input_shape[3]
+        operation.attributes['input_height'] = input_shape[2]
+        operation.attributes['input_width'] = input_shape[3]
         operation.attributes['output_buffer'] = output_buffer
         operation.attributes['kernel_size'] = kernel_size
         operation.attributes['kernel_stride'] = kernel_stride
@@ -503,12 +503,56 @@ OperationRegistry.register(Relu)
 #
 #
 # OperationRegistry.register(MatMul)
-#
-#
-# class AveragePool(BaseLayer):
+
+
+class AveragePool2D(BaseLayer):
+    name = "PicoCNNAveragePool"
+    operator = "AveragePool"
+    template_file = "pico_cnn_average_pool2d.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+        bias_buffer = None
+
+        input_shape = input_buffer.shape
+        kernel_size = attrs["kernel_shape"][0]
+        kernel_stride = attrs["strides"][0]
+
+        num_input_channels = input_shape[1]
+
+        padding = attrs["pads"]
+        padding_needed = False
+        for num in padding:
+            if num != 0:
+                padding_needed = True
+
+        operation = cls(node, graph)
+
+        operation.attributes["num_input_channels"] = num_input_channels
+        operation.attributes["input_buffer"] = input_buffer
+        operation.attributes["input_height"] = input_shape[2]
+        operation.attributes["input_width"] = input_shape[3]
+        operation.attributes["output_buffer"] = output_buffer
+        operation.attributes["kernel_size"] = kernel_size
+        operation.attributes["kernel_stride"] = kernel_stride
+        operation.attributes["bias_buffer"] = bias_buffer
+        operation.attributes['padding_needed'] = padding_needed
+        operation.attributes['padding'] = padding
+
+        return operation
+
+
+OperationRegistry.register(AveragePool2D)
+
+
+# class AveragePool1D(BaseLayer):
 #     name = "PicoCNNAveragePool"
 #     operator = "AveragePool"
-#     template_file = "pico_cnn_average_pool.c"
+#     template_file = "pico_cnn_average_pool1d.c"
 #
 #     @classmethod
 #     def create(cls, node, graph, memory_manager):
@@ -546,9 +590,9 @@ OperationRegistry.register(Relu)
 #         return operation
 #
 #
-# OperationRegistry.register(AveragePool)
-#
-#
+# OperationRegistry.register(AveragePool1D)
+
+
 # class Transpose(BaseLayer):
 #     name = "TransposeGeneric"
 #     operator = "Transpose"
