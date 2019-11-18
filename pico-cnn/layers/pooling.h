@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>
 
 #ifdef FIXED16
 #include "../driver/fixed16.h"
@@ -33,7 +34,7 @@
  * @param padding
  */
 void extend_2d_input_with_padding(const fp_t* input_channel, const uint16_t height, const uint16_t width,
-                                  fp_t** extended_input, const int* padding);
+                                  fp_t** extended_input, const int* padding, fp_t initializer);
 
 /**
  * @brief Extends input_channel with padding by copying the data into a bigger array.
@@ -44,7 +45,7 @@ void extend_2d_input_with_padding(const fp_t* input_channel, const uint16_t heig
  * @param padding
  */
 void extend_1d_input_with_padding(const fp_t* input_channel, const uint16_t width,
-                                  fp_t** extended_input, const int* padding);
+                                  fp_t** extended_input, const int* padding, fp_t initializer);
 
 /**
  * @brief applies max pooling of kernel_size to input_channel
@@ -109,7 +110,8 @@ void max_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height
  * @param kernel_size
  */
 void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
-                             fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride, fp_t bias);
+                             fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
+                             fp_t bias, const uint16_t count_include_pad);
 
 /**
  * @brief Extends the input channel with the given padding and passes the extended input channel to average_pooling2d_naive
@@ -123,7 +125,34 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
  */
 void average_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height, const uint16_t width,
                                     fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
-                                    fp_t bias, const int* padding);
+                                    fp_t bias, const int* padding, const uint16_t count_include_pad);
+
+/**
+ *
+ * @param input_channel
+ * @param input_width
+ * @param output_channel
+ * @param kernel_size
+ * @param stride
+ * @param bias
+ */
+void average_pooling1d_naive(const fp_t* input_channel, const uint16_t input_width, fp_t* output_channel,
+                             const uint16_t kernel_size, const uint16_t stride, fp_t bias,
+                             const uint16_t count_include_pad);
+
+/**
+ *
+ * @param input_channel
+ * @param input_width
+ * @param output_channel
+ * @param kernel_size
+ * @param stride
+ * @param bias
+ * @param padding
+ */
+void average_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t input_width, fp_t* output_channel,
+                                    const uint16_t kernel_size, const uint16_t stride, fp_t bias, const int* padding,
+                                    const uint16_t count_include_pad);
 
 
 #ifdef FIXED16

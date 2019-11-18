@@ -1,24 +1,39 @@
 #include "pooling.h"
 
 void extend_2d_input_with_padding(const fp_t* input_channel, const uint16_t height, const uint16_t width,
-                               fp_t** extended_input, const int* padding) {
+                               fp_t** extended_input, const int* padding, fp_t initializer) {
 
     uint16_t height_padded = height + padding[0] + padding[2];
     uint16_t width_padded = width + padding[1] + padding[3];
 
     *extended_input = (fp_t*) calloc(height_padded * width_padded, sizeof(fp_t));
 
-    for(int16_t channel_row = 0; channel_row < height; channel_row++) {
-        memcpy((*extended_input)+(channel_row+padding[0])*width_padded+padding[1], input_channel+channel_row*width, width*sizeof(fp_t));
+    if(initializer != 0.0) {
+        for(int r = 0; r < height_padded; r++){
+            for(int c = 0; c < width_padded; c++){
+                (*extended_input)[r*width_padded+c] = initializer;
+            }
+        }
+    }
+
+    for (int16_t channel_row = 0; channel_row < height; channel_row++) {
+        memcpy((*extended_input) + (channel_row + padding[0]) * width_padded + padding[1],
+               input_channel + channel_row * width, width * sizeof(fp_t));
     }
 }
 
 void extend_1d_input_with_padding(const fp_t* input_channel, const uint16_t width,
-                                  fp_t** extended_input, const int* padding) {
+                                  fp_t** extended_input, const int* padding, fp_t initializer) {
 
     uint16_t width_padded = width + padding[0] + padding[1];
 
     *extended_input = (fp_t*) calloc(width_padded, sizeof(fp_t));
+
+    if(initializer != 0.0) {
+        for(int i = 0; i < width_padded; i++){
+            (*extended_input)[i] = initializer;
+        }
+    }
 
     memcpy((*extended_input)+padding[0], input_channel, width*sizeof(fp_t));
 }
@@ -34,11 +49,13 @@ void max_pooling1d_naive(const fp_t* input_channel, const uint16_t input_width,
     output_channel_idx = 0;
     output_channel_width = (input_width-kernel_size)/stride+1;
 
-    for(input_channel_idx = 0; input_channel_idx < input_width && output_channel_idx < output_channel_width; input_channel_idx += stride) {
+    for (input_channel_idx = 0;
+         input_channel_idx < input_width && output_channel_idx < output_channel_width; input_channel_idx += stride) {
         fp_t pixel = input_channel[input_channel_idx];
 
-        for(kernel_idx = input_channel_idx; kernel_idx < input_channel_idx+kernel_size && kernel_idx < input_width; kernel_idx++) {
-            if(input_channel[kernel_idx] > pixel) {
+        for (kernel_idx = input_channel_idx;
+             kernel_idx < input_channel_idx + kernel_size && kernel_idx < input_width; kernel_idx++) {
+            if (input_channel[kernel_idx] > pixel) {
                 pixel = input_channel[kernel_idx];
             }
         }
@@ -51,7 +68,8 @@ void max_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t input_
                                 fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
                                 const int* padding) {
     fp_t* new_input_channel;
-    extend_1d_input_with_padding(input_channel, input_width, &new_input_channel, padding);
+
+    extend_1d_input_with_padding(input_channel, input_width, &new_input_channel, padding, FLOAT_MIN);
 
     max_pooling1d_naive(new_input_channel, input_width+padding[0]+padding[1],
                         output_channel, kernel_size, stride);
@@ -74,19 +92,22 @@ void max_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const
     output_channel_height = (height-kernel_size)/stride+1;
     output_channel_width = (width-kernel_size)/stride+1;
 
-    for(channel_row = 0; channel_row < height && output_channel_row < output_channel_height; channel_row += stride) {
-        for(channel_column = 0; channel_column < width && output_channel_column < output_channel_width; channel_column += stride) {
-            fp_t pixel = input_channel[channel_row*width+channel_column];
+    for (channel_row = 0; channel_row < height && output_channel_row < output_channel_height; channel_row += stride) {
+        for (channel_column = 0;
+             channel_column < width && output_channel_column < output_channel_width; channel_column += stride) {
+            fp_t pixel = input_channel[channel_row * width + channel_column];
 
-            for(kernel_row = channel_row; kernel_row < channel_row+kernel_size && kernel_row < height; kernel_row++) {
-                for(kernel_column = channel_column; kernel_column < channel_column+kernel_size && kernel_column < width; kernel_column++) {
-                    if(input_channel[kernel_row*width+kernel_column] > pixel) {
-                        pixel = input_channel[kernel_row*width+kernel_column];
+            for (kernel_row = channel_row;
+                 kernel_row < channel_row + kernel_size && kernel_row < height; kernel_row++) {
+                for (kernel_column = channel_column;
+                     kernel_column < channel_column + kernel_size && kernel_column < width; kernel_column++) {
+                    if (input_channel[kernel_row * width + kernel_column] > pixel) {
+                        pixel = input_channel[kernel_row * width + kernel_column];
                     }
                 }
             }
 
-            output_channel[output_channel_row*output_channel_width+output_channel_column] = pixel;
+            output_channel[output_channel_row * output_channel_width + output_channel_column] = pixel;
             output_channel_column++;
         }
         output_channel_row++;
@@ -99,7 +120,7 @@ void max_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height
                                 const int* padding) {
 
     fp_t* new_input_channel;
-    extend_2d_input_with_padding(input_channel, height, width, &new_input_channel, padding);
+    extend_2d_input_with_padding(input_channel, height, width, &new_input_channel, padding, FLOAT_MIN);
 
     max_pooling2d_naive(new_input_channel, height+padding[0]+padding[2], width+padding[1]+padding[3],
                         output_channel, kernel_size, stride);
@@ -108,7 +129,8 @@ void max_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height
 }
 
 void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
-                             fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride, fp_t bias) {
+                             fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
+                             fp_t bias, const uint16_t count_include_pad) {
 
     uint16_t channel_row, channel_column;
     uint16_t output_channel_row, output_channel_column;
@@ -122,33 +144,71 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
     output_channel_height = (height-kernel_size)/stride+1;
     output_channel_width = (width-kernel_size)/stride+1;
 
-    for(channel_row = 0; channel_row < height && output_channel_row < output_channel_height; channel_row += stride) {
-        for(channel_column = 0; channel_column < width && output_channel_column < output_channel_width; channel_column += stride) {
-            fp_t pixel = input_channel[channel_row*width+channel_column];
+    if(count_include_pad == 1) {
 
-            for(kernel_row = channel_row; kernel_row < channel_row+kernel_size && kernel_row < height; kernel_row++) {
-                for(kernel_column = channel_column; kernel_column < channel_column+kernel_size && kernel_column < width; kernel_column++) {
-                    pixel += input_channel[kernel_row*width+kernel_column];
+        for (channel_row = 0;
+             channel_row < height && output_channel_row < output_channel_height; channel_row += stride) {
+            for (channel_column = 0;
+                 channel_column < width && output_channel_column < output_channel_width; channel_column += stride) {
+                fp_t pixel = input_channel[channel_row * width + channel_column];
+
+                for (kernel_row = channel_row;
+                     kernel_row < channel_row + kernel_size && kernel_row < height; kernel_row++) {
+                    for (kernel_column = channel_column;
+                         kernel_column < channel_column + kernel_size && kernel_column < width; kernel_column++) {
+                        pixel += input_channel[kernel_row * width + kernel_column];
+                    }
                 }
-            }
 
-            output_channel[output_channel_row*output_channel_width+output_channel_column] = pixel/((fp_t) kernel_size*kernel_size) + bias;
-            output_channel_column++;
+                output_channel[output_channel_row * output_channel_width + output_channel_column] =
+                        pixel / ((fp_t) kernel_size * kernel_size) + bias;
+                output_channel_column++;
+            }
+            output_channel_row++;
+            output_channel_column = 0;
         }
-        output_channel_row++;
-        output_channel_column = 0;
+
+    } else if(count_include_pad == 0) {
+
+        uint16_t crop = kernel_size/2;
+
+        // TODO: Split pooling into edge case  and inner case
+        printf( "ERROR: Not yet implemented.\n");
+
+    } else {
+        printf( "ERROR: Unsupported values for 'count_include_pad'.\n");
     }
 }
 
 void average_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height, const uint16_t width,
                                     fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
-                                    fp_t bias, const int* padding) {
+                                    fp_t bias, const int* padding, const uint16_t count_include_pad) {
 
     fp_t* new_input_channel;
-    extend_2d_input_with_padding(input_channel, height, width, &new_input_channel, padding);
+    extend_2d_input_with_padding(input_channel, height, width, &new_input_channel, padding, 0.0);
 
     average_pooling2d_naive(new_input_channel, height+padding[0]+padding[2], width+padding[1]+padding[3],
-                            output_channel, kernel_size, stride, bias);
+                            output_channel, kernel_size, stride, bias, count_include_pad);
+
+    free(new_input_channel);
+}
+
+void average_pooling1d_naive(const fp_t* input_channel, const uint16_t input_width, fp_t* output_channel,
+                             const uint16_t kernel_size, const uint16_t stride, fp_t bias,
+                             const uint16_t count_include_pad) {
+
+
+}
+
+void average_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t input_width, fp_t* output_channel,
+                                    const uint16_t kernel_size, const uint16_t stride, fp_t bias, const int* padding,
+                                    const uint16_t count_include_pad) {
+    fp_t* new_input_channel;
+
+    extend_1d_input_with_padding(input_channel, input_width, &new_input_channel, padding, 0.0);
+
+    average_pooling1d_naive(new_input_channel, input_width+padding[0]+padding[1],
+                            output_channel, kernel_size, stride, bias, count_include_pad);
 
     free(new_input_channel);
 }

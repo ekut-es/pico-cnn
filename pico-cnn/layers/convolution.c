@@ -1,6 +1,9 @@
+#include <assert.h>
 #include "convolution.h"
 
-void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* output_channel, const fp_t* kernel, const int kernel_size, const int stride, const int padding, const fp_t bias) {
+void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* output_channel, const fp_t* kernel,
+                         const int kernel_size, const int stride, const int padding, const fp_t bias) {
+
     int32_t input_channel_idx;
     int32_t kernel_idx;
     int32_t crop = kernel_size/2;
@@ -12,14 +15,11 @@ void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* 
 
     // padding valid
     if(padding == 0) {
-        if(stride == 1) {
-            output_channel_size = input_size-2*crop;
-        } else {
-            output_channel_size = ((input_size-2*crop)/stride)+1;
-        }
+        output_channel_size = ((input_size-kernel_size)/stride)+1;
 
         for(input_channel_idx = crop; input_channel_idx < input_size-crop; input_channel_idx+=stride) {
             pixel = 0.0;
+
             for(kernel_idx = 0; kernel_idx < kernel_size; kernel_idx++) {
                 pixel += kernel[kernel_idx] * input_channel[input_channel_idx-crop+kernel_idx];
             }
@@ -29,11 +29,12 @@ void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* 
             output_channel[output_channel_idx] = pixel;
             output_channel_idx++;
         }
+//        assert(output_channel_idx == output_channel_size);
     }
 
     // padding same
     else if(padding == kernel_size/2) {
-        output_channel_size = input_size/stride;
+        output_channel_size = (((input_size+2*(kernel_size/2))-kernel_size)/stride)+1;
 
         for(input_channel_idx = 0; input_channel_idx < input_size; input_channel_idx+=stride) {
             pixel = 0.0;
@@ -49,10 +50,14 @@ void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* 
             output_channel[output_channel_idx] = pixel;
             output_channel_idx++;
         }
+//        assert(output_channel_idx == output_channel_size);
     }
 }
 
-void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel, const fp_t* kernel, const uint16_t kernel_size, const uint16_t stride, const uint16_t padding, const fp_t bias) {
+void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
+                         const fp_t* kernel, const uint16_t kernel_size, const uint16_t stride,
+                         const uint16_t padding, const fp_t bias) {
+
     int32_t channel_row, channel_column;
     int32_t kernel_row, kernel_column;
     int32_t crop = kernel_size/2;
