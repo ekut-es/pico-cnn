@@ -530,6 +530,8 @@ class AveragePool2D(BaseLayer):
             if num != 0:
                 padding_needed = True
 
+        count_include_pad = attrs.get("count_include_pad", 0)
+
         operation = cls(node, graph)
 
         operation.attributes["num_input_channels"] = num_input_channels
@@ -542,6 +544,7 @@ class AveragePool2D(BaseLayer):
         operation.attributes["bias_buffer"] = bias_buffer
         operation.attributes['padding_needed'] = padding_needed
         operation.attributes['padding'] = padding
+        operation.attributes['count_include_pad'] = count_include_pad
 
         return operation
 

@@ -12,8 +12,8 @@ for (int i = 0; i < {{num_input_channels}}; i++) {
                                    {% else %}
                                    0,
                                    {% endif %}
-                                   {{input_buffer.name}}_padding
-                                  );
+                                   {{input_buffer.name}}_padding,
+                                   {{count_include_pad}});
 }
 {% else %}
 for (int i = 0; i < {{num_input_channels}}; i++) {
@@ -24,10 +24,10 @@ for (int i = 0; i < {{num_input_channels}}; i++) {
                             {{kernel_size}},
                             {{kernel_stride}},
                             {% if bias_buffer  %}
-                            {{bias_buffer.name}}[i]
+                            {{bias_buffer.name}}[i],
                             {% else %}
-                            0
+                            0,
                             {% endif %}
-    );
+                            {{count_include_pad}});
 }
 {% endif %}
