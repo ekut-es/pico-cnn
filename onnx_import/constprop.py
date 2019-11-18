@@ -266,14 +266,18 @@ def constant_propagation(graph):
                 changed = True
 
         elif node.op_type == 'Reshape':
-            input_shape = state_dict[node.inputs[0]].shape
-            input_data = state_dict[node.inputs[1]].value
+            input_data_shape = state_dict[node.inputs[0]].shape
+            new_shape = state_dict[node.inputs[1]].value
 
             out = ConstPropState(None, None)
 
-            if input_shape is not None and input_data is not None:
-                data = np.zeros(input_shape)
-                res = np.reshape(data, input_data)
+            if input_data_shape is not None and new_shape is not None:
+                new_shape_tmp = np.copy(new_shape)
+                zeros_index = np.where(new_shape == 0)
+                new_shape_tmp[zeros_index] = np.array(input_data_shape)[zeros_index]
+
+                data = np.zeros(input_data_shape)
+                res = np.reshape(data, new_shape_tmp)
                 out = ConstPropState(None, res.shape)
             
             if state_dict[node.outputs[0]] != out:
