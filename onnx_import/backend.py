@@ -648,23 +648,22 @@ class BackendRep(backend_base.BackendRep):
         # TODO: Does this need to be more sophisticated?
         self.makefile = "CC = gcc\n"
         self.makefile += "CFLAGS = -Wall -g\n"
-        self.makefile += "LDFLAGS = -lm\n\n"
-        self.makefile += "# path to the pico-cnn library\n"
-        self.makefile += "LIBPATH = ../../../pico-cnn/lib/libpico-cnn.a\n\n"
+        self.makefile += "LDFLAGS = -L../../../pico-cnn\n"
+        self.makefile += "LD_LIBS = -lpico-cnn -lm\n\n"
         self.makefile += "# list of all generated .c files.\n"
         self.makefile += "#TODO: right now, all .c files are compiled in each make call: change for higher effiency?\n"
         self.makefile += "NETWORK_LIST = network_initialization.c network_cleanup.c network.c"
-        self.makefile += "\n\ndummy_input: dummy_input.c $(NETWORK_LIST)\n\t"
-        self.makefile += "make library --directory=../../../pico-cnn\n\t"
-        self.makefile += "$(CC) dummy_input.c $(NETWORK_LIST) $(LIBPATH) -I../../.. $(CFLAGS) $(LDFLAGS) -o dummy_input"
-        self.makefile += "\n\nreference_input: reference_input.c $(NETWORK_LIST) \n\t"
-        self.makefile += "make library --directory=../../../pico-cnn\n\t"
-        self.makefile += "$(CC) reference_input.c $(NETWORK_LIST) $(LIBPATH) -I../../.. $(CFLAGS) $(LDFLAGS) -o reference_input"
+        self.makefile += "\n\ndummy_input: dummy_input.c $(NETWORK_LIST) libpico-cnn.a\n\t"
+        self.makefile += "$(CC) dummy_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o dummy_input"
+        self.makefile += "\n\nreference_input: reference_input.c $(NETWORK_LIST) libpico-cnn.a\n\t"
+        self.makefile += "$(CC) reference_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o reference_input"
         self.makefile += "\n\n{}: {}.c $(NETWORK_LIST) \n\t".format(self.model_name, self.model_name)
-        self.makefile += "make library --directory=../../../pico-cnn\n\t"
-        self.makefile += "$(CC) {}.c $(NETWORK_LIST) $(LIBPATH) -I../../.. $(CFLAGS) $(LDFLAGS) -o {}".format(self.model_name, self.model_name)
+        self.makefile += "$(CC) {}.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o {}".format(self.model_name, self.model_name)
         self.makefile += "\n\nall: dummy_input reference_input {}".format(self.model_name)
-        self.makefile += "\n\nclean:\n\t rm -rf {} dummy_input reference_input\n".format(self.model_name)
+        self.makefile += "\n\n.PHONY: clean\n"
+        self.makefile += "clean:\n\trm -rf {} dummy_input reference_input\n".format(self.model_name)
+        self.makefile += "\n\n.PHONY: libpico-cnn.a\n"
+        self.makefile += "libpico-cnn.a:\n\t$(MAKE) -C ../../../pico-cnn"
 
         self.save("./generated_code/{}".format(self.model_name))
 
