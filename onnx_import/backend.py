@@ -657,7 +657,7 @@ class BackendRep(backend_base.BackendRep):
         self.makefile += "$(CC) dummy_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o dummy_input"
         self.makefile += "\n\nreference_input: reference_input.c $(NETWORK_LIST) libpico-cnn.a\n\t"
         self.makefile += "$(CC) reference_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o reference_input"
-        self.makefile += "\n\n{}: {}.c $(NETWORK_LIST) \n\t".format(self.model_name, self.model_name)
+        self.makefile += "\n\n{}: {}.c $(NETWORK_LIST) libpico-cnn.a\n\t".format(self.model_name, self.model_name)
         self.makefile += "$(CC) {}.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o {}".format(self.model_name, self.model_name)
         self.makefile += "\n\nall: dummy_input reference_input {}".format(self.model_name)
         self.makefile += "\n\n.PHONY: clean\n"

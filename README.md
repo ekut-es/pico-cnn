@@ -13,6 +13,9 @@ sudo apt install libjpeg-dev
 sudo yum install libjpeg-devel
 ```
 
+### C-Standard
+Depending on the (system-) compiler you are using you might have to add a specific C-Standard to the `CFLAGS` variable in the generated Makefile. Assuming a modern operating system like Ubuntu 18.04 the default C-Standard is `-std=gnu11`. If you are using an older version of GCC it should suffice to chose `-std=c99` or `-std=gnu99` as the C-Standard.
+
 ### All distributions
 Install `python3.6` for example with [pyenv](https://github.com/pyenv/pyenv) (probably also works with other Python versions). Then install the required Python packages with the requirements.txt file located in `pico-cnn/onnx_import`:
 ```{bash}
