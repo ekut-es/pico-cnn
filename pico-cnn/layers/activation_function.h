@@ -46,7 +46,38 @@ void relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t
 
 
 /**
-  * @brief applies a special sigmoid function, the logistic function 
+ * @brief applies leaky ReLU to all pixel of input channel and stores it in
+ * output_channel,
+ * with leakyReLU(x) = x * leak   if x <  0
+ *                     x          if x >= 0
+ *
+ * @param input_channel (height x width)
+ * @param height
+ * @param width
+ * @param output_channel (height x width)
+ * @param leak
+ */
+void leaky_relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel, const fp_t leak);
+
+
+/**
+ * @brief applies parametrized ReLU to all pixel of input channel and stores it in
+ * output_channel. There is a (learnable) parameter for each input channel.
+ * PRReLU(x_i) = x_i * a_i   if x_i <  0
+ *               x_i         if x_i >= 0
+ *  for x_i,the input channel and a_i, the parameter
+ *
+ * @param input_channel (height x width)
+ * @param height
+ * @param width
+ * @param output_channel (height x width)
+ * @param kernel parameters
+ */
+void parametrized_relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel, fp_t* kernel);
+
+
+/**
+  * @brief applies a special sigmoid function, the logistic function
   *  to all values of input_channel and stores it in
   *  output_channel
   *
@@ -55,7 +86,7 @@ void relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t
   * @param width
   * @param output_channel (height x width)
 */
-void sigmoid_naive(const fp* input_channel, const uint16_t height, const uint16_t width,  fp_t* output_channel);
+void sigmoid_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,  fp_t* output_channel);
 
 /**
  * @brief applies softmax to all pixel of input_channel and stores it in
