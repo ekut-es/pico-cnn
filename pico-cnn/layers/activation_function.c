@@ -26,6 +26,22 @@ void relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t
     }
 }
 
+void sigmoid_naive(const fp* input_channel, const uint16_t height, const uint16_t width,  fp_t* output_channel) {
+
+  #ifdef BIG_LOOPS
+  uint64_t i;
+  #else
+  uint32_t i;
+  #endif
+
+  for(i = 0; i < height*width; i++) {
+    output_channel[i] = 1 / (1+expf(- input_channel[i]));
+    // alternative formula:
+    //  output_channel[i] = 0.5 * (1 + tanhf(input_channel[i] / 2));
+  }
+
+}
+
 void softmax_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
     #ifdef BIG_LOOPS

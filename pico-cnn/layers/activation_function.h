@@ -46,6 +46,18 @@ void relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t
 
 
 /**
+  * @brief applies a special sigmoid function, the logistic function 
+  *  to all values of input_channel and stores it in
+  *  output_channel
+  *
+  * @param input_channel (height x width)
+  * @param height
+  * @param width
+  * @param output_channel (height x width)
+*/
+void sigmoid_naive(const fp* input_channel, const uint16_t height, const uint16_t width,  fp_t* output_channel);
+
+/**
  * @brief applies softmax to all pixel of input_channel and stores it in
  * output_channel
  *
