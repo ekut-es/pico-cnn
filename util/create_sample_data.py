@@ -11,7 +11,7 @@ import magic
 from scipy.io.wavfile import read
 # from PIL import Image
 import imageio
-supported_file_types = ['audio/x-wav', 'image/jpeg']
+supported_file_types = ['audio/x-wav', 'image/jpeg', 'image/x-portable-greymap']
 
 
 def main():
@@ -37,7 +37,7 @@ def main():
         type=int,
         nargs='+',
         required=True,
-        help="Required input shape. Format \"--shape 1 1 16000 1\" for (1, 1, 16000, 1) with "
+        help="Required input shape. Format \"--shape 1 1 16000 1\" for (1, 1, 1, 16000) with "
              "(batch_size, num_input_ch, width, height)."
     )
     args = parser.parse_args()
@@ -78,14 +78,15 @@ def main():
 
         packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
         packed_input.append(struct.pack('i', input_shape[1]))  # Number of channels
-        packed_input.append(struct.pack('i', input_shape[2]))  # Channel width
-        packed_input.append(struct.pack('i', 1))  # Channel height
+        packed_input.append(struct.pack('i', input_shape[2]))  # Channel height
+        packed_input.append(struct.pack('i', input_shape[3]))  # Channel width
         packed_input.append(struct.pack('f' * len(input_data), *input_data))  # Data
 
         # tmp = os.path.splitext(os.path.basename(onnx_model))
         # tmp2 = os.path.splitext(input_file)
 
-        in_path = "{}_{}_input.data".format(os.path.splitext(input_file)[0], os.path.splitext(os.path.basename(onnx_model))[0])
+        in_path = "{}_{}_input.data".format(os.path.splitext(input_file)[0],
+                                            os.path.splitext(os.path.basename(onnx_model))[0])
         print("Saving input to {}".format(in_path))
         with open(in_path, "wb") as f:
             for packed_struct in packed_input:
@@ -95,11 +96,36 @@ def main():
 
     elif file_type == 'image/png':
         pass
+
     elif file_type == 'image/jpeg':
         input_data = imageio.imread(input_file)
         # input_data = list(input_data.getdata())
         tmp = np.array(input_data, dtype=float)
-        tmp2 = tmp.reshape((3,227,227))
+        tmp2 = tmp.reshape((3, 227, 227))
+
+    elif file_type == 'image/x-portable-greymap':
+        input_data = imageio.imread(input_file)
+        input_data = np.array(input_data, dtype=float)
+        input_data = input_data / 255.0
+        input_data = input_data.astype(np.float32)
+
+        packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
+        packed_input.append(struct.pack('i', input_shape[1]))  # Number of channels
+        packed_input.append(struct.pack('i', input_shape[2]))  # Channel height
+        packed_input.append(struct.pack('i', input_shape[3]))  # Channel width
+
+        for row in input_data:
+            packed_input.append(struct.pack('f' * len(row), *row))  # Data
+
+        in_path = "{}_{}_input.data".format(os.path.splitext(input_file)[0],
+                                            os.path.splitext(os.path.basename(onnx_model))[0])
+        print("Saving input to {}".format(in_path))
+        with open(in_path, "wb") as f:
+            for packed_struct in packed_input:
+                f.write(packed_struct)
+
+        input_data = input_data.reshape(input_shape)
+
     else:
         print("ERROR: Something went wrong during input data processing...")
         exit(1)

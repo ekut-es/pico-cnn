@@ -72,7 +72,19 @@ int read_binary_sample_input_data(const char* path_to_sample_data, fp_t*** input
             int numbers_read = -1;
 
             numbers_read = fread((void*)values, sizeof(float), width*height, binary_file);
-            memcpy((*input)[channel], values, width*height*sizeof(float));
+
+            if(numbers_read != height*width) {
+                printf("ERROR reading data.");
+                free(values);
+                return 1;
+            } else {
+                #ifdef DEBUG
+                for(int i = 0; i < height*width; i++) {
+                    printf("%f\n", values[i]);
+                }
+                #endif
+                memcpy((*input)[channel], values, width*height*sizeof(float));
+            }
 
             free(values);
         }
