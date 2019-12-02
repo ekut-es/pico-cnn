@@ -2,7 +2,12 @@
 
 void output_channel_dimensions(uint16_t height, uint16_t width, const uint16_t kernel_size[2],
                                uint16_t stride, uint16_t **computed_dimensions) {
-    uint16_t output_channel_height = (height-kernel_size[0])/stride+1;
+
+    uint16_t output_channel_height;
+    if(height > 1)
+        output_channel_height = (height-kernel_size[0])/stride+1;
+    else
+        output_channel_height = 1;
     uint16_t output_channel_width = (width-kernel_size[1])/stride+1;
 
     *computed_dimensions = (uint16_t*) malloc(2 * sizeof(uint16_t));
@@ -12,6 +17,7 @@ void output_channel_dimensions(uint16_t height, uint16_t width, const uint16_t k
 }
 
 int test_max_pooling1d() {
+    printf("test_max_pooling1d()\n");
     int return_value = 0;
 
     uint16_t input_height = 1;
@@ -38,7 +44,7 @@ int test_max_pooling1d() {
 
     for(int i = 0; i < expected_output_width; i++) {
         if(output[i] != expected_output[i]){
-            printf("Expected: %f, Output; %f\n", expected_output[i], output[i]);
+            printf("Expected: %f, Output: %f\n", expected_output[i], output[i]);
             return_value = 1;
         }
     }
@@ -47,6 +53,7 @@ int test_max_pooling1d() {
 }
 
 int test_max_pooling1d_padding() {
+    printf("test_max_pooling1d_padding()\n");
     int return_value = 0;
 
     uint16_t input_height = 1;
@@ -84,6 +91,7 @@ int test_max_pooling1d_padding() {
 }
 
 int test_max_pooling2d() {
+    printf("test_max_pooling2d()\n");
     int return_value = 0;
 
     fp_t input[16] = {1, 2, 3, 4,
@@ -109,6 +117,7 @@ int test_max_pooling2d() {
 }
 
 int test_max_pooling2d_padding() {
+    printf("test_max_pooling2d_padding()\n");
     int return_value = 0;
 
     fp_t input[25] = {1, 2, 3, 4, 5,
@@ -138,7 +147,83 @@ int test_max_pooling2d_padding() {
     return return_value;
 }
 
+int test_avg_pooling1d() {
+    printf("test_avg_pooling1d()\n");
+    int return_value = 0;
+
+    uint16_t input_width = 10;
+    uint16_t expected_output_width = 8;
+    uint16_t kernel_size = 3;
+    uint16_t stride = 1;
+    uint16_t count_include_pad = 1;
+    uint16_t kernel_dim[2] = {kernel_size, kernel_size};
+
+    uint16_t *computed_dimensions;
+    output_channel_dimensions(1, input_width, kernel_dim, stride, &computed_dimensions);
+    assert(computed_dimensions[0] == 1);
+    assert(computed_dimensions[1] == expected_output_width);
+    free(computed_dimensions);
+
+    fp_t input[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+    fp_t expected_output[8] = {2, 3, 4, 5, 6, 7, 8, 9};
+
+    fp_t* output = (fp_t*) malloc(1*expected_output_width* sizeof(float));
+
+    average_pooling1d_naive(input, input_width, output, kernel_size, stride,
+                            0.0, count_include_pad);
+
+    for(int i = 0; i < 1*expected_output_width; i++){
+        if(expected_output[i] != output[i]) {
+            printf("Expected: %f, Output; %f\n", expected_output[i], output[i]);
+            return_value = 1;
+        }
+    }
+
+    free(output);
+    return return_value;
+
+}
+int test_avg_pooling1d_padding() {
+    printf("test_avg_pooling1d_padding()\n");
+    int return_value = 0;
+
+    uint16_t input_width = 10;
+    uint16_t expected_output_width = 10;
+    uint16_t kernel_size = 5;
+    uint16_t stride = 1;
+    uint16_t kernel_dim[2] = {kernel_size, kernel_size};
+
+    fp_t input[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+    fp_t expected_output_count_include_pad_0[10] = {2, 2.5, 3, 4, 5, 6, 7, 8, 8.5, 9};
+
+    fp_t expected_output_count_include_pad_1[10] = {1.2, 2, 3, 4, 5, 6, 7, 8, 6.8, 5.4};
+
+    fp_t* output_0 = (fp_t*) malloc(expected_output_width* sizeof(float));
+    fp_t* output_1 = (fp_t*) malloc(expected_output_width* sizeof(float));
+
+    const int padding[4] = {2, 2, 2, 2};
+
+    average_pooling1d_naive_padded(input, input_width, output_0, kernel_size,
+                                   stride, 0.0, padding, 0);
+    average_pooling1d_naive_padded(input, input_width, output_1, kernel_size,
+                                   stride, 0.0, padding, 1);
+
+    for(int i = 0; i < expected_output_width; i++) {
+        if (expected_output_count_include_pad_0[i] != output_0[i]) {
+            return_value = 1;
+        }
+        if (expected_output_count_include_pad_1[i] != output_1[i]) {
+            return_value = 1;
+        }
+    }
+
+    return return_value;
+}
+
 int test_avg_pooling2d() {
+    printf("test_avg_pooling2d()\n");
     int return_value = 0;
 
     uint16_t input_height = 5;
@@ -184,6 +269,7 @@ int test_avg_pooling2d() {
 }
 
 int test_avg_pooling2d_padding() {
+    printf("test_avg_pooling2d_padding()\n");
     int return_value = 0;
 
     uint16_t input_height = 5;

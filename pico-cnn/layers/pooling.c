@@ -254,7 +254,71 @@ void average_pooling1d_naive(const fp_t* input_channel, const uint16_t input_wid
                              const uint16_t kernel_size, const uint16_t stride, fp_t bias,
                              const uint16_t count_include_pad) {
 
+    uint16_t input_channel_idx;
+    uint16_t output_channel_idx;
+    uint16_t output_channel_width;
+    uint16_t kernel_idx;
 
+    output_channel_idx = 0;
+    output_channel_width = (input_width-kernel_size)/stride+1;
+
+    if(count_include_pad == 1) {
+
+        for (input_channel_idx = 0;
+             input_channel_idx < input_width && output_channel_idx < output_channel_width; input_channel_idx += stride) {
+
+                fp_t pixel = 0.0;
+
+                for (kernel_idx = input_channel_idx;
+                     kernel_idx < input_channel_idx + kernel_size && kernel_idx < input_width; kernel_idx++) {
+                        pixel += input_channel[kernel_idx];
+                }
+
+                output_channel[output_channel_idx] = pixel / ((fp_t) kernel_size) + bias;
+            output_channel_idx++;
+        }
+
+    } else if(count_include_pad == 0) {
+
+        uint16_t crop = kernel_size/2;
+
+        for (input_channel_idx = 0;
+             input_channel_idx < input_width && output_channel_idx < output_channel_width; input_channel_idx += stride) {
+
+            fp_t pixel = 0.0;
+
+            for (kernel_idx = input_channel_idx;
+                 kernel_idx < input_channel_idx + kernel_size && kernel_idx < input_width; kernel_idx++) {
+                pixel += input_channel[kernel_idx];
+            }
+
+            // center case
+            if(output_channel_idx >= crop && output_channel_idx < output_channel_width-crop){
+
+             output_channel[output_channel_idx] = pixel / ((fp_t) kernel_size) + bias;
+
+             // edge case
+            } else {
+
+                int orig_width = input_width-2*crop;
+
+                int left_col, right_col;
+                int divisor, div_col;
+
+                left_col = MAX(input_channel_idx, crop);
+                right_col = MIN(input_channel_idx+kernel_size-1, input_width-crop-1);
+                div_col = right_col-left_col+1;
+
+                divisor = div_col;
+
+                output_channel[output_channel_idx] = pixel / ((fp_t) (divisor)) + bias;
+            }
+
+            output_channel_idx++;
+        }
+    } else {
+        printf( "ERROR: Unsupported values for 'count_include_pad'.\n");
+    }
 }
 
 void average_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t input_width, fp_t* output_channel,
