@@ -213,8 +213,15 @@ int test_avg_pooling2d_padding() {
                                                     6.9600, 9.6000, 12.4000, 10.2400, 7.9200,
                                                     6.1200, 8.4000, 10.8000, 8.8800, 6.8400};
 
+    fp_t expected_output_2_count_include_pad_0[25] = {4, 4.5, 5.5, 6.5, 7,
+                                                      6.5, 7, 8, 9, 9.5,
+                                                      11.5, 12, 13, 14, 14.5,
+                                                      16.5, 17, 18, 19, 19.5,
+                                                      19, 19.5, 20.5, 21.5, 22};
+
     fp_t* output_0 = (fp_t*) malloc(25* sizeof(float));
     fp_t* output_1 = (fp_t*) malloc(25* sizeof(float));
+    fp_t* output_2 = (fp_t*) malloc(25* sizeof(float));
 
     const int padding[4] = {2, 2, 2, 2};
 
@@ -223,19 +230,29 @@ int test_avg_pooling2d_padding() {
     average_pooling2d_naive_padded(input, input_height, input_width, output_1, kernel_size,
                                    stride, 0.0, padding, 1);
 
+    const int padding2[4] = {1, 1, 1, 1};
+    average_pooling2d_naive_padded(input, input_height, input_width, output_2, 3,
+                                   stride, 0.0, padding2, 0);
+
     for(int i = 0; i < 25; i++){
         if(expected_output_count_include_pad_0[i] != output_0[i]) {
             return_value = 1;
-            printf("Expected: %f, Output; %f\n", expected_output_count_include_pad_0[i], output_0[i]);
+            printf("Include pad 0: Index: %d: Expected: %f, Output; %f\n", i, expected_output_count_include_pad_0[i], output_0[i]);
         }
 
         if(expected_output_count_include_pad_1[i]  != output_1[i]) {
             return_value = 1;
-            printf("Expected: %f, Output; %f\n", expected_output_count_include_pad_1[i], output_1[i]);
+            printf("Include pad 1: Index: %d: Expected: %f, Output; %f\n", i, expected_output_count_include_pad_1[i], output_1[i]);
+        }
+
+        if(expected_output_2_count_include_pad_0[i]  != output_2[i]) {
+            return_value = 1;
+            printf("Include pad 0: Index: %d: Expected: %f, Output; %f\n", i, expected_output_2_count_include_pad_0[i], output_2[i]);
         }
     }
 
     free(output_0);
     free(output_1);
+    free(output_2);
     return return_value;
 }
