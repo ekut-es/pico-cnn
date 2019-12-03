@@ -1,10 +1,12 @@
 CC = gcc
 CFLAGS = -Wall -g3
 LDFLAGS = -L../pico-cnn
-LD_LIBS = -lpico-cnn
+LD_LIBS = -lpico-cnn -lm
 
 TEST_SRCS = layers/test_pooling.c \
-			layers/test_pooling.h
+			layers/test_pooling.h \
+			layers/test_activation_function.c \
+			layers/test_activation_function.h
 
 tests: run_tests.c $(TEST_SRCS) libpico-cnn.a
 	$(CC) run_tests.c $(TEST_SRCS) $(CFLAGS) -I.. $(LDFLAGS) -o tests $(LD_LIBS)
