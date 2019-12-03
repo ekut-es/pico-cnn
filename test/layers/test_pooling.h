@@ -15,6 +15,8 @@ int test_max_pooling1d_padding();
 int test_max_pooling2d();
 int test_max_pooling2d_padding();
 
+int test_avg_pooling1d();
+int test_avg_pooling1d_padding();
 int test_avg_pooling2d();
 int test_avg_pooling2d_padding();
 

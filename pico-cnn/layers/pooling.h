@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
+#include <math.h>
 
 #ifdef FIXED16
 #include "../driver/fixed16.h"
