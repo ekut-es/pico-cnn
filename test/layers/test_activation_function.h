@@ -17,4 +17,6 @@ int test_parametrized_relu_naive();
 
 int test_sigmoid_naive();
 
+int test_softmax_naive(); 
+
 #endif //TEST_ACTIVATION_FUNCTION_H

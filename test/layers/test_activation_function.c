@@ -123,7 +123,7 @@ int test_parametrized_relu_naive() {
 
 int test_sigmoid_naive() {
 
-    printf("tets sigmoid_naive()\n");
+    printf("test_sigmoid_naive()\n");
 
     int return_value = 0;
 
@@ -156,4 +156,46 @@ int test_sigmoid_naive() {
     #undef input_height
     #undef expected_output_width
     #undef expected_output_height
+}
+
+int test_softmax_naive() {
+
+    printf("test_softmax_naive()\n");
+
+    int return_value = 0;
+
+    #define input_width 10
+    #define input_height 1
+    #define expected_output_width 10
+    #define expected_output_height 1
+    fp_t error = 0.00001;
+
+    fp_t input[input_width] = {0.1, -6.8, -0.4, -0.0, -2.7, 4.5, -5.2, -5.5, 6.9, -0.2};
+    // sum: 1085.96
+    fp_t expected_output[expected_output_width] = {
+        0.001010, 0.000002560, 0.000617, 0.000920, 0.0000808, 0.092891, 0.000005079,
+        0.00000376, 0.913727, 0.0007539};
+
+    assert(input_width == expected_output_width);
+
+    fp_t* output = malloc(expected_output_width * sizeof(float));
+
+    sigmoid_naive(input, input_height, input_width, output);
+
+    for(int i = 0; i < expected_output_width; i++) {
+        if(!floatsAlmostEqual(output[i], expected_output[i], error)) {
+            printf("Expected: %f, Output: %f\n", expected_output[i], output[i]);
+            return_value = 1;
+        }
+    }
+
+    free(output);
+    return return_value;
+
+    #undef input_width
+    #undef input_height
+    #undef expected_output_width
+    #undef expected_output_height
+
+
 }
