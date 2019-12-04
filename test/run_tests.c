@@ -16,10 +16,13 @@ int main() {
     assert(test_avg_pooling1d_padding() == 0);
     assert(test_avg_pooling2d() == 0);
     assert(test_avg_pooling2d_padding() == 0);
-    printf("Success: pooling operations!\n");
+    printf("Success: pooling operations!\n\n");
 
     assert(test_relu_naive() == 0);
-    printf("Success: activation functions! :) \n");
+    assert(test_leaky_relu_naive() == 0);
+    assert(test_parametrized_relu_naive() == 0);
+    assert(test_sigmoid_naive() == 0); 
+    printf("Success: activation functions! :) \n\n");
 
     printf("All tests successful!\n");
 

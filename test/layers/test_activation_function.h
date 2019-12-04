@@ -11,4 +11,10 @@
 
 int test_relu_naive();
 
+int test_leaky_relu_naive();
+
+int test_parametrized_relu_naive();
+
+int test_sigmoid_naive();
+
 #endif //TEST_ACTIVATION_FUNCTION_H
