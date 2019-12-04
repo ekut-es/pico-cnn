@@ -21,7 +21,8 @@ int main() {
     assert(test_relu_naive() == 0);
     assert(test_leaky_relu_naive() == 0);
     assert(test_parametrized_relu_naive() == 0);
-    assert(test_sigmoid_naive() == 0); 
+    assert(test_sigmoid_naive() == 0);
+    assert(test_softmax_naive() == 0); 
     printf("Success: activation functions! :) \n\n");
 
     printf("All tests successful!\n");
