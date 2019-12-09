@@ -52,8 +52,16 @@ add_executable(lenet_avg_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/
         ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network_cleanup.c)
 target_link_libraries(lenet_avg_dummy libpico-cnn ${LINK_LIBS})
 
+add_executable(run_tests ${PROJECT_SOURCE_DIR}/test/run_tests.c
+                         ${PROJECT_SOURCE_DIR}/test/layers/test_pooling.c)
+target_link_libraries(run_tests libpico-cnn ${LINK_LIBS})
+
 # removes pgm and float files
 add_custom_target(remove_output_data
     COMMAND rm ${CMAKE_BINARY_DIR}/*.pgm
     COMMAND rm ${CMAKE_BINARY_DIR}/*.float
 )
+
+enable_testing()
+add_test(TestPooling run_tests)
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS run_tests)
