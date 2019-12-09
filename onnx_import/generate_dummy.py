@@ -33,14 +33,14 @@ def generate_dummy_main(graph):
 
             num_input_channels = input_shape[1]
 
-            assert input_shape[2] == input_shape[3]
-            input_channel_width = input_shape[2]
-            input_channel_height = input_shape[3]
+            # assert input_shape[2] == input_shape[3]
+            input_channel_height = input_shape[2]
+            input_channel_width = input_shape[3]
 
         elif len(input_shape) == 2:
             num_input_channels = 1
-            input_channel_width = input_shape[0]
-            input_channel_height = input_shape[1]
+            input_channel_height = input_shape[0]
+            input_channel_width = input_shape[1]
 
         elif len(input_shape) == 3:
             if input_shape[0] != 1:
@@ -69,8 +69,8 @@ def generate_dummy_main(graph):
 
     attributes["input_shape_len"] = len(input_shape)
     attributes["num_input_channels"] = num_input_channels
-    attributes["input_channel_width"] = input_channel_width
     attributes["input_channel_height"] = input_channel_height
+    attributes["input_channel_width"] = input_channel_width
     attributes["output_size"] = output_size
 
     return template.render(**attributes)
@@ -102,14 +102,14 @@ def generate_reference_main(graph):
 
             num_input_channels = input_shape[1]
 
-            assert input_shape[2] == input_shape[3]
-            input_channel_width = input_shape[2]
-            input_channel_height = input_shape[3]
+            # assert input_shape[2] == input_shape[3]
+            input_channel_height = input_shape[2]
+            input_channel_width = input_shape[3]
 
         elif len(input_shape) == 2:
             num_input_channels = 1
-            input_channel_width = input_shape[0]
-            input_channel_height = input_shape[1]
+            input_channel_height = input_shape[0]
+            input_channel_width = input_shape[1]
 
         elif len(input_shape) == 3:
             if input_shape[0] != 1:
@@ -138,8 +138,8 @@ def generate_reference_main(graph):
 
     attributes["input_shape_len"] = len(input_shape)
     attributes["num_input_channels"] = num_input_channels
-    attributes["input_channel_width"] = input_channel_width
     attributes["input_channel_height"] = input_channel_height
+    attributes["input_channel_width"] = input_channel_width
     attributes["output_size"] = output_size
 
     return template.render(**attributes)

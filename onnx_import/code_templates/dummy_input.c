@@ -45,10 +45,10 @@ int main(int argc, char** argv) {
     fp_t** input = (fp_t**) malloc({{num_input_channels}}*sizeof(fp_t*));
 
     for(int i = 0; i < {{num_input_channels}}; i++){
-        input[i] = (fp_t*) malloc({{input_channel_width}}*{{input_channel_height}}*sizeof(fp_t));
+        input[i] = (fp_t*) malloc({{input_channel_height}}*{{input_channel_width}}*sizeof(fp_t));
     }
     {% elif input_shape_len == 2 %}
-    fp_t* input = (fp_t*) malloc({{input_channel_width}}*{{input_channel_height}}*sizeof(fp_t));
+    fp_t* input = (fp_t*) malloc({{input_channel_height}}*{{input_channel_width}}*sizeof(fp_t));
     {% endif %}
 
 
@@ -59,14 +59,14 @@ int main(int argc, char** argv) {
 
         {% if input_shape_len == 4 %}
         for(int channel = 0; channel < {{num_input_channels}}; channel++) {
-            for(int pos = 0; pos < {{input_channel_width}}*{{input_channel_height}}; pos++) {
+            for(int pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
                 input[channel][pos] = urand(LOWER_BOUND, UPPER_BOUND);
             }
         }
         {% elif input_shape_len == 2 %}
-        for(int pos = 0; pos < {{input_channel_width}}*{{input_channel_height}}; pos++) {
+        for(int pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
                 input[pos] = urand(LOWER_BOUND, UPPER_BOUND);
-            }
+        }
         {% endif %}
 
     } else {
@@ -96,12 +96,12 @@ int main(int argc, char** argv) {
 
             {% if input_shape_len == 4 %}
             for(int channel = 0; channel < {{num_input_channels}}; channel++) {
-                for(int pos = 0; pos < {{input_channel_width}}*{{input_channel_height}}; pos++) {
+                for(int pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
                     input[channel][pos] = urand(LOWER_BOUND, UPPER_BOUND);
                 }
             }
             {% elif input_shape_len == 2 %}
-            for(int pos = 0; pos < {{input_channel_width}}*{{input_channel_height}}; pos++) {
+            for(int pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
                     input[pos] = urand(LOWER_BOUND, UPPER_BOUND);
                 }
             {% endif %}

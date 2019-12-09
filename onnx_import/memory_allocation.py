@@ -48,24 +48,24 @@ class KernelAllocationCode(BaseCode):
         # print("Kernel shape: {}".format(str(buffer_shape)))
         if len(buffer_shape) == 4:
             num_kernels = buffer_shape[0] * buffer_shape[1]
-            kernel_width = buffer_shape[2]
-            kernel_height = buffer_shape[3]
+            kernel_height = buffer_shape[2]
+            kernel_width = buffer_shape[3]
             buffer_type = "kernel"
         elif len(buffer_shape) == 1:
             operation.attributes['one_dimensional'] = 1
             num_kernels = buffer_shape[0]
-            kernel_width = kernel_height = 0
+            kernel_height = kernel_width = 0
             buffer_type = "bias"
         elif len(buffer_shape) == 2:
             operation.attributes['one_dimensional'] = 1
             num_kernels = buffer_shape[0] * buffer_shape[1]
-            kernel_width = kernel_height = 0
+            kernel_height = kernel_width = 0
             buffer_type = "kernel2"
         elif len(buffer_shape) == 3:
             operation.attributes['one_dimensional'] = 0
             num_kernels = buffer_shape[0] * buffer_shape[1]
-            kernel_width = buffer_shape[2]
             kernel_height = 1
+            kernel_width = buffer_shape[2]
             buffer_type = 'kernel'
         else:
             print("ERROR: Unknown kernel shape: {}, Buffer: {}".format(str(buffer_shape), buffer.name))
@@ -108,11 +108,15 @@ class OutputAllocation(BaseCode):
         # print("Output buffer shape: {}".format(str(buffer_shape)))
         if buffer.buffer_depth == 2:
             num_outputs = buffer_shape[0] * buffer_shape[1]
-            output_width = buffer_shape[2]
             if len(buffer_shape) == 4:
-                output_height = buffer_shape[3]
-            else:
+                output_height = buffer_shape[2]
+                output_width = buffer_shape[3]
+            elif len(buffer_shape) == 3:
                 output_height = 1
+                output_width = buffer_shape[2]
+            else:
+                print("ERROR: Unsupported output buffer shape: {}".format(buffer_shape))
+                return None
         elif buffer.buffer_depth == 1:
             operation.attributes['one_dimensional'] = 1
             num_outputs = buffer_shape[1]

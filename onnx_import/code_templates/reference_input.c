@@ -38,10 +38,10 @@ int main(int argc, char** argv) {
     fp_t** input = (fp_t**) malloc({{num_input_channels}}*sizeof(fp_t*));
 
     for(int i = 0; i < {{num_input_channels}}; i++){
-        input[i] = (fp_t*) malloc({{input_channel_width}}*{{input_channel_height}}*sizeof(fp_t));
+        input[i] = (fp_t*) malloc({{input_channel_height}}*{{input_channel_width}}*sizeof(fp_t));
     }
     {% elif input_shape_len == 2 %}
-    fp_t* input = (fp_t*) malloc({{input_channel_width}}*{{input_channel_height}}*sizeof(fp_t));
+    fp_t* input = (fp_t*) malloc({{input_channel_height}}*{{input_channel_width}}*sizeof(fp_t));
     {% endif %}
 
     fp_t* output = (fp_t*) malloc({{output_size}}*sizeof(fp_t));

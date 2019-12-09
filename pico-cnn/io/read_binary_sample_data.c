@@ -41,18 +41,6 @@ int read_binary_sample_input_data(const char* path_to_sample_data, fp_t*** input
             #endif
         }
 
-        // Read channel width
-        uint32_t width;
-        if(fread((void*)&width, sizeof(width), 1, binary_file) != 1) {
-            printf("ERROR reading width\n");
-            fclose(binary_file);
-            return 1;
-        } else {
-            #ifdef DEBUG
-            printf("Width: %d\n", width);
-            #endif
-        }
-
         // Read channel height
         uint32_t height;
         if(fread((void*)&height, sizeof(height), 1, binary_file) != 1) {
@@ -65,13 +53,25 @@ int read_binary_sample_input_data(const char* path_to_sample_data, fp_t*** input
             #endif
         }
 
+        // Read channel width
+        uint32_t width;
+        if(fread((void*)&width, sizeof(width), 1, binary_file) != 1) {
+            printf("ERROR reading width\n");
+            fclose(binary_file);
+            return 1;
+        } else {
+            #ifdef DEBUG
+            printf("Width: %d\n", width);
+            #endif
+        }
+
         for(uint32_t channel = 0; channel < num_channels; channel++) {
 
-            float *values = (float*) malloc(width*height*sizeof(float));
+            float *values = (float*) malloc(height*width*sizeof(float));
 
             int numbers_read = -1;
 
-            numbers_read = fread((void*)values, sizeof(float), width*height, binary_file);
+            numbers_read = fread((void*)values, sizeof(float), height*width, binary_file);
 
             if(numbers_read != height*width) {
                 printf("ERROR reading data.");
@@ -83,7 +83,7 @@ int read_binary_sample_input_data(const char* path_to_sample_data, fp_t*** input
                     printf("%f\n", values[i]);
                 }
                 #endif
-                memcpy((*input)[channel], values, width*height*sizeof(float));
+                memcpy((*input)[channel], values, height*width*sizeof(float));
             }
 
             free(values);

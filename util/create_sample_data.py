@@ -37,8 +37,8 @@ def main():
         type=int,
         nargs='+',
         required=True,
-        help="Required input shape. Format \"--shape 1 1 16000 1\" for (1, 1, 1, 16000) with "
-             "(batch_size, num_input_ch, width, height)."
+        help="Required input shape. Format \"--shape 1 1 1 16000\" for (1, 1, 1, 16000) with "
+             "(batch_size, num_input_ch, height, width)."
     )
     args = parser.parse_args()
 
@@ -78,8 +78,8 @@ def main():
 
         packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
         packed_input.append(struct.pack('i', input_shape[1]))  # Number of channels
-        packed_input.append(struct.pack('i', input_shape[2]))  # Channel height
-        packed_input.append(struct.pack('i', input_shape[3]))  # Channel width
+        packed_input.append(struct.pack('i', 1))  # Channel height
+        packed_input.append(struct.pack('i', input_shape[2]))  # Channel width
         packed_input.append(struct.pack('f' * len(input_data), *input_data))  # Data
 
         # tmp = os.path.splitext(os.path.basename(onnx_model))

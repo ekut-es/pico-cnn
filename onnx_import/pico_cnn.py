@@ -56,12 +56,14 @@ class Conv2D(BaseLayer):
         output_buffers = [memory_manager.get_buffer(graph, id) for id in node.outputs]
 
         input_shape = input_buffers[0].shape
-        input_size = input_shape[2]
         num_input_channels = input_shape[1]
 
         if not (len(input_shape) == 4 and input_shape[3] != 1):
             print("{} is not a 2DConvolution".format(node.name))
             return None
+
+        if input_shape[2] != input_shape[3]:
+            print("WARNING: Not a squared input image ({}x{})!!!".format(input_shape[2], input_shape[3]))
 
         output_shape = output_buffers[0].shape
         output_size = output_shape[2]
@@ -87,8 +89,8 @@ class Conv2D(BaseLayer):
         padding = pads[0]
 
         operation.attributes['input_buffer'] = input_buffers[0]
-        operation.attributes['input_height'] = input_size
-        operation.attributes['input_width'] = input_size  # TODO: Support for unequal width and height?
+        operation.attributes['input_height'] = input_shape[2]
+        operation.attributes['input_width'] = input_shape[3]
         operation.attributes['num_input_channels'] = num_input_channels
 
         operation.attributes['kernel'] = input_buffers[1]
@@ -377,12 +379,17 @@ class Relu(BaseLayer):
             num_input_channels = 1
             input_height = input_shape[0]
             input_width = input_shape[1]
-        else:
+        elif len(input_shape) == 3:
+            num_input_channels = input_shape[1]
+            input_height = 1
+            input_width = input_shape[2]
+        elif len(input_shape) == 4:
             num_input_channels = input_shape[1]
             input_height = input_shape[2]
-            input_width = 1
-            if len(input_shape) >= 4:
-                input_width = input_shape[3]
+            input_width = input_shape[3]
+        else:
+            print("ERROR: Unsupported input shape for relu layer: {}".format(input_shape))
+            return None
 
         operation = cls(node, graph)
 
@@ -672,18 +679,23 @@ class Reshape(BaseLayer):
 
         assert(reduce_mult(input_shape) == reduce_mult(output_shape))
 
-        num_input_channels = input_shape[1]
-        input_width = input_shape[2]
         if len(input_shape) == 4:
-            input_height = input_shape[3]
-        else:
+            num_input_channels = input_shape[1]
+            input_height = input_shape[2]
+            input_width = input_shape[3]
+        elif len(input_shape) == 3:
+            num_input_channels = input_shape[1]
             input_height = 1
+            input_width = input_shape[2]
+        else:
+            print("ERROR: Unsupported input shape for reshape layer: {}".format(input_shape))
+            return None
 
         operation = cls(node, graph)
         operation.attributes['input_buffer'] = input_buffer
         operation.attributes['num_input_channels'] = num_input_channels
-        operation.attributes['input_width'] = input_width
         operation.attributes['input_height'] = input_height
+        operation.attributes['input_width'] = input_width
 
         operation.attributes['output_buffer'] = output_buffer
 
@@ -724,13 +736,13 @@ class Flatten(BaseLayer):
 
         if len(input_shape) == 4:
             num_input_channels = input_shape[1]
-            input_width = input_shape[2]
-            input_height = input_shape[3]
+            input_height = input_shape[2]
+            input_width = input_shape[3]
             no_change = 0
         elif len(input_shape) == 2:
             num_input_channels = 1
-            input_width = input_shape[1]
             input_height = 1
+            input_width = input_shape[1]
             no_change = 1
         else:
             print("ERROR: Unsupported tensor shape in flatten operation: {}".format(input_shape))
@@ -739,8 +751,8 @@ class Flatten(BaseLayer):
         operation = cls(node, graph)
         operation.attributes['input_buffer'] = input_buffer
         operation.attributes['num_input_channels'] = num_input_channels
-        operation.attributes['input_width'] = input_width
         operation.attributes['input_height'] = input_height
+        operation.attributes['input_width'] = input_width
 
         operation.attributes['output_buffer'] = output_buffer
 
