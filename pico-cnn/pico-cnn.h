@@ -15,6 +15,8 @@
 #include "layers/fully_connected.h"
 
 #include "io/read_weights.h"
+#include "io/read_binary_weights.h"
+#include "io/read_binary_sample_data.h"
 #include "io/read_pgm.h"
 
 #ifdef MNIST
