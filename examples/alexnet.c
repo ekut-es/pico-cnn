@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
 
     for(i = 0; i < 3; i++) {
         for(row = 0; row < height; row++) {
-            for(column = 0; column < height; column++) {
+            for(column = 0; column < width; column++) {
                 input[i][row*width+column] = pre_mean_input[i][row*width+column] - means[i];
             }
         }
