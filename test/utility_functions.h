@@ -3,13 +3,13 @@
 #include <math.h>
 #include <stdio.h>
 
-int floatsAlmostEqual(const fp_t f1, const fp_t f2, const fp_t err);
+int floatsAlmostEqual(fp_t f1, fp_t f2, fp_t err);
 
-int compare1dFloatArray(const fp_t* values, const fp_t* expected_values, const int width, fp_t error);
+int compare1dFloatArray(fp_t* values, fp_t* expected_values, int width, fp_t error);
 
-int compare2dFloatArray(const fp_t** values, const fp_t** expected_values,
-                        const int height, const int width, fp_t error);
+int compare2dFloatArray(fp_t** values, fp_t** expected_values,
+                        int height, int width, fp_t error);
 
-int compare1dIntArray(const int* values, const int* expected_values, const int width);
+int compare1dIntArray(int* values, int* expected_values, int width);
 
-void print1dFloatArray_2d(const fp_t* array, const int height, const int width);
+void print1dFloatArray_2d(fp_t* array, int height, int width);

@@ -4,7 +4,7 @@ int floatsAlmostEqual(fp_t f1,fp_t f2,fp_t err){
   return fabs(f1-f2) < err;
 }
 
-int compare1dFloatArray(const fp_t* values, const fp_t* expected_values, const int width,const fp_t error) {
+int compare1dFloatArray(fp_t* values, fp_t* expected_values, int width,fp_t error) {
     int i;
     int return_value = 0;
 
@@ -17,8 +17,8 @@ int compare1dFloatArray(const fp_t* values, const fp_t* expected_values, const i
     return return_value;
 }
 
-int compare2dFloatArray(const fp_t** values, const fp_t** expected_values,
-                        const int height, const int width, const fp_t error) {
+int compare2dFloatArray(fp_t** values, fp_t** expected_values,
+                        int height, int width, fp_t error) {
     int i,j;
     int return_value = 0;
 
@@ -35,7 +35,8 @@ int compare2dFloatArray(const fp_t** values, const fp_t** expected_values,
     return return_value;
 
 }
-int compare1dIntArray(const int* values,const int* expected_values,const int width) {
+
+int compare1dIntArray(int* values,int* expected_values,int width) {
    int i;
    int return_value = 0;
 
@@ -48,8 +49,7 @@ int compare1dIntArray(const int* values,const int* expected_values,const int wid
    return return_value;
 }
 
-// TODO: check whether height and width need to be swapped
-void print1dFloatArray_2d(const fp_t* array,const int height,const int width) {
+void print1dFloatArray_2d(fp_t* array,int height,int width) {
     int i,j;
     for(i = 0; i < height; i++, printf("\n")){
         for(j = 0; j < width; j++) {

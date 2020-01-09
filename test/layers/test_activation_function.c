@@ -17,6 +17,7 @@ int test_relu_naive() {
     relu_naive(input, input_height, input_width, output);
 
     return_value = compare1dFloatArray(output, expected_output, input_width,error);
+    
     free(output);
     return return_value;
 
@@ -183,13 +184,6 @@ int test_local_response_normalization_naive() {
                                         alpha, beta, n);
 
     return_value = compare2dFloatArray(output, expected_output, input_depth, input_height * input_width,error);
-    // for(int i = 0; i < expected_output_depth; i++) {
-    //     for(int j = 0; j < expected_output_width * expected_output_height; j++) {
-    //         if(!floatsAlmostEqual(expected_output[i][j], output[i][j], error)){
-    //             printf("Expected: %f, Output; %f, i: %d, j: %d\n", expected_output[i][j], output[i][j], i, j);
-    //         }
-    //     }
-    // }
 
     free(output);
     return return_value;
