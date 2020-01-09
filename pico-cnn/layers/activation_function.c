@@ -26,8 +26,6 @@ void relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t
     }
 }
 
-// TODO: rename leak?
-// TODO: check whether correct
 void leaky_relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel, const fp_t leak) {
 
   #ifdef BIG_LOOPS
@@ -74,8 +72,6 @@ void sigmoid_naive(const fp_t* input_channel, const uint16_t height, const uint1
     //  output_channel[i] = 0.5 * (1 + tanhf(input_channel[i] / 2));
   }
 }
-
-
 
 void softmax_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
