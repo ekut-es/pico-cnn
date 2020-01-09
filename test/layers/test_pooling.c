@@ -1,7 +1,7 @@
 #include "test_pooling.h"
 
-void output_channel_dimensions(uint16_t height, uint16_t width, const uint16_t kernel_size[2],
-                               uint16_t stride, uint16_t **computed_dimensions) {
+void pooling_output_channel_dimensions(uint16_t height, uint16_t width, const uint16_t kernel_size[2],
+                                       uint16_t stride, uint16_t **computed_dimensions) {
 
     uint16_t output_channel_height;
     if(height > 1)
@@ -33,7 +33,7 @@ int test_max_pooling1d() {
     fp_t expected_output[7] = {3, 5, 7, 9, 11, 13, 15};
 
     uint16_t *computed_dimensions;
-    output_channel_dimensions(input_height, input_width, kernel_dim, stride, &computed_dimensions);
+    pooling_output_channel_dimensions(input_height, input_width, kernel_dim, stride, &computed_dimensions);
     assert(computed_dimensions[0] == expected_output_height);
     assert(computed_dimensions[1] == expected_output_width);
     free(computed_dimensions);
@@ -70,12 +70,12 @@ int test_max_pooling1d_padding() {
     fp_t expected_output[8] = {2, 4, 6, 8, 10, 12, 14, 16};
 
     uint16_t *computed_dimensions;
-    output_channel_dimensions(input_height, input_width+padding[0]+padding[1], kernel_dim, stride, &computed_dimensions);
+    pooling_output_channel_dimensions(input_height, input_width+padding[0]+padding[1], kernel_dim, stride, &computed_dimensions);
     assert(computed_dimensions[0] == expected_output_height);
     assert(computed_dimensions[1] == expected_output_width);
     free(computed_dimensions);
 
-    fp_t* output = (fp_t*) malloc(expected_output_width * sizeof(float));
+    fp_t* output = (fp_t*) malloc(expected_output_width * sizeof(fp_t));
 
 
     max_pooling1d_naive_padded(input, input_width, output, kernel_width, stride, padding);
@@ -102,7 +102,7 @@ int test_max_pooling2d() {
     fp_t expected_output[4] = {11, 12,
                                15, 16};
 
-    fp_t* output = (fp_t*) malloc(4* sizeof(float));
+    fp_t* output = (fp_t*) malloc(4* sizeof(fp_t));
 
     max_pooling2d_naive(input, 4, 4, output, 3, 1);
 
@@ -159,7 +159,7 @@ int test_avg_pooling1d() {
     uint16_t kernel_dim[2] = {kernel_size, kernel_size};
 
     uint16_t *computed_dimensions;
-    output_channel_dimensions(1, input_width, kernel_dim, stride, &computed_dimensions);
+    pooling_output_channel_dimensions(1, input_width, kernel_dim, stride, &computed_dimensions);
     assert(computed_dimensions[0] == 1);
     assert(computed_dimensions[1] == expected_output_width);
     free(computed_dimensions);
@@ -236,7 +236,7 @@ int test_avg_pooling2d() {
     uint16_t kernel_dim[2] = {kernel_size, kernel_size};
 
     uint16_t *computed_dimensions;
-    output_channel_dimensions(input_height, input_width, kernel_dim, stride, &computed_dimensions);
+    pooling_output_channel_dimensions(input_height, input_width, kernel_dim, stride, &computed_dimensions);
     assert(computed_dimensions[0] == expected_output_height);
     assert(computed_dimensions[1] == expected_output_width);
     free(computed_dimensions);
