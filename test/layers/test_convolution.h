@@ -11,5 +11,7 @@
 
 int test_convolution1d_naive();
 int test_convolution2d_naive();
-int test_add_channel2d_naive(); 
+int test_convolution2d_naive_1();
+int test_convolution2d_naive_2(); 
+int test_add_channel2d_naive();
 #endif // TEST_CONVOLUTION_H
