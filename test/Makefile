@@ -13,6 +13,8 @@ TEST_SRCS = utility_functions.c \
 			layers/test_fully_connected.h \
 			layers/test_convolution.c \
 			layers/test_convolution.h \
+			layers/test_batch_normalization.c \
+			layers/test_batch_normalization.h
 
 tests: run_tests.c $(TEST_SRCS) libpico-cnn.a
 	$(CC) run_tests.c $(TEST_SRCS) $(CFLAGS) -I.. $(LDFLAGS) -o tests $(LD_LIBS)

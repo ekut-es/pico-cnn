@@ -25,7 +25,7 @@ set(PICO_CNN_LIBRARY_SRCS
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/read_weights.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/write_float.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/write_pgm.c
-        )
+        pico-cnn/layers/batch_normalization.c pico-cnn/layers/batch_normalization.h)
 add_library(libpico-cnn ${PICO_CNN_LIBRARY_SRCS})
 
 if(BUILD_UTILS)
@@ -53,7 +53,17 @@ add_executable(lenet_avg_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/
 target_link_libraries(lenet_avg_dummy libpico-cnn ${LINK_LIBS})
 
 add_executable(run_tests ${PROJECT_SOURCE_DIR}/test/run_tests.c
-                         ${PROJECT_SOURCE_DIR}/test/layers/test_pooling.c)
+        ${PROJECT_SOURCE_DIR}/test/layers/test_activation_function.c
+        ${PROJECT_SOURCE_DIR}/test/layers/test_activation_function.h
+        ${PROJECT_SOURCE_DIR}/test/layers/test_batch_normalization.c
+        ${PROJECT_SOURCE_DIR}/test/layers/test_batch_normalization.h
+        ${PROJECT_SOURCE_DIR}/test/layers/test_convolution.c
+        ${PROJECT_SOURCE_DIR}/test/layers/test_convolution.h
+        ${PROJECT_SOURCE_DIR}/test/layers/test_fully_connected.c
+        ${PROJECT_SOURCE_DIR}/test/layers/test_fully_connected.h
+        ${PROJECT_SOURCE_DIR}/test/layers/test_pooling.c
+        ${PROJECT_SOURCE_DIR}/test/layers/test_pooling.h
+)
 target_link_libraries(run_tests libpico-cnn ${LINK_LIBS})
 
 # removes pgm and float files

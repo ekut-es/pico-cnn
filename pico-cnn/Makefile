@@ -54,7 +54,8 @@ io : $(IO_OBJ) parameters.h
 LAYERS_SRC = layers/activation_function.c \
              layers/convolution.c \
 			 layers/fully_connected.c \
-			 layers/pooling.c
+			 layers/pooling.c \
+			 layers/batch_normalization.c
 LAYERS_H = $(LAYERS_SRC:.c=.h)
 LAYERS_OBJ = $(LAYERS_SRC:.c=.o)
 
