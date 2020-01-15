@@ -40,20 +40,25 @@ if(BUILD_UTILS)
     add_executable(find_max_min_weight ${PROJECT_SOURCE_DIR}/util/find_max_min_weight.c)
 endif()
 
-add_executable(ekut-raw-padding ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/dummy_input.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network_initialization.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network_cleanup.c)
-target_link_libraries(ekut-raw-padding libpico-cnn ${LINK_LIBS})
+#add_executable(ekut-raw-padding ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/dummy_input.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network_initialization.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network_cleanup.c)
+#target_link_libraries(ekut-raw-padding libpico-cnn ${LINK_LIBS})
 
-add_executable(lenet_avg_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/dummy_input.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network_initialization.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network_cleanup.c)
-target_link_libraries(lenet_avg_dummy libpico-cnn ${LINK_LIBS})
+#add_executable(lenet_avg_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/dummy_input.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network_initialization.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network_cleanup.c)
+#target_link_libraries(lenet_avg_dummy libpico-cnn ${LINK_LIBS})
 
 add_executable(run_tests ${PROJECT_SOURCE_DIR}/test/run_tests.c
-                         ${PROJECT_SOURCE_DIR}/test/layers/test_pooling.c)
+                         ${PROJECT_SOURCE_DIR}/test/utility_functions.c
+                         ${PROJECT_SOURCE_DIR}/test/layers/test_pooling.c
+                         ${PROJECT_SOURCE_DIR}/test/layers/test_fully_connected.c
+                         ${PROJECT_SOURCE_DIR}/test/layers/test_activation_function.c
+                         ${PROJECT_SOURCE_DIR}/test/layers/test_convolution.c  ) 
+
 target_link_libraries(run_tests libpico-cnn ${LINK_LIBS})
 
 # removes pgm and float files
