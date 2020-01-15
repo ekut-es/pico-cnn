@@ -5,6 +5,7 @@
 #include "layers/test_activation_function.h"
 #include "layers/test_fully_connected.h"
 #include "layers/test_convolution.h"
+#include "layers/test_batch_normalization.h"
 
 void printSucessFailure(const char* operation, int failed, int num_tests) {
   printf("%s: %d/%d tests for %s passed\n",
@@ -65,6 +66,15 @@ int main() {
     convolution_failed += test_add_channel2d_naive();
     printSucessFailure("convolutions", convolution_failed, num_convolution_tests);
     return_value += convolution_failed;
+
+    printf(separator);
+    printf("Testing: batch normalization layer...\n");
+    int batch_normalization_failed = 0;
+    int num_batch_normalization_tests = 2;
+    batch_normalization_failed += test_batch_normalization_naive_1();
+    batch_normalization_failed += test_batch_normalization_naive_2();
+    printSucessFailure("batch normalization layer", batch_normalization_failed, num_batch_normalization_tests);
+    return_value += batch_normalization_failed;
 
     return  return_value;
 
