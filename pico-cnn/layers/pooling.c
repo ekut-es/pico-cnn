@@ -348,11 +348,20 @@ void global_average_pooling2d_naive(const fp_t* input_channel, const uint16_t in
  }
 
 
- void global_max_pooling2d_naive(const fp_t* input_channel, const uint16_t input_width,
+void global_max_pooling2d_naive(const fp_t* input_channel, const uint16_t input_width,
                                  const uint16_t input_height, fp_t* output_channel) {
-     output_channel[0] = 0;
+    uint16_t pixel;
+    // assumes that input_channel holds at least 1 value 
+    fp_t global_maximum = input_channel[0];
 
- }
+    for(pixel = 1; pixel < input_height * input_width; pixel++){
+        if(global_maximum < input_channel[pixel]){
+            global_maximum = input_channel[pixel];
+        }
+    }
+
+    output_channel[0] = global_maximum;
+}
 
 
 #ifdef FIXED16
