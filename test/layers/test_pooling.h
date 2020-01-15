@@ -3,6 +3,7 @@
 
 #include "pico-cnn/parameters.h"
 #include "pico-cnn/layers/pooling.h"
+#include "../utility_functions.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -21,6 +22,6 @@ int test_avg_pooling1d_padding();
 int test_avg_pooling2d();
 int test_avg_pooling2d_padding();
 
-int test_global_average_pooling2d(); 
+int test_global_average_pooling2d();
 
 #endif //TEST_POOLING_H
