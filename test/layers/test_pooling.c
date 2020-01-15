@@ -342,3 +342,46 @@ int test_avg_pooling2d_padding() {
     free(output_2);
     return return_value;
 }
+
+int test_global_average_pooling2d(){
+
+    int return_value = 0;
+    printf("test_global_average_pooling2d()\n");
+
+    #define input_width 4
+    #define input_height 3
+    #define expected_output_size 1
+    fp_t error = 0.00001;
+
+    fp_t input[input_width * input_height] = {
+       -7, 13, -7, -8,
+      -15, -4, -7,  4,
+        6, -6, -6,  6};
+
+    fp_t expected_output[expected_output_size] = {-2.5833333};
+
+    // just one float
+    fp_t* output = malloc(expected_output_size * sizeof(fp_t));
+
+    global_average_pooling2d_naive(input, input_width, input_height, output);
+
+    printf("%d", floatsAlmostEqual(expected_output[0], output[0],error));
+    printf("%d", floatsAlmostEqual(-2.5833333, -2.5833333));
+    printf("%d", floatsAlmostEqual(-2.5833333,-2.583333));
+
+    return_value = compare1dFloatArray(output, expected_output, expected_output_size, error);
+
+    free(output);
+    return return_value;
+
+    #undef input_width
+    #undef input_height
+    #undef expected_output_size
+
+    //
+    // const fp_t* input_channel, const uint16_t height, const uint16_t width,
+    //                              fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
+    //                              fp_t bias, const uint16_t count_include_pad
+
+
+}

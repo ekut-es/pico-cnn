@@ -334,6 +334,22 @@ void average_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t in
     free(new_input_channel);
 }
 
+void global_average_pooling2d_naive(const fp_t* input_channel, const uint16_t input_width,
+                                    const uint16_t input_height, fp_t* output_channel) {
+  uint16_t pixel;
+  fp_t global_sum = 0;
+
+  for(pixel = 0; pixel < input_height * input_width; pixel++){
+      global_sum += input_channel[pixel];
+  }
+
+  printf("global sum: %f\n",global_sum);
+  printf("average: %f\n", global_sum/ (input_height * input_width)); 
+
+  output_channel[0] = global_sum / (input_height*input_width);
+
+ }
+
 #ifdef FIXED16
 
 void max_pooling2d_naive_fixed16(const fixed16_t* input_channel, const uint16_t height, const uint16_t width,
