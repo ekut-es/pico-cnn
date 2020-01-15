@@ -54,6 +54,7 @@ int test_batch_normalization_naive_2() {
     beta = 1.1;
     mean = 3;
     variance = 0.9;
+    epsilon = 1e-5;
 
     fp_t input[input_height * input_width] =           {1, 2, 3,
                                                         4, 5, 6,
