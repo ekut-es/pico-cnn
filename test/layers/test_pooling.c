@@ -372,3 +372,37 @@ int test_global_average_pooling2d(){
     #undef expected_output_size
 
 }
+
+int test_global_max_pooling2d(){
+
+    int return_value = 0;
+    printf("test_global_max_pooling2d()\n");
+
+    #define input_width 5
+    #define input_height 4
+    #define expected_output_size 1
+    fp_t error = (fp_t) 0.001;
+
+    fp_t input[input_width * input_height] = {
+       17,  17, -15,  8, -15,
+        2,  13,  -2, -5,  6,
+        9, -17,  18, 20, -5,
+      -14,   4,  11,  7, 18};
+
+    fp_t expected_output[expected_output_size] = {20};
+
+    // just one float
+    fp_t* output = malloc(expected_output_size * sizeof(fp_t));
+
+    global_max_pooling2d_naive(input, input_width, input_height, output);
+
+    return_value = compare1dFloatArray(output, expected_output, expected_output_size, error);
+
+    free(output);
+    return return_value;
+
+    #undef input_width
+    #undef input_height
+    #undef expected_output_size
+
+}

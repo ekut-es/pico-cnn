@@ -23,5 +23,6 @@ int test_avg_pooling2d();
 int test_avg_pooling2d_padding();
 
 int test_global_average_pooling2d();
+int test_global_max_pooling2d(); 
 
 #endif //TEST_POOLING_H

@@ -32,7 +32,8 @@ int main() {
     pooling_failed += test_avg_pooling2d();
     pooling_failed += test_avg_pooling2d_padding();
 
-    pooling_failed += test_global_average_pooling2d(); 
+    pooling_failed += test_global_average_pooling2d();
+    pooling_failed += test_global_max_pooling2d(); 
     printSucessFailure("pooling operations", pooling_failed,num_pooling_tests);
     return_value += pooling_failed;
 
