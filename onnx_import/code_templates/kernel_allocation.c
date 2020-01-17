@@ -9,10 +9,10 @@ for(int kernel = 0; kernel < {{num_kernels}}; kernel++){
 {% endif %}
 {%if pos >= 0 %}
 {%if buffer_type == "kernel" %}
-kernels[{{pos}}] = {{buffer_name}};
+kernels[{{pos_kernel}}] = {{buffer_name}};
 {% elif buffer_type == "bias" %}
-biases[{{pos}}] = {{buffer_name}};
+biases[{{pos_bias}}] = {{buffer_name}};
 {% elif buffer_type == "kernel2" %}
-kernels[{{pos}}] = &{{buffer_name}};
+kernels[{{pos_kernel}}] = &{{buffer_name}};
 {% endif %}
 {% endif %}

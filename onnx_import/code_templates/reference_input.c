@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
     if(all_equal)
         printf("Output is almost equal (epsilon=%f) to reference output!\n", EPSILON);
     else
-        printf("WARNING: Output is not almost equal (epsilon=%f) to reference output!\n", EPSILON);
+        fprintf(stderr, "WARNING: Output is not almost equal (epsilon=%f) to reference output!\n", EPSILON);
 
     free(output);
     free(ref_output);

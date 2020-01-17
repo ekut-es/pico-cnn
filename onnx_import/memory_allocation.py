@@ -23,7 +23,7 @@ class BaseCode(object):
         return template.render(**self.attributes)
 
     @classmethod
-    def create(cls, buffer, pos=-1):
+    def create(cls, buffer, pos=-1, pos_kernel=-1, pos_bias=-1):
         pass
 
 
@@ -35,11 +35,13 @@ class KernelAllocationCode(BaseCode):
     template_file = "kernel_allocation.c"
 
     @classmethod
-    def create(cls, buffer, pos=-1):
+    def create(cls, buffer, pos=-1, pos_kernel=-1, pos_bias=-1):
         """
         Derive necessary information from the shapes of the inputs and pass them to the code template.
         :param buffer: Buffer object containing different information about the kernel/bias input.
         :param pos: Position of the kernel/bias-array when moving through the CNN. Needed for reading weights from binary weights file.
+        :param pos_kernel: Position of the kernel-array when moving through the CNN. Needed for reading weights from binary weights file.
+        :param pos_bias: Position of the bias-array when moving through the CNN. Needed for reading weights from binary weights file.
         :return: KernelAllocationCode object
         """
         operation = cls(buffer)
@@ -79,6 +81,8 @@ class KernelAllocationCode(BaseCode):
         operation.attributes['kernel_width'] = kernel_width
         operation.attributes['data_type'] = buffer.dt_string
         operation.attributes['pos'] = pos
+        operation.attributes['pos_kernel'] = pos_kernel
+        operation.attributes['pos_bias'] = pos_bias
         operation.attributes['buffer_type'] = buffer_type
 
         return operation
@@ -95,11 +99,13 @@ class OutputAllocation(BaseCode):
     template_file = "output_allocation.c"
 
     @classmethod
-    def create(cls, buffer, pos=-1):
+    def create(cls, buffer, pos=-1, pos_kernel=-1, pos_bias=-1):
         """
         Derive necessary information from the shapes of the inputs and pass them to the code template.
         :param buffer: Buffer object containing different information about the output buffer.
         :param pos: Not needed for generation of output buffer allocation code.
+        :param pos_kernel: Not needed for generation of output buffer allocation code.
+        :param pos_bias: Not needed for generation of output buffer allocation code.
         :return: OutputAllocation object
         """
         operation = cls(buffer)

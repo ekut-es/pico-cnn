@@ -21,6 +21,21 @@ Install `python3.6` for example with [pyenv](https://github.com/pyenv/pyenv) (pr
 ```{bash}
 pip install -r requirements.txt
 ```
+## Supported Neural Networks
+The pico-cnn framework currently supports the following neural networks:
+* LeNet
+* AlexNet
+* VGG-16
+* VGG-19
+* MobileNet-V2
+* EKUT-Raw
+ * CNN-3-Relu
+ * CNN-3-Relu-2
+ * CNN-6-Relu
+ * CNN-6-Relu-Simple
+* MNIST Multi-Layer-Perceptron (MLP)
+* MNIST Perceptron
+
 
 ### All networks
 #### Dummy Input
@@ -49,6 +64,7 @@ make reference_input
 ./reference_input network.weights.bin PATH_TO_SAMPLE_DATA/input_X.data PATH_TO_SAMPLE_DATA/output_X.data
 ```
 
+## MNIST Dataset
 ### LeNet-5
 LeNet-5 implementation as proposed by Yann LeCun et. al <a id="cit_LeCun1998">[[LeCun1998]](#LeCun1998)</a>
 
@@ -62,24 +78,6 @@ Copy `examples/lenet.c` from examples folder to `onnx_import/generated_code/lene
 cd generated_code/lenet
 make lenet
 ./lenet PATH_TO_MNIST network.weights.bin
-```
-
-### AlexNet
-AlexNet implementation as proposed by Alex Krizhevsky et. al <a id="cit_Krizhevsky2017">[[Krizhevsky2017]](#Krizhevsky2017)</a>
-
-**Note: ImageNet dataset required to run the AlexNet specific code.**
-```{bash}
-cd onnx_import
-python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/alexnet.onnx
-```
-Copy `examples/alexnet.c` to `onnx_import/generated_code/alexnet`.
-```{bash}
-cd generated_code/alexnet
-```
-Add `-ljpeg` to `LDFLAGS` in `Makefile`
-```{bash}
-make alexnet
-./alexnet network.weights.bin PATH_TO_IMAGE_MEANS PATH_TO_LABELS PATH_TO_IMAGE
 ```
 
 ### MNIST Multi-Layer-Perceptron (MLP)
@@ -104,6 +102,25 @@ Copy `examples/mnist_simple_perceptron.c` to `onnx_import/generated_code/mnist_s
 cd generated_code/mnist_simple_perceptron
 make mnist_simple_perceptron
 ./mnist_simple_perceptron PATH_TO_MNIST network.weights.bin
+```
+
+## ImageNet Dataset
+### AlexNet
+AlexNet implementation as proposed by Alex Krizhevsky et. al <a id="cit_Krizhevsky2017">[[Krizhevsky2017]](#Krizhevsky2017)</a>
+
+**Note: ImageNet dataset required to run the AlexNet specific code.**
+```{bash}
+cd onnx_import
+python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/alexnet.onnx
+```
+Copy `examples/alexnet.c` to `onnx_import/generated_code/alexnet`.
+```{bash}
+cd generated_code/alexnet
+```
+Add `-ljpeg` to `LDFLAGS` in `Makefile`
+```{bash}
+make alexnet
+./alexnet network.weights.bin PATH_TO_IMAGE_MEANS PATH_TO_LABELS PATH_TO_IMAGE
 ```
 
 ### VGG-16
@@ -142,6 +159,19 @@ make vgg19
 ./vgg19 network.weights.bin PATH_TO_IMAGE_MEANS PATH_TO_LABELS PATH_TO_IMAGE
 ```
 
+### MobileNet-V2
+MobileNet-V2 model retrieved from https://github.com/onnx/models/tree/master/vision/classification/mobilenet
+
+See [Reference Input](#user-content-reference-input) section for details on input and output data generation.
+```{bash}
+cd onnx_import
+python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/mobilenetv2-1.0.onnx
+cd generated_code/mobilenetv2-1
+make reference_input
+./reference_input network.weights.bin input.data output.data
+```
+
+## Speech Recognition
 ### EKUT-Raw
 For those models the reference data has been generated with the script `util/create_sample_data.py` by running an inference using `caffe2` as backend:
 ```{bash}

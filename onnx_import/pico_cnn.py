@@ -86,6 +86,10 @@ class Conv2D(BaseLayer):
             print("PicoCNN only supports same padding in all directions")
             exit(1)
 
+        if (kernel_size % 2) == 0:
+            print("PicoCNN only supports odd kernel sizes in 2D convolution")
+            exit(1)
+
         padding = pads[0]
 
         operation.attributes['input_buffer'] = input_buffers[0]
@@ -146,13 +150,17 @@ class Conv1D(BaseLayer):
         # TODO: handle auto padding
         if "auto_pad" in attrs:
             print("{} auto padding is currently not supported".format(node.name))
-            return None
+            exit(1)
 
         pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
 
         if pads[0] != pads[1]:
             print("PicoCNN only supports same padding in all directions")
-            return None
+            exit(1)
+
+        if (kernel_size % 2) == 0:
+            print("PicoCNN only supports odd kernel sizes in 1D convolution")
+            exit(1)
 
         padding = pads[0]
 
@@ -254,7 +262,9 @@ class MaxPool2D(BaseLayer):
         attrs = node.attrs
 
         # assert tuple(attrs["pads"]) == (0, 0)  # TODO Check if we need this assertion
-        if not (len(attrs["kernel_shape"]) == 2):
+
+        kernel_shape = attrs["kernel_shape"]
+        if not (len(kernel_shape) == 2):
             print("{} is not a 2DMaxPool".format(node.name))
             return None
 
@@ -305,7 +315,9 @@ class MaxPool1D(BaseLayer):
         attrs = node.attrs
 
         # assert tuple(attrs["pads"]) == (0, 0)
-        if not (len(attrs["kernel_shape"]) == 1):
+        kernel_shape = attrs["kernel_shape"]
+
+        if not (len(kernel_shape) == 1 or (len(kernel_shape) == 2 and kernel_shape[1] == 1)):
             print("{} is not a 1DMaxPool".format(node.name))
             return None
 
@@ -405,45 +417,46 @@ class Relu(BaseLayer):
 OperationRegistry.register(Relu)
 
 
-# class BatchNorm(BaseLayer):
-#     name = "PicoCNNBatchNorm"
-#     operator = "BatchNormalization"
-#     template_file = "pico_cnn_batchnorm.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         mean_buffer = memory_manager.get_buffer(graph, node.inputs[1])
-#         variance_buffer = memory_manager.get_buffer(graph, node.inputs[2])
-#         bias_buffer = memory_manager.get_buffer(graph, node.inputs[3])
-#
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#         operation = cls(node, graph)
-#
-#         input_shape = input_buffer.shape
-#         input_channels = input_shape[1]
-#         input_height = input_shape[2]
-#         input_width = 1
-#         if len(input_shape) >= 4:
-#             input_width = input_shape[3]
-#
-#         operation = cls(node, graph)
-#         operation.attributes['input_channels'] = input_channels
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['input_height'] = input_height
-#         operation.attributes['input_width'] = input_width
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['mean_buffer'] = mean_buffer
-#         operation.attributes['variance_buffer'] = variance_buffer
-#         operation.attributes['bias_buffer'] = bias_buffer
-#         operation.attributes['eps'] = attrs['epsilon']
-#
-#         return operation
-#
-#
-# OperationRegistry.register(BatchNorm)
+class BatchNorm(BaseLayer):
+    name = "PicoCNNBatchNorm"
+    operator = "BatchNormalization"
+    template_file = "pico_cnn_batchnorm.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        gamma_buffer = memory_manager.get_buffer(graph, node.inputs[1])
+        bias_buffer = memory_manager.get_buffer(graph, node.inputs[2])
+        mean_buffer = memory_manager.get_buffer(graph, node.inputs[3])
+        variance_buffer = memory_manager.get_buffer(graph, node.inputs[4])
+
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shape = input_buffer.shape
+        num_input_channels = input_shape[1]
+        input_height = input_shape[2]
+        input_width = 1
+        if len(input_shape) >= 4:
+            input_width = input_shape[3]
+
+        operation = cls(node, graph)
+        operation.attributes['num_input_channels'] = num_input_channels
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['input_height'] = input_height
+        operation.attributes['input_width'] = input_width
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['gamma_buffer'] = gamma_buffer
+        operation.attributes['bias_buffer'] = bias_buffer
+        operation.attributes['mean_buffer'] = mean_buffer
+        operation.attributes['variance_buffer'] = variance_buffer
+        operation.attributes['eps'] = attrs['epsilon']
+
+        return operation
+
+
+OperationRegistry.register(BatchNorm)
 #
 #
 # class Clip(BaseLayer):
@@ -521,6 +534,12 @@ class AveragePool2D(BaseLayer):
     def create(cls, node, graph, memory_manager):
         attrs = node.attrs
 
+        kernel_shape = attrs['kernel_shape']
+
+        if not len(kernel_shape) == 2:
+            print("{} is not a 2DAvgPool".format(node.name))
+            return None
+
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
         bias_buffer = None
@@ -559,50 +578,111 @@ class AveragePool2D(BaseLayer):
 OperationRegistry.register(AveragePool2D)
 
 
-# class AveragePool1D(BaseLayer):
-#     name = "PicoCNNAveragePool"
-#     operator = "AveragePool"
-#     template_file = "pico_cnn_average_pool1d.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#         bias_buffer = None
-#
-#         input_shape = input_buffer.shape
-#         kernel_shape = attrs["kernel_shape"]
-#
-#         if not (len(kernel_shape) == 1 or (len(kernel_shape) == 2 and kernel_shape[1] == 1)):
-#             print("Currently only supports 1d sizes")
-#
-#             return None
-#
-#         kernel_size = kernel_shape[0]
-#         kernel_stride = attrs["strides"][0]
-#
-#         if kernel_stride != 1 and kernel_stride != input_shape[2]:
-#             print("Currently only supports stride 1 in average pooling")
-#             return None
-#
-#         operation = cls(node, graph)
-#
-#         operation.attributes["input_buffer"] = input_buffer
-#         operation.attributes["input_width"] = input_buffer.shape[2]
-#         operation.attributes["input_channels"] = input_buffer.shape[1]
-#         operation.attributes["output_buffer"] = output_buffer
-#         operation.attributes["output_width"] = output_buffer.shape[2]
-#         operation.attributes["kernel_size"] = kernel_size
-#         operation.attributes["kernel_stride"] = kernel_stride
-#         operation.attributes["bias_buffer"] = bias_buffer
-#
-#         return operation
-#
-#
-# OperationRegistry.register(AveragePool1D)
+class AveragePool1D(BaseLayer):
+    name = "PicoCNNAveragePool"
+    operator = "AveragePool"
+    template_file = "pico_cnn_average_pool1d.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        kernel_shape = attrs["kernel_shape"]
+        if not (len(kernel_shape) == 1 or (len(kernel_shape) == 2 and kernel_shape[1] == 1)):
+            print("{} is not a 1DAvgPool".format(node.name))
+            return None
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+        bias_buffer = None
+
+        input_shape = input_buffer.shape
+
+        kernel_size = kernel_shape[0]
+        kernel_stride = attrs["strides"][0]
+
+        num_input_channels = input_shape[1]
+
+        padding = attrs["pads"]
+        padding_needed = False
+        for num in padding:
+            if num != 0:
+                padding_needed = True
+
+        count_include_pad = attrs.get("count_include_pad", 0)
+
+        operation = cls(node, graph)
+
+        operation.attributes['num_input_channels'] = num_input_channels
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['input_width'] = input_buffer.shape[2]
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['output_width'] = output_buffer.shape[2]
+        operation.attributes['kernel_size'] = kernel_size
+        operation.attributes['kernel_stride'] = kernel_stride
+        operation.attributes['bias_buffer'] = bias_buffer
+        operation.attributes['padding_needed'] = padding_needed
+        operation.attributes['padding'] = padding
+        operation.attributes['count_include_pad'] = count_include_pad
+
+        return operation
 
 
+OperationRegistry.register(AveragePool1D)
+
+
+class GlobalAveragePool2D(BaseLayer):
+    name = "PicoCNNGlobalAveragePool"
+    operator = "GlobalAveragePool"
+    template_file = "pico_cnn_average_pool2d.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        # if not len(kernel_shape) == 2:
+        #     print("{} is not a 2DAvgPool".format(node.name))
+        #     return None
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+        bias_buffer = None
+
+        input_shape = input_buffer.shape
+        kernel_size = input_shape[2]
+        kernel_stride = 1
+
+        num_input_channels = input_shape[1]
+
+        padding = None
+        padding_needed = False
+
+        # Only needed as long as we use the regular average_pool2d implementation
+        # as we want to compute the average over all pixels
+        count_include_pad = 1
+
+        operation = cls(node, graph)
+
+        operation.attributes["num_input_channels"] = num_input_channels
+        operation.attributes["input_buffer"] = input_buffer
+        operation.attributes["input_height"] = input_shape[2]
+        operation.attributes["input_width"] = input_shape[3]
+        operation.attributes["output_buffer"] = output_buffer
+        operation.attributes["kernel_size"] = kernel_size
+        operation.attributes["kernel_stride"] = kernel_stride
+        operation.attributes["bias_buffer"] = bias_buffer
+        operation.attributes['padding_needed'] = padding_needed
+        operation.attributes['padding'] = padding
+        operation.attributes['count_include_pad'] = count_include_pad
+
+        return operation
+
+
+OperationRegistry.register(GlobalAveragePool2D)
+
+
+#
+#
 # class Transpose(BaseLayer):
 #     name = "TransposeGeneric"
 #     operator = "Transpose"
@@ -763,34 +843,40 @@ class Flatten(BaseLayer):
 
 OperationRegistry.register(Flatten)
 
-#
-#
-# class Add(BaseLayer):
-#     name = "AddGeneric"
-#     operator = "Add"
-#     template_file = "pico_cnn_add.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#         input_buffers = [memory_manager.get_buffer(graph, i) for i in node.inputs]
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_shapes = [b.shape for b in input_buffers]
-#         for shape in input_shapes:
-#             if shape != input_shapes[0]:
-#                 print("Broadcasting is not supported for add operation")
-#                 return None
-#
-#         operation = cls(node, graph)
-#         operation.attributes["input_buffers"] = input_buffers
-#         operation.attributes["output_buffer"] = output_buffer
-#
-#         return operation
-#
-#
-# OperationRegistry.register(Add)
-#
+
+class Add(BaseLayer):
+    name = "AddGeneric"
+    operator = "Add"
+    template_file = "pico_cnn_add.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+        input_buffers = [memory_manager.get_buffer(graph, i) for i in node.inputs]
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shapes = [b.shape for b in input_buffers]
+        for shape in input_shapes:
+            if shape != input_shapes[0]:
+                print("Broadcasting is not supported for add operation")
+                return None
+
+        num_channels = input_shapes[0][1]
+        height = input_shapes[0][2]
+        width = input_shapes[0][3]
+
+        operation = cls(node, graph)
+        operation.attributes['input_buffers'] = input_buffers
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['num_channels'] = num_channels
+        operation.attributes['height'] = height
+        operation.attributes['width'] = width
+
+        return operation
+
+
+OperationRegistry.register(Add)
+
 #
 # class Sum(Add):
 #     name = "SumGeneric"

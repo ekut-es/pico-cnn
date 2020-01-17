@@ -166,9 +166,18 @@ class BackendRep(backend_base.BackendRep):
         weights_packed = list(bytes())
 
         for node in graph.nodes:
+
+            if len(node.input_tensors) > 0 and node.op_type != "Reshape":
+                layer_name = bytes(node.name + "\n", "ascii")
+                weights_packed.append(struct.pack('{}s'.format(len(layer_name)), layer_name))
+                layer_type = bytes(node.op_type + "\n", "ascii")
+                weights_packed.append(struct.pack('{}s'.format(len(layer_type)), layer_type))
+            else:
+                continue
+
             for num, input in enumerate(node.input_tensors):
-                if node.op_type == "Reshape":
-                    continue
+                # if node.op_type == "Reshape":
+                #     continue
 
                 data = node.input_tensors[input]
 
@@ -178,8 +187,8 @@ class BackendRep(backend_base.BackendRep):
                 if len(data.shape) == 4:
                     # weight_data += node.name + "\n"
 
-                    tupac = bytes(node.name+"\n", "ascii")
-                    weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
+                    # tupac = bytes(node.name + "\n", "ascii")
+                    # weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
                     height = data.shape[2]  # height
                     width = data.shape[3]  # width
@@ -199,8 +208,8 @@ class BackendRep(backend_base.BackendRep):
                                 weights_packed.append(struct.pack('f'*len(row), *row))
 
                 elif len(data.shape) == 3:
-                    tupac = bytes(node.name + "\n", "ascii")
-                    weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
+                    # tupac = bytes(node.name + "\n", "ascii")
+                    # weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
                     height = 1
                     width = data.shape[2]
@@ -221,8 +230,8 @@ class BackendRep(backend_base.BackendRep):
                 elif len(data.shape) == 2:
                     # weight_data += node.name + "\n"
 
-                    tupac = bytes(node.name + "\n", "ascii")
-                    weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
+                    # tupac = bytes(node.name + "\n", "ascii")
+                    # weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
                     height = data.shape[0]  # height
                     width = data.shape[1]  # width
@@ -288,17 +297,27 @@ class BackendRep(backend_base.BackendRep):
         initialization_code += "void initialize_network() {\n\n"
 
         num_layers = 0
+        num_kernels = 0
+        num_biases = 0
 
         for node in graph.nodes:
             """Do not count the reshape layers as the input tensor will only define the dimensions"""
             if len(node.input_tensors) > 0 and node.op_type != "Reshape":
                 num_layers += 1
+                for num, input in enumerate(node.input_tensors):
+                    tensor = node.input_tensors[input]
+                    if len(tensor.shape) == 1:
+                        num_biases += 1
+                    else:
+                        num_kernels += 1
 
         """The arrays kernels and biases will be used to pass only two variables to read_binary_weights"""
-        initialization_code += "kernels = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(num_layers)
-        initialization_code += "biases = (fp_t**) malloc({} * sizeof(fp_t*));\n\n".format(num_layers)
+        initialization_code += "kernels = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(num_kernels)
+        initialization_code += "biases = (fp_t**) malloc({} * sizeof(fp_t*));\n\n".format(num_biases)
 
         pos = -1
+        pos_kernel = -1
+        pos_bias = -1
 
         """Iterate over all nodes in the graph and generate the corresponding allocation code."""
         for node in graph.nodes:
@@ -317,8 +336,13 @@ class BackendRep(backend_base.BackendRep):
                 if node.op_type == "Reshape":
                     continue
 
+                tensor = node.input_tensors[input]
+                if len(tensor.shape) == 1:
+                    pos_bias += 1
+                else:
+                    pos_kernel += 1
+
                 buffer = memory_manager.get_buffer(graph, input)
-                data = node.input_tensors[input]
 
                 # if len(data.shape) == 4:
                 #     num_kernels = data.shape[0] * data.shape[1]
@@ -337,7 +361,7 @@ class BackendRep(backend_base.BackendRep):
                 initialization_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
 
                 functionality = CodeRegistry.get_funct("KernelAllocation")
-                impl = functionality[0].create(buffer, pos)
+                impl = functionality[0].create(buffer, pos, pos_kernel, pos_bias)
 
                 if impl:
                     initialization_code += impl.generate_code()

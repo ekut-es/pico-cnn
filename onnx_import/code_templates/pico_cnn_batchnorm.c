@@ -1,12 +1,11 @@
-for (int i = 0; i < {{input_channels}}; i++) {
-  batch_normalization_naive(
-      {{input_buffer.start_ptr}} + i * {{input_height}} * {{input_width}},
-      {{input_height}},
-      {{input_width}},
-      {{mean_buffer.start_ptr}}[i],
-      {{variance_buffer.start_ptr}}[i],
-      {{bias_buffer.start_ptr}}[i],
-      {{eps}},
-      {{output_buffer.start_ptr}} +
-          i * {{input_height}} * {{input_width}});
+for (int i = 0; i < {{num_input_channels}}; i++) {
+    batch_normalization_naive({{input_buffer.name}}[i],
+                              {{input_height}},
+                              {{input_width}},
+                              {{output_buffer.name}}[i],
+                              {{gamma_buffer.name}}[i],
+                              {{bias_buffer.name}}[i],
+                              {{mean_buffer.name}}[i],
+                              {{variance_buffer.name}}[i],
+                              {{eps}});
 }
