@@ -52,6 +52,18 @@ add_executable(lenet_avg_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/
         ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network_cleanup.c)
 target_link_libraries(lenet_avg_dummy libpico-cnn ${LINK_LIBS})
 
+add_executable(mobilenet_reference ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/reference_input.c
+        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network.c
+        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network_initialization.c
+        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network_cleanup.c)
+target_link_libraries(mobilenet_reference libpico-cnn ${LINK_LIBS})
+
+add_executable(mobilenet_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/dummy_input.c
+        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network.c
+        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network_initialization.c
+        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network_cleanup.c)
+target_link_libraries(mobilenet_dummy libpico-cnn ${LINK_LIBS})
+
 add_executable(run_tests ${PROJECT_SOURCE_DIR}/test/run_tests.c
         ${PROJECT_SOURCE_DIR}/test/layers/test_activation_function.c
         ${PROJECT_SOURCE_DIR}/test/layers/test_activation_function.h
