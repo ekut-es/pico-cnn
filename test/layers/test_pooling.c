@@ -192,7 +192,6 @@ int test_avg_pooling1d_padding() {
     uint16_t expected_output_width = 10;
     uint16_t kernel_size = 5;
     uint16_t stride = 1;
-    uint16_t kernel_dim[2] = {kernel_size, kernel_size};
 
     fp_t input[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
@@ -274,12 +273,10 @@ int test_avg_pooling2d_padding() {
 
     uint16_t input_height = 5;
     uint16_t input_width = 5;
-    uint16_t expected_output_height = 5;
-    uint16_t expected_output_width = 5;
+    //uint16_t expected_output_height = 5;
+    //uint16_t expected_output_width = 5;
     uint16_t kernel_size = 5;
     uint16_t stride = 1;
-    uint16_t kernel_dim[2] = {kernel_size, kernel_size};
-
 
     fp_t input[25] = {1, 2, 3, 4, 5,
                       6, 7, 8, 9, 10,
@@ -341,4 +338,71 @@ int test_avg_pooling2d_padding() {
     free(output_1);
     free(output_2);
     return return_value;
+}
+
+int test_global_average_pooling2d(){
+
+    int return_value = 0;
+    printf("test_global_average_pooling2d()\n");
+
+    #define input_width 4
+    #define input_height 3
+    #define expected_output_size 1
+    fp_t error = (fp_t) 0.001;
+
+    fp_t input[input_width * input_height] = {
+       -7, 13, -7, -8,
+      -15, -4, -7,  4,
+        6, -6, -6,  6};
+
+    fp_t expected_output[expected_output_size] = {-2.5833333};
+
+    // just one float
+    fp_t* output = malloc(expected_output_size * sizeof(fp_t));
+
+    global_average_pooling2d_naive(input, input_width, input_height, output);
+
+    return_value = compare1dFloatArray(output, expected_output, expected_output_size, error);
+
+    free(output);
+    return return_value;
+
+    #undef input_width
+    #undef input_height
+    #undef expected_output_size
+
+}
+
+int test_global_max_pooling2d(){
+
+    int return_value = 0;
+    printf("test_global_max_pooling2d()\n");
+
+    #define input_width 5
+    #define input_height 4
+    #define expected_output_size 1
+    fp_t error = (fp_t) 0.001;
+
+    fp_t input[input_width * input_height] = {
+       17,  17, -15,  8, -15,
+        2,  13,  -2, -5,  6,
+        9, -17,  18, 20, -5,
+      -14,   4,  11,  7, 18};
+
+    fp_t expected_output[expected_output_size] = {20};
+
+    // just one float
+    fp_t* output = malloc(expected_output_size * sizeof(fp_t));
+
+    global_max_pooling2d_naive(input, input_width, input_height, output);
+
+    return_value = compare1dFloatArray(output, expected_output, expected_output_size, error);
+
+    free(output);
+    return return_value;
+
+    #undef input_width
+    #undef input_height
+    #undef expected_output_size
+
 }

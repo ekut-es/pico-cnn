@@ -161,7 +161,7 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
                 }
 
                 output_channel[output_channel_row * output_channel_width + output_channel_column] =
-                        pixel / ((fp_t) kernel_size * kernel_size) + bias;
+                        pixel / ((fp_t)(kernel_size * kernel_size)) + bias;
                 output_channel_column++;
             }
             output_channel_row++;
@@ -333,6 +333,36 @@ void average_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t in
 
     free(new_input_channel);
 }
+
+void global_average_pooling2d_naive(const fp_t* input_channel, const uint16_t input_width,
+                                    const uint16_t input_height, fp_t* output_channel) {
+    uint16_t pixel;
+    fp_t global_sum = 0.0;
+
+    for(pixel = 0; pixel < input_height * input_width; pixel++){
+        global_sum += input_channel[pixel];
+    }
+
+  output_channel[0] = global_sum / (fp_t)(input_height*input_width);
+
+ }
+
+
+void global_max_pooling2d_naive(const fp_t* input_channel, const uint16_t input_width,
+                                 const uint16_t input_height, fp_t* output_channel) {
+    uint16_t pixel;
+    // assumes that input_channel holds at least 1 value 
+    fp_t global_maximum = input_channel[0];
+
+    for(pixel = 1; pixel < input_height * input_width; pixel++){
+        if(global_maximum < input_channel[pixel]){
+            global_maximum = input_channel[pixel];
+        }
+    }
+
+    output_channel[0] = global_maximum;
+}
+
 
 #ifdef FIXED16
 

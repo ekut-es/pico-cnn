@@ -4,7 +4,7 @@ int floatsAlmostEqual(fp_t f1,fp_t f2,fp_t err){
   return fabs(f1-f2) < err;
 }
 
-int compare1dFloatArray(fp_t* values, fp_t* expected_values, int width,fp_t error) {
+int compare1dFloatArray(fp_t* values, fp_t* expected_values, int width, fp_t error) {
     int i;
     int return_value = 0;
 

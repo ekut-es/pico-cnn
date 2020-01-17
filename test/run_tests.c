@@ -21,7 +21,7 @@ int main() {
     printf(separator);
     printf("Testing: pooling operations...\n");
     int pooling_failed = 0;
-    int num_pooling_tests = 8;
+    int num_pooling_tests = 9;
     pooling_failed += test_max_pooling1d();
     pooling_failed += test_max_pooling1d_padding();
     pooling_failed += test_max_pooling2d();
@@ -31,6 +31,9 @@ int main() {
     pooling_failed += test_avg_pooling1d_padding();
     pooling_failed += test_avg_pooling2d();
     pooling_failed += test_avg_pooling2d_padding();
+
+    pooling_failed += test_global_average_pooling2d();
+    pooling_failed += test_global_max_pooling2d(); 
     printSucessFailure("pooling operations", pooling_failed,num_pooling_tests);
     return_value += pooling_failed;
 

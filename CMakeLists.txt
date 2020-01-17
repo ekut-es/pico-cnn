@@ -40,17 +40,17 @@ if(BUILD_UTILS)
     add_executable(find_max_min_weight ${PROJECT_SOURCE_DIR}/util/find_max_min_weight.c)
 endif()
 
-add_executable(ekut-raw-padding ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/dummy_input.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network_initialization.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network_cleanup.c)
-target_link_libraries(ekut-raw-padding libpico-cnn ${LINK_LIBS})
+#add_executable(ekut-raw-padding ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/dummy_input.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network_initialization.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/ekut-raw-padding/network_cleanup.c)
+#target_link_libraries(ekut-raw-padding libpico-cnn ${LINK_LIBS})
 
-add_executable(lenet_avg_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/dummy_input.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network_initialization.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network_cleanup.c)
-target_link_libraries(lenet_avg_dummy libpico-cnn ${LINK_LIBS})
+#add_executable(lenet_avg_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/dummy_input.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network_initialization.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet_avg/network_cleanup.c)
+#target_link_libraries(lenet_avg_dummy libpico-cnn ${LINK_LIBS})
 
 add_executable(mobilenet_reference ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/reference_input.c
         ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network.c
@@ -65,17 +65,15 @@ add_executable(mobilenet_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/
 target_link_libraries(mobilenet_dummy libpico-cnn ${LINK_LIBS})
 
 add_executable(run_tests ${PROJECT_SOURCE_DIR}/test/run_tests.c
+
         ${PROJECT_SOURCE_DIR}/test/layers/test_activation_function.c
-        ${PROJECT_SOURCE_DIR}/test/layers/test_activation_function.h
         ${PROJECT_SOURCE_DIR}/test/layers/test_batch_normalization.c
-        ${PROJECT_SOURCE_DIR}/test/layers/test_batch_normalization.h
         ${PROJECT_SOURCE_DIR}/test/layers/test_convolution.c
-        ${PROJECT_SOURCE_DIR}/test/layers/test_convolution.h
         ${PROJECT_SOURCE_DIR}/test/layers/test_fully_connected.c
-        ${PROJECT_SOURCE_DIR}/test/layers/test_fully_connected.h
         ${PROJECT_SOURCE_DIR}/test/layers/test_pooling.c
-        ${PROJECT_SOURCE_DIR}/test/layers/test_pooling.h
-)
+        ${PROJECT_SOURCE_DIR}/test/utility_functions.c
+  )
+>>>>>>> ddb64c467f9bc9bb81644d11af4da601e23ebc03
 target_link_libraries(run_tests libpico-cnn ${LINK_LIBS})
 
 # removes pgm and float files

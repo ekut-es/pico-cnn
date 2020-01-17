@@ -156,6 +156,13 @@ void average_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t in
                                     const uint16_t count_include_pad);
 
 
+
+void global_average_pooling2d_naive(const fp_t* input_channel, const uint16_t input_width,
+                                    const uint16_t input_height, fp_t* output_channel);
+
+void global_max_pooling2d_naive(const fp_t* input_channel, const uint16_t input_width,
+                                const uint16_t input_height, fp_t* output_channel);
+
 #ifdef FIXED16
 /**
  * @brief applies max pooling of kernel_size x kernel_size to input_channel
