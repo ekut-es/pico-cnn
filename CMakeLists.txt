@@ -16,7 +16,7 @@ set(PICO_CNN_LIBRARY_SRCS
         ${PROJECT_SOURCE_DIR}/pico-cnn/layers/pooling.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/layers/activation_function.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/layers/fully_connected.c
-        ${PROJECT_SOURCE_DIR}/pico-cnn/layers/concatenate.c 
+        ${PROJECT_SOURCE_DIR}/pico-cnn/layers/concatenate.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/read_binary_sample_data.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/read_binary_weights.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/read_imagenet_labels.c
@@ -75,7 +75,6 @@ add_executable(run_tests ${PROJECT_SOURCE_DIR}/test/run_tests.c
         ${PROJECT_SOURCE_DIR}/test/utility_functions.c
         ${PROJECT_SOURCE_DIR}/test/layers/test_concatenate.c
   )
-
 target_link_libraries(run_tests libpico-cnn ${LINK_LIBS})
 
 # removes pgm and float files

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-int test_concatenate_2D();
+int test_concatenate_2D_1();
+int test_concatenate_2D_2();
 
 #endif //TEST_CONCATENATE_H

@@ -19,11 +19,12 @@ void concatenate_2D(fp_t** input_channels, uint16_t width, uint16_t height,
     uint16_t input_channel;
 
     // (height dimension)
+    // probably the same as flatten
     if(dimension == 0) {
 
         for(input_channel = 0; input_channel < num_inputs; input_channel++){
-            memcpy(&output_channel[input_channel* width ],
-                   &input_channels[input_channel],
+            memcpy(&output_channel[input_channel* width *height],
+                   input_channels[input_channel],
                    width  * height * sizeof(fp_t));
         }
 
@@ -37,7 +38,7 @@ void concatenate_2D(fp_t** input_channels, uint16_t width, uint16_t height,
             for(input_channel = 0; input_channel < num_inputs; input_channel++) {
                 memcpy(&output_channel[input_channel*width + num_inputs*width*row],
                        &input_channels[input_channel][row*width],
-                       width);
+                       width *sizeof(fp_t));
             }
         }
     }
