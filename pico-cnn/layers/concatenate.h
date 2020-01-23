@@ -30,5 +30,9 @@ void concatenate_1D(fp_t** input_channels, uint16_t width , uint16_t num_inputs,
 void concatenate_2D(fp_t** input_channels, uint16_t width, uint16_t height,
                uint16_t dimension, uint16_t num_inputs, fp_t* output_channel);
 
+void concatenate_3D(fp_t*** inputs, uint16_t channel_width, uint16_t channel_height,
+                     uint16_t dimension, uint16_t num_inputs, uint16_t num_input_channels,
+                    fp_t** output_channels);
+
 
 #endif //CONCATENATE_H
