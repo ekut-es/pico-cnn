@@ -11,5 +11,7 @@
 
 int test_concatenate_2D_1();
 int test_concatenate_2D_2();
+int test_concatenate_3D_1();
+int test_concatenate_3D_2();
 
 #endif //TEST_CONCATENATE_H
