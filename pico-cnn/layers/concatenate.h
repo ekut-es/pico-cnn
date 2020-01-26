@@ -21,17 +21,22 @@
 /*  @brief concatenates 1D channels into a single (2D) channel
  *         output channel needs to be of size width  * num_inputs * sizeof(fp_t)
  */
-void concatenate_1D(fp_t** input_channels, uint16_t width , uint16_t num_inputs, fp_t* output_channel);
+ void concatenate_1D(const fp_t** input_channels, const uint16_t width, const uint16_t num_inputs, fp_t* output_channel);
 
 /* @brief concatenates 2D channels into a single (2D) channel
- * the output channel need to be of size width * height * num_inputs * sizeof(fp_t)
+ * the output channel needs to be of size width * height * num_inputs * sizeof(fp_t)
  * @param dimension the dimension on which to concatenate, 0: height dimension, 1: width dimension
  */
-void concatenate_2D(fp_t** input_channels, uint16_t width, uint16_t height,
-               uint16_t dimension, uint16_t num_inputs, fp_t* output_channel);
+ void concatenate_2D(const fp_t** input_channels, const uint16_t width, const uint16_t height,
+                     const uint16_t dimension, const uint16_t num_inputs, fp_t* output_channel);
 
-void concatenate_3D(fp_t*** inputs, uint16_t channel_width, uint16_t channel_height,
-                     uint16_t dimension, uint16_t num_inputs, uint16_t num_input_channels,
+/* @brief concatenates multiple 3D inputs (lists of channels) into a single (3D) output (list of 2D channels).
+ * the output channel need to be of size width * height * num_input_channels * num_inputs * sizeof(fp_t)
+ * the size of the output channels varies with the dimension
+ * @param channel_width
+*/
+void concatenate_3D(const fp_t*** inputs, const uint16_t channel_width, const uint16_t channel_height,
+                    const uint16_t dimension, const uint16_t num_inputs, const uint16_t num_input_channels,
                     fp_t** output_channels);
 
 
