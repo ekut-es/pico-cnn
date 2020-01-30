@@ -80,7 +80,8 @@ class Conv2D(BaseLayer):
             print("{} auto padding is currently not supported".format(node.name))
             exit(1)
 
-        pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
+        pads = attrs.get("pads", (0, 0, 0, 0))
+        # pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
 
         if pads[0] != pads[1]:
             print("PicoCNN only supports same padding in all directions")
@@ -281,7 +282,7 @@ class MaxPool2D(BaseLayer):
         kernel_size = attrs["kernel_shape"][0]
         kernel_stride = attrs["strides"][0]
 
-        padding = attrs["pads"]
+        padding = attrs.get("pads", (0, 0, 0, 0))
         padding_needed = False
         for num in padding:
             if num != 0:
@@ -550,7 +551,7 @@ class AveragePool2D(BaseLayer):
 
         num_input_channels = input_shape[1]
 
-        padding = attrs["pads"]
+        padding = attrs.get("pads", (0, 0, 0, 0))
         padding_needed = False
         for num in padding:
             if num != 0:
@@ -681,53 +682,47 @@ class GlobalAveragePool2D(BaseLayer):
 OperationRegistry.register(GlobalAveragePool2D)
 
 
-#
-#
-# class Transpose(BaseLayer):
-#     name = "TransposeGeneric"
-#     operator = "Transpose"
-#     template_file = "transpose.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_def = "float_t (*x)[" + "][".join((str(x) for x in input_buffer.shape[1:])) + "]";
-#         output_def = "float_t (*y)[" + "][".join((str(x) for x in output_buffer.shape[1:])) + "]";
-#
-#         input_cast = "float (*)[" + "][".join((str(x) for x in input_buffer.shape[1:])) + "]"
-#         output_cast = "float (*)[" + "][".join((str(x) for x in output_buffer.shape[1:])) + "]"
-#
-#         permutations = attrs['perm']
-#         transpose_code = ""
-#         print(input_buffer.shape)
-#         for input_dim, output_dim in enumerate(permutations):
-#             dim_size = input_buffer.shape[input_dim] if input_dim < len(input_buffer.shape) else 1
-#             transpose_code += "  " * (input_dim + 1)
-#             transpose_code += "for(int dim{} = 0; dim{} < {}; dim{}++)".format(input_dim, input_dim, dim_size,
-#                                                                                input_dim)
-#             transpose_code += "\n"
-#
-#         transpose_code += "  " * len(permutations)
-#         transpose_code += "    " + "y[" + "][".join(("dim" + str(x) for x in permutations)) + "] = x[" + "][".join(
-#             ("dim" + str(x) for x in range(len(input_buffer.shape)))) + "];"
-#
-#         operation = cls(node, graph)
-#
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['input_def'] = input_def
-#         operation.attributes['output_def'] = output_def
-#         operation.attributes['input_cast'] = input_cast
-#         operation.attributes['output_cast'] = output_cast
-#         operation.attributes['transpose_code'] = transpose_code
-#
-#         return operation
-#
-#
-# OperationRegistry.register(Transpose)
+class Transpose(BaseLayer):
+    name = "TransposeGeneric"
+    operator = "Transpose"
+    template_file = "transpose.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        permutations = attrs['perm']
+        orig_permutation = range(len(input_buffer.shape))
+        transpose_code = ""
+        print(input_buffer.shape)
+        for input_dim, output_dim in enumerate(permutations):
+            dim_size = input_buffer.shape[input_dim] if input_dim < len(input_buffer.shape) else 1
+            transpose_code += "    " * (input_dim + 1)
+            transpose_code += "for(int dim{} = 0; dim{} < {}; dim{}++)".format(input_dim, input_dim, dim_size,
+                                                                               input_dim)
+            transpose_code += "\n"
+
+        transpose_code += "    " * len(permutations)
+        test_code = "{}[{}][{}]".format(output_buffer.name,
+                                        "dim"+str(permutations[1]),
+                                        "dim"+str(permutations[2]) + "*" +
+                                        str(input_buffer.shape[permutations[3]] if permutations[3] < len(input_buffer.shape) else 1)
+                                        + " + " + "dim"+str(permutations[3])) + " = " \
+                    + "{}[{}][{}];".format(input_buffer.name, "dim"+str(orig_permutation[1]), "dim"+str(orig_permutation[2])
+                                           + "*" + str(input_buffer.shape[orig_permutation[3]] if orig_permutation[3] < len(input_buffer.shape) else 1)
+                                           + " + " + "dim"+str(orig_permutation[3]))
+
+        transpose_code += "    " + test_code
+
+        operation = cls(node, graph)
+        operation.attributes['transpose_code'] = transpose_code
+
+        return operation
+
+
+OperationRegistry.register(Transpose)
 
 
 class Reshape(BaseLayer):
@@ -767,9 +762,13 @@ class Reshape(BaseLayer):
             num_input_channels = input_shape[1]
             input_height = 1
             input_width = input_shape[2]
+        elif len(input_shape) == 2:
+            num_input_channels = input_shape[0]
+            input_height = 1
+            input_width = input_shape[1]
         else:
             print("ERROR: Unsupported input shape for reshape layer: {}".format(input_shape))
-            return None
+            exit(1)
 
         operation = cls(node, graph)
         operation.attributes['input_buffer'] = input_buffer
