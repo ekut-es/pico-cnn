@@ -44,7 +44,7 @@ class PoolImpl(ConstImpl):
         out = ConstPropState(None, None)
         kernel = attrs["kernel_shape"]
         stride = attrs["strides"]
-        pads = attrs["pads"]
+        pads = attrs.get("pads", (0, 0, 0, 0))
         if input_shape is not None:
             output_shape = list(input_shape)
             for num, dim in enumerate(input_shape[2:]):
@@ -169,8 +169,19 @@ def constant_propagation(graph):
                 out = ConstPropState(np.array(input_shape), np.array(input_shape).shape)
             output = node.outputs[0]
             if state_dict[output] != out:
-                changed=True
+                changed = True
                 state_dict[output] = out
+
+        elif node.op_type == 'Cast':
+            input = node.inputs[0]
+            input_state = state_dict[input]
+            output_state = ConstPropState(None, None)
+            if input_state is not None:
+                output_state = input_state
+            output = node.outputs[0]
+            if state_dict[output] != output_state:
+                changed = True
+                state_dict[output] = output_state
 
         elif node.op_type == 'MatMul':
             _, input_shape1 = state_dict[node.inputs[0]]
