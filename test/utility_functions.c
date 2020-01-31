@@ -57,3 +57,14 @@ void print1dFloatArray_2d(fp_t* array,int height,int width) {
         }
     }
 }
+
+void print2dFloatArray_3d(fp_t** array, int depth, int height, int width) {
+    int i,j,k;
+    for(i = 0; i < depth; i++,printf("\n\n")) {
+        for(j = 0; j < height; j++, printf("\n")) {
+            for(k = 0; k < width; k++) {
+                printf("%f ", array[i][j*width + k]);
+            }
+        }
+    }
+}

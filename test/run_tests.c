@@ -6,6 +6,7 @@
 #include "layers/test_fully_connected.h"
 #include "layers/test_convolution.h"
 #include "layers/test_batch_normalization.h"
+#include "layers/test_concatenate.h"
 
 void printSucessFailure(const char* operation, int failed, int num_tests) {
   printf("%s: %d/%d tests for %s passed\n",
@@ -33,7 +34,7 @@ int main() {
     pooling_failed += test_avg_pooling2d_padding();
 
     pooling_failed += test_global_average_pooling2d();
-    pooling_failed += test_global_max_pooling2d(); 
+    pooling_failed += test_global_max_pooling2d();
     printSucessFailure("pooling operations", pooling_failed,num_pooling_tests);
     return_value += pooling_failed;
 
@@ -76,6 +77,19 @@ int main() {
     batch_normalization_failed += test_batch_normalization_naive_2();
     printSucessFailure("batch normalization layer", batch_normalization_failed, num_batch_normalization_tests);
     return_value += batch_normalization_failed;
+
+    printf(separator);
+    printf("Testing: concatenations...\n");
+    int concatenation_failed = 0;
+    int num_concatenation_tests = 5;
+    concatenation_failed += test_concatenate_2D_1();
+    concatenation_failed += test_concatenate_2D_2();
+    concatenation_failed += test_concatenate_3D_1();
+    concatenation_failed += test_concatenate_3D_2();
+    concatenation_failed += test_concatenate_3D_3();
+    
+    printSucessFailure("concatenations", concatenation_failed, num_concatenation_tests);
+    return_value += concatenation_failed;
 
     return  return_value;
 

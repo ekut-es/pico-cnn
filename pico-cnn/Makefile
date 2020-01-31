@@ -7,13 +7,18 @@ driver_ARM = driver/neon_mathfun.o
 driver_x86 = driver/fixed16.o
 DRIVER = $(driver_x86)
 
-libpico-cnn.a: $(DRIVER) io layers
-	ar -rcs libpico-cnn.a driver/*.o io/*.o layers/*.o
+libpico-cnn.a: utils $(DRIVER) io layers
+	ar -rcs libpico-cnn.a utils.o driver/*.o io/*.o layers/*.o
 
 # remove the library directory
 .PHONY: clean
 clean:
-	rm -f libpico-cnn.a driver/*.o io/*.o layers/*.o
+	rm -f libpico-cnn.a ./utils.o driver/*.o io/*.o layers/*.o
+
+#---------------------------------------------- utils -----------------------------------------------
+
+utils: parameters.h ./utils.h ./utils.c
+	$(CC) utils.c $(CFLAGS) -c -o utils.o
 
 #---------------------------------------------- driver ----------------------------------------------
 
@@ -55,7 +60,8 @@ LAYERS_SRC = layers/activation_function.c \
              layers/convolution.c \
 			 layers/fully_connected.c \
 			 layers/pooling.c \
-			 layers/batch_normalization.c
+			 layers/batch_normalization.c \
+			 layers/concatenate.c
 LAYERS_H = $(LAYERS_SRC:.c=.h)
 LAYERS_OBJ = $(LAYERS_SRC:.c=.o)
 
