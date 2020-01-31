@@ -725,6 +725,68 @@ class Transpose(BaseLayer):
 OperationRegistry.register(Transpose)
 
 
+class Concat(BaseLayer):
+    """
+    Transposes the input and writes it to the output buffer.
+    """
+    name = "ConcatGeneric"
+    operator = "Concat"
+    template_file = "pico_cnn_concat.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
+        attrs = node.attrs
+
+        if attrs['axis'] != 1:
+            print("ERROR: Currently only concatenation along channels is supported!")
+            exit(1)
+
+        input_buffers = []
+        for input in node.inputs:
+            input_buffers.append(memory_manager.get_buffer(graph, input))
+
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shapes = [graph.get_shape(input_id) for input_id in node.inputs]
+        num_input_shapes = len(input_shapes)
+        output_shape = graph.get_shape(node.outputs[0])
+
+        for input_shape in input_shapes:
+            assert(len(input_shape) == len(output_shape))
+            for i, s in enumerate(input_shape):
+                if i != attrs['axis']:
+                    assert (s == output_shape[i])
+
+        input_declaration = "fp_t*** inputs = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(str(num_input_shapes))
+        for idx in range(num_input_shapes):
+            input_declaration += "    inputs[{}] = {};\n".format(str(idx), input_buffers[idx].name)
+
+        cleanup_input = "free(inputs);\n"
+
+        operation = cls(node, graph)
+        operation.attributes['input_declaration'] = input_declaration
+        operation.attributes['input_buffers'] = input_buffers
+        operation.attributes['num_inputs'] = len(input_buffers)
+        operation.attributes['num_input_channels'] = output_shape[1]
+        operation.attributes['height'] = output_shape[2]
+        operation.attributes['width'] = output_shape[3]
+        operation.attributes['dimension'] = attrs['axis']
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['cleanup_input'] = cleanup_input
+
+        return operation
+
+
+OperationRegistry.register(Concat)
+
+
 class Reshape(BaseLayer):
     """
     Transposes the input and writes it to the output buffer.

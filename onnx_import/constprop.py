@@ -264,13 +264,21 @@ def constant_propagation(graph):
             input_states = []
             input_shapes = []
             for i in node.inputs:
+                tmp_state = state_dict[i]
                 input_states.append(state_dict[i].value)
                 input_shapes.append(state_dict[i].shape)
         
             out = ConstPropState(None, input_shapes[0] if None not in input_shapes else None)
+
+            # TODO: Is this first case even possible? If not, remove it!
             if None not in input_states:
                 res = np.concatenate(input_states, axis=axis)
                 out = ConstPropState(res, res.shape)
+            else:
+                dummy_inputs = [np.zeros(shape) for shape in input_shapes]
+                res = np.concatenate(dummy_inputs, axis=axis)
+                # TODO: Should the value of 'out' be something different than 'None'?
+                out = ConstPropState(None, res.shape)
                 
             if state_dict[node.outputs[0]] != out:
                 state_dict[node.outputs[0]] = out
