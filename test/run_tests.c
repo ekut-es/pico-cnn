@@ -62,9 +62,12 @@ int main() {
     printf(separator);
     printf("Testing: convolutions...\n");
     int convolution_failed = 0;
-    int num_convolution_tests = 3;
-    convolution_failed += test_convolution1d_naive();
-    convolution_failed += test_convolution2d_naive();
+    int num_convolution_tests = 6;
+    convolution_failed += test_convolution2d_naive_1();
+    convolution_failed += test_convolution2d_naive_2();
+    convolution_failed += test_convolution2d_naive_3();
+    convolution_failed += test_convolution2d_naive_4();
+    convolution_failed += test_convolution2d_naive_5();
     convolution_failed += test_add_channel2d_naive();
     printSucessFailure("convolutions", convolution_failed, num_convolution_tests);
     return_value += convolution_failed;
@@ -87,7 +90,7 @@ int main() {
     concatenation_failed += test_concatenate_3D_1();
     concatenation_failed += test_concatenate_3D_2();
     concatenation_failed += test_concatenate_3D_3();
-    
+
     printSucessFailure("concatenations", concatenation_failed, num_concatenation_tests);
     return_value += concatenation_failed;
 

@@ -1,4 +1,3 @@
-#include <assert.h>
 #include "convolution.h"
 
 void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* output_channel, const fp_t* kernel,
@@ -54,7 +53,66 @@ void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* 
     }
 }
 
+void convolution2d_padding_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
+                                     const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
+                                     const uint16_t stride_height, const uint16_t stride_width,
+                                     const int* padding, const fp_t bias) {
+
+   fp_t* new_input_channel;
+
+   extend_2d_input_with_padding(input_channel, height, width, &new_input_channel, padding, 0);
+
+   convolution2d_naive(new_input_channel, height+padding[0]+padding[2], width+padding[1]+padding[3],
+                                   output_channel, kernel, kernel_height, kernel_width,
+                                   stride_height, stride_width, bias);
+
+   free(new_input_channel); //todo : is this really needed?
+}
+
 void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
+                                     const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
+                                     const uint16_t stride_height, const uint16_t stride_width, const fp_t bias) {
+
+
+   int32_t channel_row, channel_column;
+   int32_t kernel_row, kernel_column;
+   int32_t height_crop = kernel_height/2;
+   int32_t width_crop = kernel_width/2;
+
+   fp_t pixel;
+
+   int32_t output_channel_row = 0;
+   int32_t output_channel_column = 0;
+
+
+   uint16_t output_channel_height = (height - kernel_height)/stride_height + 1;
+   uint16_t output_channel_width = (width - kernel_width)/stride_width + 1;
+
+
+   for(channel_row = height_crop; channel_row < height-height_crop; channel_row+=stride_height) {
+       for(channel_column = width_crop; channel_column < width - width_crop; channel_column += stride_width) {
+           pixel = 0.0;
+
+           for(kernel_row = 0; kernel_row < kernel_height; kernel_row++) {
+               for(kernel_column = 0; kernel_column < kernel_width; kernel_column++) {
+                   pixel += kernel[kernel_row*kernel_width + kernel_column] *
+                            input_channel[width*(channel_row-height_crop+kernel_row) + channel_column-width_crop+kernel_column];
+               }
+           }
+
+           pixel += bias;
+           output_channel[output_channel_row*output_channel_width+output_channel_column] = pixel;
+           output_channel_column++;
+
+       }
+       output_channel_row++;
+       output_channel_column = 0;
+
+   }
+
+}
+
+void convolution2d_naive_legacy(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
                          const fp_t* kernel, const uint16_t kernel_size, const uint16_t stride,
                          const uint16_t padding, const fp_t bias) {
 

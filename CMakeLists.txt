@@ -26,6 +26,7 @@ set(PICO_CNN_LIBRARY_SRCS
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/read_weights.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/write_float.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/write_pgm.c
+        ${PROJECT_SOURCE_DIR}/pico-cnn/utils.c
         pico-cnn/layers/batch_normalization.c pico-cnn/layers/batch_normalization.h)
 add_library(libpico-cnn ${PICO_CNN_LIBRARY_SRCS})
 
