@@ -353,8 +353,6 @@ int test_concatenate_3D_3() {
     concatenate_3D(input, input_height, input_width, dimension, num_inputs,
                    num_input_channels, output);
 
-    print2dFloatArray_3d(output, num_input_channels, input_height, input_width);
-
     return_value = compare2dFloatArray(output, expected_output,num_input_channels,
                                        output_channel_size, error);
 
