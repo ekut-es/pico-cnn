@@ -218,6 +218,9 @@ int test_avg_pooling1d_padding() {
         }
     }
 
+    free(output_0);
+    free(output_1);
+
     return return_value;
 }
 
