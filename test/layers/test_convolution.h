@@ -12,6 +12,10 @@
 int test_convolution1d_naive();
 int test_convolution2d_naive();
 int test_convolution2d_naive_1();
-int test_convolution2d_naive_2(); 
+int test_convolution2d_naive_2();
+int test_convolution2d_naive_3(); // with non-square kernel
+int test_convolution2d_naive_4(); // with non-square kernel
+int test_convolution2d_naive_5(); // with non-square kernel 
 int test_add_channel2d_naive();
+
 #endif // TEST_CONVOLUTION_H

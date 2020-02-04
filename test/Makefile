@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g3
+CFLAGS = -Wall -g3 
 LDFLAGS = -L../pico-cnn
 LD_LIBS = -lpico-cnn -lm
 

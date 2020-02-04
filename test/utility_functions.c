@@ -4,6 +4,7 @@ int floatsAlmostEqual(fp_t f1,fp_t f2,fp_t err){
   return fabs(f1-f2) < err;
 }
 
+// is also used to compare 2d data represented by a 1d array
 int compare1dFloatArray(fp_t* values, fp_t* expected_values, int width, fp_t error) {
     int i;
     int return_value = 0;
@@ -33,7 +34,6 @@ int compare2dFloatArray(fp_t** values, fp_t** expected_values,
     }
 
     return return_value;
-
 }
 
 int compare1dIntArray(int* values,int* expected_values,int width) {
@@ -67,4 +67,16 @@ void print2dFloatArray_3d(fp_t** array, int depth, int height, int width) {
             }
         }
     }
+}
+
+void initialize2dFloatArray(fp_t* values, int num_channels, int height, int width, fp_t** channels) {
+    // int channel,row,pixel;
+    //
+    // for(channel = 0; channel < num_channels;channel++) {
+    //     for(row = 0; row < height;row++) {
+    //         for(pixel= 0; pixel < width; pixel++) {
+    //             channels[channel][width*row+pixel] = values[height*width*channel + width*row + pixel];
+    //         }
+    //     }
+    // }
 }

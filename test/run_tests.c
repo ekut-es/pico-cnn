@@ -62,9 +62,13 @@ int main() {
     printf(separator);
     printf("Testing: convolutions...\n");
     int convolution_failed = 0;
-    int num_convolution_tests = 3;
+    int num_convolution_tests = 7;
     convolution_failed += test_convolution1d_naive();
-    convolution_failed += test_convolution2d_naive();
+    convolution_failed += test_convolution2d_naive_1();
+    convolution_failed += test_convolution2d_naive_2();
+    convolution_failed += test_convolution2d_naive_3();
+    convolution_failed += test_convolution2d_naive_4();
+    convolution_failed += test_convolution2d_naive_5();
     convolution_failed += test_add_channel2d_naive();
     printSucessFailure("convolutions", convolution_failed, num_convolution_tests);
     return_value += convolution_failed;
