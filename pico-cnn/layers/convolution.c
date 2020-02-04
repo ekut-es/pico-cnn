@@ -54,9 +54,9 @@ void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* 
 }
 
 void convolution2d_padding_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
-                                     const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
-                                     const uint16_t stride_height, const uint16_t stride_width,
-                                     const int* padding, const fp_t bias) {
+                                 const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
+                                 const uint16_t stride_height, const uint16_t stride_width,
+                                 const int* padding, const fp_t bias) {
 
    fp_t* new_input_channel;
 
@@ -70,8 +70,8 @@ void convolution2d_padding_naive(const fp_t* input_channel, const uint16_t heigh
 }
 
 void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
-                                     const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
-                                     const uint16_t stride_height, const uint16_t stride_width, const fp_t bias) {
+                         const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
+                         const uint16_t stride_height, const uint16_t stride_width, const fp_t bias) {
 
 
    int32_t channel_row, channel_column;
@@ -113,8 +113,8 @@ void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const
 }
 
 void convolution2d_naive_legacy(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
-                         const fp_t* kernel, const uint16_t kernel_size, const uint16_t stride,
-                         const uint16_t padding, const fp_t bias) {
+                                const fp_t* kernel, const uint16_t kernel_size, const uint16_t stride,
+                                const uint16_t padding, const fp_t bias) {
 
     int32_t channel_row, channel_column;
     int32_t kernel_row, kernel_column;

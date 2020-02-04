@@ -39,7 +39,8 @@
  * @param dilation
  * @param bias
  */
-void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* output_channel, const fp_t* kernel, const int kernel_size, const int stride, const int padding, const fp_t bias);
+void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* output_channel, const fp_t* kernel,
+                         const int kernel_size, const int stride, const int padding, const fp_t bias);
 
 
 /**
@@ -56,7 +57,9 @@ void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* 
  * @param padding (0 means valid, > 0 zeros will be added to the edge)
  * @param bias
  */
-void convolution2d_naive_legacy(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel, const fp_t* kernel, const uint16_t kernel_size, const uint16_t stride, const uint16_t padding, const fp_t bias);
+void convolution2d_naive_legacy(const fp_t* input_channel, const uint16_t height, const uint16_t width,
+                                fp_t* output_channel, const fp_t* kernel, const uint16_t kernel_size,
+                                const uint16_t stride, const uint16_t padding, const fp_t bias);
 
 
 /**
@@ -75,8 +78,8 @@ void convolution2d_naive_legacy(const fp_t* input_channel, const uint16_t height
  * @param bias
  */
 void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
-                                       const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
-                                       const uint16_t stride_height, const uint16_t stride_width, const fp_t bias);
+                         const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
+                         const uint16_t stride_height, const uint16_t stride_width, const fp_t bias);
 
 
 /**
@@ -97,10 +100,10 @@ void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const
  *        padding[1], padding[3]: Padding at start, end of width dimension
  * @param bias
  */
- void convolution2d_padding_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
-                                      const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
-                                      const uint16_t stride_height, const uint16_t stride_width,
-                                      const int* padding, const fp_t bias);
+void convolution2d_padding_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
+                                 const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
+                                 const uint16_t stride_height, const uint16_t stride_width,
+                                 const int* padding, const fp_t bias);
 
 /**
  * @brief adds channel_a and channel_b pixel by pixel and stores result in channel_a

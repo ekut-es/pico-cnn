@@ -10,7 +10,7 @@ int convolution1d_output_size(int input_size, int kernel_size, int stride, int s
 void convolution2d_output_size(int input_height, int input_width,
                                int kernel_height, int kernel_width,
                                int stride_height, int stride_width,
-                               int* padding, int* output) {
+                               const int* padding, int* output) {
     output[0] = convolution1d_output_size(input_height, kernel_height, stride_height, padding[0], padding[2]);
     output[1] = convolution1d_output_size(input_width, kernel_width, stride_width, padding[1], padding[3]);
 }
