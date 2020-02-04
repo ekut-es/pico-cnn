@@ -17,6 +17,7 @@ set(PICO_CNN_LIBRARY_SRCS
         ${PROJECT_SOURCE_DIR}/pico-cnn/layers/activation_function.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/layers/fully_connected.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/layers/concatenate.c
+        ${PROJECT_SOURCE_DIR}/pico-cnn/layers/batch_normalization.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/read_binary_sample_data.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/read_binary_weights.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/read_imagenet_labels.c
@@ -27,7 +28,7 @@ set(PICO_CNN_LIBRARY_SRCS
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/write_float.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/io/write_pgm.c
         ${PROJECT_SOURCE_DIR}/pico-cnn/utils.c
-        pico-cnn/layers/batch_normalization.c pico-cnn/layers/batch_normalization.h)
+)
 add_library(libpico-cnn ${PICO_CNN_LIBRARY_SRCS})
 
 if(BUILD_UTILS)
@@ -66,6 +67,12 @@ add_executable(mobilenet_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/
         ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network_cleanup.c)
 target_link_libraries(mobilenet_dummy libpico-cnn ${LINK_LIBS})
 
+add_executable(inceptionv3_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/dummy_input.c
+        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/network.c
+        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/network_initialization.c
+        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/network_cleanup.c)
+target_link_libraries(inceptionv3_dummy libpico-cnn ${LINK_LIBS})
+
 add_executable(run_tests ${PROJECT_SOURCE_DIR}/test/run_tests.c
 
         ${PROJECT_SOURCE_DIR}/test/layers/test_activation_function.c
@@ -73,8 +80,8 @@ add_executable(run_tests ${PROJECT_SOURCE_DIR}/test/run_tests.c
         ${PROJECT_SOURCE_DIR}/test/layers/test_convolution.c
         ${PROJECT_SOURCE_DIR}/test/layers/test_fully_connected.c
         ${PROJECT_SOURCE_DIR}/test/layers/test_pooling.c
-        ${PROJECT_SOURCE_DIR}/test/utility_functions.c
         ${PROJECT_SOURCE_DIR}/test/layers/test_concatenate.c
+        ${PROJECT_SOURCE_DIR}/test/utility_functions.c
   )
 target_link_libraries(run_tests libpico-cnn ${LINK_LIBS})
 

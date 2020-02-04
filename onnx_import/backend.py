@@ -264,7 +264,7 @@ class BackendRep(backend_base.BackendRep):
                 # This handles the case that no bias values are available in the onnx file.
                 # So we need to add num_biases = 0 into the binary file.
                 if len(node.input_tensors) == 1:
-                    print("No biases in onnx file.")
+                    # print("No biases in onnx file.")
                     weights_packed.append(struct.pack('i', 0))
 
                 # temp = "\n".join((str(float(x).hex()) for x in data.flatten()))
@@ -570,8 +570,8 @@ class BackendRep(backend_base.BackendRep):
         schedule = self._get_schedule(graph, implementations)
         self._allocate_memory(schedule)
 
-        input_names = ["input_"+name.replace('.', '') for name, type, shape in graph.inputs]
-        output_names = ["output_"+name.replace('.', '') for name, type, shape in graph.outputs]
+        input_names = ["input_"+name.replace('.', '_').replace(':', '_').replace('/', '_') for name, type, shape in graph.inputs]
+        output_names = ["output_"+name.replace('.', '_').replace(':', '_').replace('/', '_') for name, type, shape in graph.outputs]
 
         """Currently we only allow single input (no batch processing) to the CNN, but this may be multi-channel input"""
         inputs = graph.inputs

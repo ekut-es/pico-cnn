@@ -44,7 +44,7 @@ class PoolImpl(ConstImpl):
         out = ConstPropState(None, None)
         kernel = attrs["kernel_shape"]
         stride = attrs["strides"]
-        pads = attrs["pads"]
+        pads = attrs.get("pads", (0, 0, 0, 0))
         if input_shape is not None:
             output_shape = list(input_shape)
             for num, dim in enumerate(input_shape[2:]):
@@ -79,7 +79,35 @@ class KeepDimsImpl(ConstImpl):
         if input_shape is not None:
             out = ConstPropState(None, input_shape)
 
-        return {node.outputs[0] : out}
+        return {node.outputs[0]: out}
+
+
+class SqueezeImpl(ConstImpl):
+    def __call__(self, node, input_states):
+        axes = node.attrs['axes']
+
+        out = ConstPropState(None, None)
+        data_value, data_shape = input_states[0]
+
+        if data_value is None and data_shape is not None:
+            data = np.zeros(data_shape)
+        else:
+            data = data_value
+
+        if len(axes) == 1:
+            axes = axes[0]
+        else:
+            axes = tuple(axes)
+
+        if data is not None:
+            res = np.squeeze(data, axis=axes)
+
+        if data_value is not None:
+            out = ConstPropState(res, res.shape)
+        elif data_shape is not None:
+            out = ConstPropState(None, res.shape)
+
+        return {node.outputs[0]: out}
 
 
 class UnsqueezeImpl(ConstImpl):
@@ -105,7 +133,7 @@ class UnsqueezeImpl(ConstImpl):
         elif data_shape is not None:
             out = ConstPropState(None, res.shape)
 
-        return {node.outputs[0] : out}
+        return {node.outputs[0]: out}
 
     
 const_impls = {
@@ -114,6 +142,7 @@ const_impls = {
     "Transpose": TransposeImpl(),
     "BatchNormalization": KeepDimsImpl(),
     "Clip": KeepDimsImpl(),
+    "Squeeze": SqueezeImpl(),
     "Unsqueeze": UnsqueezeImpl()
 }
 
@@ -169,8 +198,19 @@ def constant_propagation(graph):
                 out = ConstPropState(np.array(input_shape), np.array(input_shape).shape)
             output = node.outputs[0]
             if state_dict[output] != out:
-                changed=True
+                changed = True
                 state_dict[output] = out
+
+        elif node.op_type == 'Cast':
+            input = node.inputs[0]
+            input_state = state_dict[input]
+            output_state = ConstPropState(None, None)
+            if input_state is not None:
+                output_state = input_state
+            output = node.outputs[0]
+            if state_dict[output] != output_state:
+                changed = True
+                state_dict[output] = output_state
 
         elif node.op_type == 'MatMul':
             _, input_shape1 = state_dict[node.inputs[0]]
@@ -253,13 +293,21 @@ def constant_propagation(graph):
             input_states = []
             input_shapes = []
             for i in node.inputs:
+                tmp_state = state_dict[i]
                 input_states.append(state_dict[i].value)
                 input_shapes.append(state_dict[i].shape)
         
             out = ConstPropState(None, input_shapes[0] if None not in input_shapes else None)
+
+            # TODO: Is this first case even possible? If not, remove it!
             if None not in input_states:
                 res = np.concatenate(input_states, axis=axis)
                 out = ConstPropState(res, res.shape)
+            else:
+                dummy_inputs = [np.zeros(shape) for shape in input_shapes]
+                res = np.concatenate(dummy_inputs, axis=axis)
+                # TODO: Should the value of 'out' be something different than 'None'?
+                out = ConstPropState(None, res.shape)
                 
             if state_dict[node.outputs[0]] != out:
                 state_dict[node.outputs[0]] = out

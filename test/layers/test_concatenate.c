@@ -73,7 +73,7 @@ int test_concatenate_2D_2() {
                                        -5, -13,  -4};
     fp_t input4[input_channel_size] = {12,  10,  15,
                                       -11,  -6,  -6};
-    const fp_t* input[num_inputs] = {input1, input2, input3, input4};
+    fp_t* input[num_inputs] = {input1, input2, input3, input4};
 
     fp_t expected_output[output_channel_size] =
         { 3,  -9, -16,-9,  10, -6,  5, -17,  5, 12, 10, 15,
@@ -200,7 +200,7 @@ int test_concatenate_3D_1() {
     #undef num_input_channels
     #undef num_inputs
     #undef input_channel_size
-    #undef num_output_channel
+    #undef num_output_channels
 }
 
 int test_concatenate_3D_2() {
@@ -303,6 +303,7 @@ int test_concatenate_3D_3() {
     #define num_inputs 2
     #define input_channel_size 6 // input_width * input_height
     #define output_channel_size 12 // input_channel_size * num_inputs
+    #define num_output_channels 4
 
     fp_t error = 0.0001;
     int dimension = 2;
@@ -369,5 +370,312 @@ int test_concatenate_3D_3() {
     #undef num_input_channels
     #undef num_inputs
     #undef input_channel_size
-    #undef output_channel_sizs
+    #undef output_channel_size
+    #undef num_output_channels
+}
+
+int test_concatenate_naive_dim_0() {
+
+    printf("test_concatenate_naive_dim_0()\n");
+    int return_value = 0;
+    uint16_t i;
+
+    #define input_width 3
+    #define input_height 3
+    #define num_input_channels_0 2
+    #define num_input_channels_1 3
+    #define num_inputs 2
+    #define input_channel_size 9 // (3*3)
+    #define num_output_channels 5 // (2+3)
+
+    fp_t error = 0.0001;
+    int dimension = 0;
+
+    // input
+
+    fp_t input_0_0[input_channel_size] =   {1, 2, 3,
+                                            4, 5, 6,
+                                            7, 8, 9};
+    fp_t input_0_1[input_channel_size] =   {10, 11, 12,
+                                            13, 14, 15,
+                                            16, 17, 18};
+
+    fp_t input_1_0[input_channel_size] =   {19, 20, 21,
+                                            22, 23, 24,
+                                            25, 26, 27};
+    fp_t input_1_1[input_channel_size] =   {28, 29, 30,
+                                            31, 32, 33,
+                                            34, 35, 36};
+    fp_t input_1_2[input_channel_size] =   {37, 38, 39,
+                                            40, 41, 42,
+                                            43, 44, 45};
+
+
+    fp_t* input_channel_0[num_input_channels_0] = {input_0_0, input_0_1};
+    fp_t* input_channel_1[num_input_channels_1] = {input_1_0, input_1_1, input_1_2};
+
+    fp_t** input[num_inputs] = {input_channel_0, input_channel_1};
+
+    // expected output
+    fp_t expected_output1[input_channel_size] =
+            {1, 2, 3,
+             4, 5, 6,
+             7, 8, 9};
+    fp_t expected_output2[input_channel_size] =
+            {10, 11, 12,
+             13, 14, 15,
+             16, 17, 18};
+    fp_t expected_output3[input_channel_size] =
+            {19, 20, 21,
+             22, 23, 24,
+             25, 26, 27};
+    fp_t expected_output4[input_channel_size] =
+            {28, 29, 30,
+             31, 32, 33,
+             34, 35, 36};
+    fp_t expected_output5[input_channel_size] =
+            {37, 38, 39,
+             40, 41, 42,
+             43, 44, 45};
+
+    fp_t* expected_output[num_output_channels] =
+            {expected_output1,
+             expected_output2,
+             expected_output3,
+             expected_output4,
+             expected_output5};
+
+    // allocate memory for output
+    fp_t** output = (fp_t**) malloc(num_output_channels*sizeof(fp_t*));
+
+    for(i = 0; i < num_output_channels; i++) {
+        output[i] = (fp_t*) malloc(input_channel_size*sizeof(fp_t));
+    }
+
+    uint16_t input_shape_0[3] = {2, 3, 3};
+    uint16_t input_shape_1[3] = {3, 3, 3};
+    const uint16_t* input_shape[num_inputs] = {input_shape_0, input_shape_1};
+
+    // run concatenate
+    concatenate_naive(input, input_shape, dimension, num_inputs, output);
+
+//    print2dFloatArray_3d(output, num_output_channels, input_height, input_width);
+
+    return_value = compare2dFloatArray(output, expected_output, num_output_channels,
+                                       input_channel_size, error);
+
+    // free memory for output
+    for(i = 0; i < num_output_channels; i++) {
+        free(output[i]);
+    }
+    free(output);
+
+    return return_value;
+
+    #undef input_width
+    #undef input_height
+    #undef num_input_channels_0
+    #undef num_input_channels_1
+    #undef num_inputs
+    #undef input_channel_size
+    #undef num_output_channels
+}
+
+int test_concatenate_naive_dim_1() {
+
+    printf("test_concatenate_naive_dim_1()\n");
+    int return_value = 0;
+    uint16_t i;
+
+    #define input_width_0 3
+    #define input_height_0 3
+    #define input_width_1 3
+    #define input_height_1 4
+    #define num_input_channels_0 2
+    #define num_input_channels_1 2
+    #define num_inputs 2
+    #define input_channel_size_0 9 // (3*3)
+    #define input_channel_size_1 12 // (4*3)
+    #define output_channel_size 21
+    #define num_output_channels 2
+
+    fp_t error = 0.0001;
+    int dimension = 1;
+
+    // input
+
+    fp_t input_0_0[input_channel_size_0] =   {1, 2, 3,
+                                              4, 5, 6,
+                                              7, 8, 9};
+    fp_t input_0_1[input_channel_size_0] =   {10, 11, 12,
+                                              13, 14, 15,
+                                              16, 17, 18};
+
+    fp_t input_1_0[input_channel_size_1] =   {19, 20, 21,
+                                              22, 23, 24,
+                                              25, 26, 27,
+                                              0, 0, 0};
+    fp_t input_1_1[input_channel_size_1] =   {28, 29, 30,
+                                              31, 32, 33,
+                                              34, 35, 36,
+                                              -1, -1, -1};
+
+
+    fp_t* input_channel_0[num_input_channels_0] = {input_0_0, input_0_1};
+    fp_t* input_channel_1[num_input_channels_1] = {input_1_0, input_1_1};
+
+    fp_t** input[num_inputs] = {input_channel_0, input_channel_1};
+
+    // expected output
+    fp_t expected_output1[output_channel_size] =
+            {1, 2, 3,
+             4, 5, 6,
+             7, 8, 9,
+             19, 20, 21,
+             22, 23, 24,
+             25, 26, 27,
+             0, 0, 0};
+    fp_t expected_output2[output_channel_size] =
+            {10, 11, 12,
+             13, 14, 15,
+             16, 17, 18,
+             28, 29, 30,
+             31, 32, 33,
+             34, 35, 36,
+             -1, -1, -1};
+
+    fp_t* expected_output[num_output_channels] =
+            {expected_output1,
+             expected_output2};
+
+    // allocate memory for output
+    fp_t** output = (fp_t**) malloc(num_output_channels*sizeof(fp_t*));
+
+    for(i = 0; i < num_output_channels; i++) {
+        output[i] = (fp_t*) malloc(output_channel_size*sizeof(fp_t));
+    }
+
+    uint16_t input_shape_0[3] = {2, 3, 3};
+    uint16_t input_shape_1[3] = {2, 4, 3};
+    const uint16_t* input_shape[num_inputs] = {input_shape_0, input_shape_1};
+
+    // run concatenate
+    concatenate_naive(input, input_shape, dimension, num_inputs, output);
+
+//    print2dFloatArray_3d(output, num_output_channels, 7, 3);
+
+    return_value = compare2dFloatArray(output, expected_output, num_output_channels,
+                                       output_channel_size, error);
+
+    // free memory for output
+    for(i = 0; i < num_output_channels; i++) {
+        free(output[i]);
+    }
+    free(output);
+
+    return return_value;
+
+    #undef input_width_0
+    #undef input_height_0
+    #undef input_width_1
+    #undef input_height_1
+    #undef num_input_channels_0
+    #undef num_input_channels_1
+    #undef num_inputs
+    #undef input_channel_size_0
+    #undef input_channel_size_1
+    #undef num_output_channels
+}
+
+int test_concatenate_naive_dim_2(){
+
+    printf("test_concatenate_naive_dim_2()\n");
+    int return_value = 0;
+    uint16_t i;
+
+    #define input_width_0 3
+    #define input_height_0 4
+    #define input_width_1 3
+    #define input_height_1 3
+    #define num_input_channels_0 2
+    #define num_input_channels_1 2
+    #define num_inputs 2
+    #define input_channel_size_0 12 // (3*4)
+    #define input_channel_size_1 9 // (3*3)
+    #define output_channel_size 21 // 3*(3+4)
+    #define num_output_channels 2
+
+    fp_t error = 0.0001;
+    int dimension = 2;
+
+    // input
+
+    fp_t input_0_0[input_channel_size_0] =   {1, 2, 3, 0,
+                                              4, 5, 6, 0,
+                                              7, 8, 9, 0};
+    fp_t input_0_1[input_channel_size_0] =   {10, 11, 12, -1,
+                                              13, 14, 15, -1,
+                                              16, 17, 18, -1};
+
+    fp_t input_1_0[input_channel_size_1] =   {19, 20, 21,
+                                              22, 23, 24,
+                                              25, 26, 27};
+    fp_t input_1_1[input_channel_size_1] =   {28, 29, 30,
+                                              31, 32, 33,
+                                              34, 35, 36};
+
+
+    fp_t* input_channel_0[num_input_channels_0] = {input_0_0, input_0_1};
+    fp_t* input_channel_1[num_input_channels_1] = {input_1_0, input_1_1};
+
+    fp_t** input[num_inputs] = {input_channel_0, input_channel_1};
+
+    // expected output
+    fp_t expected_output1[output_channel_size] = {1, 2, 3, 0, 19, 20, 21,
+                                                  4, 5, 6, 0, 22, 23, 24,
+                                                  7, 8, 9, 0, 25, 26, 27};
+    fp_t expected_output2[output_channel_size] = {10, 11, 12, -1, 28, 29, 30,
+                                                  13, 14, 15, -1, 31, 32, 33,
+                                                  16, 17, 18, -1, 34, 35, 36};
+
+    fp_t* expected_output[num_output_channels] = {expected_output1,
+                                                  expected_output2};
+
+    // allocate memory for output
+    fp_t** output = (fp_t**) malloc(num_output_channels*sizeof(fp_t*));
+
+    for(i = 0; i < num_output_channels; i++) {
+        output[i] = (fp_t*) malloc(output_channel_size*sizeof(fp_t));
+    }
+
+    uint16_t input_shape_0[3] = {2, 3, 4};
+    uint16_t input_shape_1[3] = {2, 3, 3};
+    const uint16_t* input_shape[num_inputs] = {input_shape_0, input_shape_1};
+
+    // run concatenate
+    concatenate_naive(input, input_shape, dimension, num_inputs, output);
+
+//    print2dFloatArray_3d(output, num_output_channels, 3, 7);
+
+    return_value = compare2dFloatArray(output, expected_output, num_output_channels,
+                                       output_channel_size, error);
+
+    // free memory for output
+    for(i = 0; i < num_output_channels; i++) {
+        free(output[i]);
+    }
+    free(output);
+
+    return return_value;
+
+    #undef input_width_0
+    #undef input_height_0
+    #undef input_width_1
+    #undef input_height_1
+    #undef num_input_channels_0
+    #undef num_input_channels_1
+    #undef num_inputs
+    #undef input_channel_size_0
+    #undef input_channel_size_1
+    #undef num_output_channels
 }

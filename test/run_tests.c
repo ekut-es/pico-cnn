@@ -85,13 +85,16 @@ int main() {
     printf(separator);
     printf("Testing: concatenations...\n");
     int concatenation_failed = 0;
-    int num_concatenation_tests = 5;
+    int num_concatenation_tests = 8;
     concatenation_failed += test_concatenate_2D_1();
     concatenation_failed += test_concatenate_2D_2();
     concatenation_failed += test_concatenate_3D_1();
     concatenation_failed += test_concatenate_3D_2();
     concatenation_failed += test_concatenate_3D_3();
-
+    concatenation_failed += test_concatenate_naive_dim_0();
+    concatenation_failed += test_concatenate_naive_dim_1();
+    concatenation_failed += test_concatenate_naive_dim_2();
+    
     printSucessFailure("concatenations", concatenation_failed, num_concatenation_tests);
     return_value += concatenation_failed;
 

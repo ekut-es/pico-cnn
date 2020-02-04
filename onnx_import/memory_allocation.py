@@ -125,7 +125,14 @@ class OutputAllocation(BaseCode):
                 return None
         elif buffer.buffer_depth == 1:
             operation.attributes['one_dimensional'] = 1
-            num_outputs = buffer_shape[1]
+            if len(buffer_shape) == 2:
+                num_outputs = buffer_shape[1]
+            elif len(buffer_shape) == 1:
+                num_outputs = buffer_shape[0]
+            else:
+                print("ERROR: Unsupported buffer_shape {} for buffer_depth == 1".format(buffer_shape))
+                exit(1)
+
             output_width = output_height = 0
         elif buffer.buffer_depth == 3:
             num_outputs = buffer_shape[0] * buffer_shape[1]
