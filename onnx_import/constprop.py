@@ -79,7 +79,35 @@ class KeepDimsImpl(ConstImpl):
         if input_shape is not None:
             out = ConstPropState(None, input_shape)
 
-        return {node.outputs[0] : out}
+        return {node.outputs[0]: out}
+
+
+class SqueezeImpl(ConstImpl):
+    def __call__(self, node, input_states):
+        axes = node.attrs['axes']
+
+        out = ConstPropState(None, None)
+        data_value, data_shape = input_states[0]
+
+        if data_value is None and data_shape is not None:
+            data = np.zeros(data_shape)
+        else:
+            data = data_value
+
+        if len(axes) == 1:
+            axes = axes[0]
+        else:
+            axes = tuple(axes)
+
+        if data is not None:
+            res = np.squeeze(data, axis=axes)
+
+        if data_value is not None:
+            out = ConstPropState(res, res.shape)
+        elif data_shape is not None:
+            out = ConstPropState(None, res.shape)
+
+        return {node.outputs[0]: out}
 
 
 class UnsqueezeImpl(ConstImpl):
@@ -105,7 +133,7 @@ class UnsqueezeImpl(ConstImpl):
         elif data_shape is not None:
             out = ConstPropState(None, res.shape)
 
-        return {node.outputs[0] : out}
+        return {node.outputs[0]: out}
 
     
 const_impls = {
@@ -114,6 +142,7 @@ const_impls = {
     "Transpose": TransposeImpl(),
     "BatchNormalization": KeepDimsImpl(),
     "Clip": KeepDimsImpl(),
+    "Squeeze": SqueezeImpl(),
     "Unsqueeze": UnsqueezeImpl()
 }
 

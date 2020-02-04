@@ -1,6 +1,8 @@
     {{input_declaration}}
 
-    concatenate_3D(inputs, {{height}}, {{width}}, {{dimension}},
-                   {{num_inputs}}, {{num_input_channels}}, {{output_buffer.name}});
+    {{input_shape_code}}
+
+    concatenate_naive({{inputs}}, {{input_shape}}, {{dimension}},
+                      {{num_inputs}}, {{output_buffer.name}});
 
     {{cleanup_input}}

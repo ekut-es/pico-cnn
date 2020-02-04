@@ -83,9 +83,10 @@ class Conv2D(BaseLayer):
         pads = attrs.get("pads", (0, 0, 0, 0))
         # pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
 
-        if pads[0] != pads[1]:
-            print("PicoCNN only supports same padding in all directions")
-            exit(1)
+        # TODO: Uncomment again as long as pico-cnn does not support variable padding
+        # if pads[0] != pads[1]:
+        #     print("PicoCNN only supports same padding in all directions")
+        #     exit(1)
 
         if (kernel_size % 2) == 0:
             print("PicoCNN only supports odd kernel sizes in 2D convolution")
@@ -764,20 +765,29 @@ class Concat(BaseLayer):
                 if i != attrs['axis']:
                     assert (s == output_shape[i])
 
-        input_declaration = "fp_t*** inputs = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(str(num_input_shapes))
-        for idx in range(num_input_shapes):
-            input_declaration += "    inputs[{}] = {};\n".format(str(idx), input_buffers[idx].name)
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
 
-        cleanup_input = "free(inputs);\n"
+        input_declaration = "fp_t*** inputs_{} = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(identifier, str(num_input_shapes))
+        for idx in range(num_input_shapes):
+            input_declaration += "    inputs_{}[{}] = {};\n".format(identifier, str(idx), input_buffers[idx].name)
+
+        cleanup_input = "free(inputs_{});\n".format(identifier)
+
+        input_shape_code = ""
+        input_shape_code += "const uint16_t* input_shape_{}[{}];\n".format(identifier, len(input_shapes))
+        for num, input_shape in enumerate(input_shapes):
+            input_shape_code += "    uint16_t input_shape_{}_{}[3] = {{ {}, {}, {} }};\n".format(identifier, str(num), input_shape[1], input_shape[2], input_shape[3])
+            input_shape_code += "    input_shape_{}[{}] = input_shape_{}_{};\n".format(identifier, str(num), identifier, str(num))
+
+        dimension = attrs['axis'] - 1
 
         operation = cls(node, graph)
         operation.attributes['input_declaration'] = input_declaration
-        operation.attributes['input_buffers'] = input_buffers
+        operation.attributes['input_shape_code'] = input_shape_code
+        operation.attributes['inputs'] = "inputs_{}".format(identifier)
+        operation.attributes['input_shape'] = "input_shape_{}".format(identifier)
+        operation.attributes['dimension'] = dimension
         operation.attributes['num_inputs'] = len(input_buffers)
-        operation.attributes['num_input_channels'] = output_shape[1]
-        operation.attributes['height'] = output_shape[2]
-        operation.attributes['width'] = output_shape[3]
-        operation.attributes['dimension'] = attrs['axis']
         operation.attributes['output_buffer'] = output_buffer
         operation.attributes['cleanup_input'] = cleanup_input
 
@@ -832,12 +842,18 @@ class Reshape(BaseLayer):
             print("ERROR: Unsupported input shape for reshape layer: {}".format(input_shape))
             exit(1)
 
+        # TODO: Find better alternative to this. See issue #60
+        if input_shape == output_shape:
+            no_change = True
+        else:
+            no_change = False
+
         operation = cls(node, graph)
         operation.attributes['input_buffer'] = input_buffer
         operation.attributes['num_input_channels'] = num_input_channels
         operation.attributes['input_height'] = input_height
         operation.attributes['input_width'] = input_width
-
+        operation.attributes['no_change'] = no_change
         operation.attributes['output_buffer'] = output_buffer
 
         return operation
@@ -1026,3 +1042,52 @@ class LocalResponseNormalization(BaseLayer):
 
 
 OperationRegistry.register(LocalResponseNormalization)
+
+
+class Squeeze(BaseLayer):
+    """
+    Local response normalization function.
+    """
+    name = "SqueezeGeneric"
+    operator = "Squeeze"
+    template_file = "squeeze.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
+        attrs = node.attrs
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shape = input_buffer.shape
+        output_shape = output_buffer.shape
+
+        squeeze_code = ""
+
+        if 2 in attrs['axes'] and 3 in attrs['axes'] and len(output_shape) == 2 and input_shape[1] == output_shape[1]:
+            for idx, dim in enumerate(output_shape):
+                squeeze_code += "    " * (idx + 1)
+                squeeze_code += "for(int dim{} = 0; dim{} < {}; dim{}++)".format(idx, idx, dim, idx)
+                squeeze_code += "\n"
+
+            squeeze_code += "    " * len(output_shape)
+            squeeze_code += "    " + "{}[{}] = {}[{}][{}];\n".format(output_buffer.name, "dim1",
+                                                                     input_buffer.name, "dim1", "0")
+        else:
+            # TODO: Implement general version of squeeze
+            print("ERROR: Squeeze operation only for one special case implemented.")
+            exit(1)
+
+        operation = cls(node, graph)
+        operation.attributes['squeeze_code'] = squeeze_code
+
+        return operation
+
+
+OperationRegistry.register(Squeeze)

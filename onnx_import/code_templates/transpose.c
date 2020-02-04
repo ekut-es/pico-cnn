@@ -1,3 +1,3 @@
 {
-    {{ transpose_code }}
+{{ transpose_code }}
 }
