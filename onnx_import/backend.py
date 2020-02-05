@@ -92,14 +92,21 @@ class BackendRep(backend_base.BackendRep):
 
                 if is_nop:
                     removed_input = node.inputs[0]
-                    output = node.outputs[0]
+                    removed_output = node.outputs[0]
 
                     print("Removing nop", node.name)
                     graph.nodes.remove(node)
 
+                    for num, output in enumerate(graph.outputs):
+                        if output.name == removed_output:
+                            edge_type = output.type
+                            shape = graph.shape_dict[removed_input]
+                            new_output = EdgeInfo(removed_input, edge_type, shape)
+                            graph.outputs[num] = new_output
+
                     for node in graph.nodes:
                         for num, input in enumerate(node.inputs):
-                            if input == output:
+                            if input == removed_output:
                                 print("node", node.name, "replacing input",
                                       input, "with", removed_input)
                                 node.inputs[num] = removed_input
@@ -176,8 +183,6 @@ class BackendRep(backend_base.BackendRep):
                 continue
 
             for num, input in enumerate(node.input_tensors):
-                # if node.op_type == "Reshape":
-                #     continue
 
                 data = node.input_tensors[input]
 
@@ -289,7 +294,6 @@ class BackendRep(backend_base.BackendRep):
         initialization_header += "#include <stdlib.h>\n"
         initialization_header += "#include \"pico-cnn/parameters.h\"\n\n"
         initialization_header += "void initialize_network();\n\n"
-        # initialization_header += "void initialize();\n\n"
         initialization_header += "fp_t*** kernels;\n"
         initialization_header += "fp_t** biases;\n"
 
@@ -320,7 +324,7 @@ class BackendRep(backend_base.BackendRep):
         pos_bias = -1
 
         """Iterate over all nodes in the graph and generate the corresponding allocation code."""
-        for node in graph.nodes:
+        for node_id, node in enumerate(graph.nodes):
 
             if len(node.input_tensors) > 0 and node.op_type != "Reshape":
                 pos += 1
@@ -607,17 +611,7 @@ class BackendRep(backend_base.BackendRep):
 
         self.network_def = network_def + ";"
 
-        # TODO: Separate definition and implementation in the future.
-        #network_header = "#ifndef NETWORK_H\n"
-        #network_header += "#define NETWORK_H\n"
-        #network_header += "#include \"pico-cnn/parameters.h\"\n\n"
-        # network_header += network_def + ";\n"
-        # network_header += "#endif //NETWORK_H\n"
-
         network_code: Text = "#include \"network.h\"\n\n"
-        #network_code = "#include \"network_initialization.h\"\n"
-        #network_code += "#include \"network_cleanup.h\"\n\n"
-        #network_code += "#include \"pico-cnn/pico-cnn.h\"\n\n"
         network_code += network_def+"{\n"
 
         implementation_code = ""
