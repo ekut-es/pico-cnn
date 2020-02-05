@@ -1,7 +1,7 @@
 #include "utils.h"
 
 void extend_2d_input_with_padding(const fp_t* input_channel, const uint16_t height, const uint16_t width,
-                               fp_t** extended_input, const int* padding, fp_t initializer) {
+                                  fp_t** extended_input, const int* padding, fp_t initializer) {
 
     uint16_t height_padded = height + padding[0] + padding[2];
     uint16_t width_padded = width + padding[1] + padding[3];
