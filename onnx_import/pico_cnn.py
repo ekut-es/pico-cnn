@@ -32,13 +32,13 @@ class BaseLayer(object):
         pass
 
 
-class Conv2D(BaseLayer):
+class Conv2DLegacy(BaseLayer):
     """
     2-dimensional convolution layer.
     """
     name = "PicoCNNConv2D"
     operator = "Conv"
-    template_file = "pico_cnn_conv2d.c"
+    template_file = "pico_cnn_conv2d_legacy.c"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -102,6 +102,103 @@ class Conv2D(BaseLayer):
         operation.attributes['kernel'] = input_buffers[1]
         operation.attributes['kernel_size'] = kernel_size
         operation.attributes['stride'] = stride
+        operation.attributes['padding'] = padding
+
+        operation.attributes['output_buffer'] = output_buffers[0]
+        operation.attributes['output_feature_size'] = output_size
+        operation.attributes['num_output_channels'] = num_output_channels
+
+        operation.attributes['num_groups'] = num_groups
+
+        if len(input_buffers) > 2:
+            operation.attributes['bias_buffer'] = input_buffers[2]
+
+        return operation
+
+
+# OperationRegistry.register(Conv2DLegacy)
+
+
+class Conv2D(BaseLayer):
+    """
+    2-dimensional convolution layer.
+    """
+    name = "PicoCNNConv2D"
+    operator = "Conv"
+    template_file = "pico_cnn_conv2d.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
+        operation = cls(node, graph)
+
+        attrs = node.attrs
+        input_buffers = [memory_manager.get_buffer(graph, id) for id in node.inputs]
+        output_buffers = [memory_manager.get_buffer(graph, id) for id in node.outputs]
+
+        input_shape = input_buffers[0].shape
+        num_input_channels = input_shape[1]
+
+        if not (len(input_shape) == 4 and input_shape[3] != 1):
+            print("{} is not a 2DConvolution".format(node.name))
+            return None
+
+        if input_shape[2] != input_shape[3]:
+            print("WARNING: Not a squared input image ({}x{})!!!".format(input_shape[2], input_shape[3]))
+
+        output_shape = output_buffers[0].shape
+        output_size = output_shape[2]
+        num_output_channels = output_shape[1]
+
+        kernel_shape = attrs["kernel_shape"]
+        stride = attrs["strides"]
+        #dilation = attrs["dilations"][0]
+
+        num_groups = attrs.get("group", 1)
+
+        # TODO: handle auto padding
+        if "auto_pad" in attrs:
+            print("{} auto padding is currently not supported".format(node.name))
+            exit(1)
+
+        padding = attrs.get("pads", [0, 0, 0, 0])
+        # pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
+
+        # TODO: Uncomment again as long as pico-cnn does not support variable padding
+        # if pads[0] != pads[1]:
+        #     print("PicoCNN only supports same padding in all directions")
+        #     exit(1)
+
+        if (kernel_shape[0] % 2) == 0 or (kernel_shape[1] % 2) == 0:
+            print("PicoCNN only supports odd kernel sizes in 2D convolution")
+            exit(1)
+
+        padding_needed = False
+        for num in padding:
+            if num != 0:
+                padding_needed = True
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['identifier'] = identifier
+
+        operation.attributes['input_buffer'] = input_buffers[0]
+        operation.attributes['input_height'] = input_shape[2]
+        operation.attributes['input_width'] = input_shape[3]
+        operation.attributes['num_input_channels'] = num_input_channels
+
+        operation.attributes['kernel'] = input_buffers[1]
+        operation.attributes['kernel_height'] = kernel_shape[0]
+        operation.attributes['kernel_width'] = kernel_shape[1]
+        operation.attributes['stride_height'] = stride[0]
+        operation.attributes['stride_width'] = stride[1]
+        operation.attributes['padding_needed'] = padding_needed
         operation.attributes['padding'] = padding
 
         operation.attributes['output_buffer'] = output_buffers[0]
@@ -291,6 +388,10 @@ class MaxPool2D(BaseLayer):
 
         operation = cls(node, graph)
 
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['identifier'] = identifier
+
         operation.attributes['num_input_channels'] = num_input_channels
         operation.attributes['input_buffer'] = input_buffer
         operation.attributes['input_height'] = input_shape[2]
@@ -349,6 +450,10 @@ class MaxPool1D(BaseLayer):
         input_buffer_size = reduce_mult(input_shape)
 
         operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['identifier'] = identifier
 
         operation.attributes['num_input_channels'] = num_input_channels
         operation.attributes['input_buffer'] = input_buffer
@@ -562,6 +667,10 @@ class AveragePool2D(BaseLayer):
 
         operation = cls(node, graph)
 
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['identifier'] = identifier
+
         operation.attributes["num_input_channels"] = num_input_channels
         operation.attributes["input_buffer"] = input_buffer
         operation.attributes["input_height"] = input_shape[2]
@@ -614,6 +723,10 @@ class AveragePool1D(BaseLayer):
         count_include_pad = attrs.get("count_include_pad", 0)
 
         operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['identifier'] = identifier
 
         operation.attributes['num_input_channels'] = num_input_channels
         operation.attributes['input_buffer'] = input_buffer

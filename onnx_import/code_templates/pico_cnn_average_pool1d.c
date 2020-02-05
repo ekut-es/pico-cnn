@@ -1,5 +1,5 @@
 {% if padding_needed %}
-const int {{input_buffer.name}}_padding[2] = { {{padding.0}}, {{padding.1}} };
+const int {{identifier}}_padding[2] = { {{padding.0}}, {{padding.1}} };
 for (int i = 0; i < {{num_input_channels}}; i++) {
     average_pooling1d_naive_padded(&({{input_buffer.name}}[i]),
                                    {{input_width}}, {{output_buffer.name}}[i],
@@ -9,7 +9,7 @@ for (int i = 0; i < {{num_input_channels}}; i++) {
                                    {% else %}
                                    0,
                                    {% endif %}
-                                   {{input_buffer.name}}_padding,
+                                   {{identifier}}_padding,
                                    {{count_include_pad}});
 }
 {% else %}
