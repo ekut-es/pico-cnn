@@ -66,6 +66,15 @@ popd
 echo "MobileNet-V2 done."
 echo ""
 
+echo "Inception-V3..."
+python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/inception_v3/inceptionv3.onnx
+pushd generated_code/inceptionv3
+make reference_input
+./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/inception_v3/inceptionv3_input.data /nfs/es-genial/pico-cnn/data/onnx/inception_v3/inceptionv3_output.data
+popd
+echo "Inception-V3 done."
+echo ""
+
 echo "ekut-raw-cnn3-relu..."
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu/ekut-raw-cnn3-relu.onnx
 pushd generated_code/ekut-raw-cnn3-relu
