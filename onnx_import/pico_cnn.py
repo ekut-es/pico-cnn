@@ -665,6 +665,11 @@ class AveragePool2D(BaseLayer):
 
         count_include_pad = attrs.get("count_include_pad", 0)
 
+        # As we have to pass the count_include_pad attribute even if we don't have padding we need to
+        # set it manually so that the correct amount of pixels is used for the average computation
+        if not padding_needed:
+            count_include_pad = 1
+
         operation = cls(node, graph)
 
         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')

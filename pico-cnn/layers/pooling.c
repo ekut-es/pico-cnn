@@ -180,6 +180,11 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
 
                     divisor = div_row * div_col;
 
+                    if(divisor == 0) {
+                        printf("ERROR: Division by zero! Aborting execution.\n");
+                        exit(1);
+                    }
+
 //                    printf("Edge case: output_row: %d, output_column: %d\n", output_channel_row, output_channel_column);
 //                    printf("div_row: %d, div_col: %d\n", div_row, div_col);
 //                    printf("Divisor: %d\n", divisor);
