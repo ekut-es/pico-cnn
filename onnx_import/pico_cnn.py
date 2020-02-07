@@ -81,12 +81,6 @@ class Conv2DLegacy(BaseLayer):
             exit(1)
 
         pads = attrs.get("pads", (0, 0, 0, 0))
-        # pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
-
-        # TODO: Uncomment again as long as pico-cnn does not support variable padding
-        # if pads[0] != pads[1]:
-        #     print("PicoCNN only supports same padding in all directions")
-        #     exit(1)
 
         if (kernel_size % 2) == 0:
             print("PicoCNN only supports odd kernel sizes in 2D convolution")
@@ -168,12 +162,6 @@ class Conv2D(BaseLayer):
             exit(1)
 
         padding = attrs.get("pads", [0, 0, 0, 0])
-        # pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
-
-        # TODO: Uncomment again as long as pico-cnn does not support variable padding
-        # if pads[0] != pads[1]:
-        #     print("PicoCNN only supports same padding in all directions")
-        #     exit(1)
 
         if (kernel_shape[0] % 2) == 0 or (kernel_shape[1] % 2) == 0:
             print("PicoCNN only supports odd kernel sizes in 2D convolution")

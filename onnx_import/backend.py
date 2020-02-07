@@ -151,8 +151,6 @@ class BackendRep(backend_base.BackendRep):
         :param graph: ComputeGraph of the parsed onnx model.
         :return:
         """
-        # weights_file = "FE\n"
-        # weights_file += "tiny-dnn export\n"
 
         packed_file = list(bytes())
 
@@ -166,10 +164,8 @@ class BackendRep(backend_base.BackendRep):
             if len(node.input_tensors) > 0 and node.op_type != "Reshape":
                 num_layers += 1
 
-        # weights_file += str(num_layers) + "\n"
         packed_file.append(struct.pack('i', num_layers))
 
-        # weight_data = ""
         weights_packed = list(bytes())
 
         for node in graph.nodes:
@@ -190,18 +186,10 @@ class BackendRep(backend_base.BackendRep):
                     data = data.transpose()
 
                 if len(data.shape) == 4:
-                    # weight_data += node.name + "\n"
-
-                    # tupac = bytes(node.name + "\n", "ascii")
-                    # weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
                     height = data.shape[2]  # height
                     width = data.shape[3]  # width
                     num_data = data.shape[0] * data.shape[1]  # num_kernels
-
-                    # weight_data += str(height) + "\n"
-                    # weight_data += str(width) + "\n"
-                    # weight_data += str(num_data) + "\n"
 
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
@@ -213,16 +201,10 @@ class BackendRep(backend_base.BackendRep):
                                 weights_packed.append(struct.pack('f'*len(row), *row))
 
                 elif len(data.shape) == 3:
-                    # tupac = bytes(node.name + "\n", "ascii")
-                    # weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
                     height = 1
                     width = data.shape[2]
                     num_data = data.shape[0] * data.shape[1]
-
-                    # weight_data += str(height) + "\n"
-                    # weight_data += str(width) + "\n"
-                    # weight_data += str(num_data) + "\n"
 
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
@@ -233,18 +215,10 @@ class BackendRep(backend_base.BackendRep):
                             weights_packed.append(struct.pack('f'*len(kernel), *kernel))
 
                 elif len(data.shape) == 2:
-                    # weight_data += node.name + "\n"
-
-                    # tupac = bytes(node.name + "\n", "ascii")
-                    # weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
                     height = data.shape[0]  # height
                     width = data.shape[1]  # width
                     num_data = 1  # num_kernels
-
-                    # weight_data += str(height) + "\n"
-                    # weight_data += str(width) + "\n"
-                    # weight_data += str(num_data) + "\n"
 
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
@@ -256,15 +230,12 @@ class BackendRep(backend_base.BackendRep):
                 elif len(data.shape) == 1:
                     num_data = data.shape[0]  # num_biases
 
-                    # weight_data += str(num_data) + "\n"
-
                     weights_packed.append(struct.pack('i', num_data))
                     weights_packed.append(struct.pack('f'*len(data), *data))
 
                 else:
                     print("ERROR: Unknown input tensor shape!")
                     exit(1)
-                    # weight_data = ""
 
                 # This handles the case that no bias values are available in the onnx file.
                 # So we need to add num_biases = 0 into the binary file.
@@ -272,13 +243,8 @@ class BackendRep(backend_base.BackendRep):
                     # print("No biases in onnx file.")
                     weights_packed.append(struct.pack('i', 0))
 
-                # temp = "\n".join((str(float(x).hex()) for x in data.flatten()))
-                # weight_data += temp + "\n"
-
-        # weights_file += weight_data
         packed_file += weights_packed
 
-        # self.weights_file = weights_file
         self.packed_file = packed_file
 
     def _generate_network_initialization(self, graph, memory_manager):
@@ -348,13 +314,6 @@ class BackendRep(backend_base.BackendRep):
 
                 buffer = memory_manager.get_buffer(graph, input)
 
-                # if len(data.shape) == 4:
-                #     num_kernels = data.shape[0] * data.shape[1]
-                #     kernel_size = data.shape[2] * data.shape[3]
-                # elif len(data.shape) == 1:
-                #     num_kernels = data.shape[0]
-                #     kernel_size = 1
-
                 initialization_header += "// " + str(buffer.shape) + "\n"
                 data_type = "fp_t "
                 for i in range(buffer.buffer_depth):
@@ -398,7 +357,6 @@ class BackendRep(backend_base.BackendRep):
 
         initialization_code += "}\n"
 
-        #initialization_header += initialization_code  # TODO Everything to the .h file???
         initialization_header += "#endif //NETWORK_INITIALIZATION_H\n"
 
         self.initialization_header = initialization_header
@@ -419,10 +377,7 @@ class BackendRep(backend_base.BackendRep):
         cleanup_header += "void cleanup_network(); \n\n"
         cleanup_header += "#endif //NETWORK_CLEANUP_H\n"
 
-        # cleanup_header += "void cleanup();\n\n"
-
         cleanup_code = "#include \"network_cleanup.h\"\n\n"
-        #cleanup_code += "#include \"network_initialization.h\"\n\n"
         cleanup_code += "void cleanup_network() {\n"
 
         for num, buffer_id in enumerate(memory_manager.buffers):
@@ -438,9 +393,6 @@ class BackendRep(backend_base.BackendRep):
         cleanup_code += "\nfree(kernels);\nfree(biases);\n"
 
         cleanup_code += "}\n"
-
-        #cleanup_header += cleanup_code
-
 
         self.cleanup_header = cleanup_header
         self.cleanup_code = cleanup_code
