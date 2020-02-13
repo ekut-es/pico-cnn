@@ -81,14 +81,14 @@ void softmax_naive(const fp_t* input_channel, const uint16_t height, const uint1
     uint32_t i;
     #endif
 
-    double_t denominator = 0.0;
+    long double denominator = 0.0;
 
     for(i = 0; i < height*width; i++) {
-        denominator += exp((double_t)input_channel[i]);
+        denominator += expl((long double)input_channel[i]);
     }
 
     for(i = 0; i < height*width; i++) {
-        output_channel[i] = (fp_t)(exp((double_t)input_channel[i]) / denominator);
+        output_channel[i] = (fp_t)(expl((long double)input_channel[i]) / denominator);
     }
 }
 

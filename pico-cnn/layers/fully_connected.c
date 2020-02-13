@@ -12,7 +12,9 @@ void fully_connected_naive(const fp_t* input_channel, const uint16_t input_width
             pixel += input_channel[j] * kernel[j*output_width+i];
         }
 
-        pixel += bias[i];
+        if(bias)
+            pixel += bias[i];
+
         output_channel[i] = pixel;
     }
 }
