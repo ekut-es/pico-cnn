@@ -961,9 +961,6 @@ class Reshape(BaseLayer):
         :return:
         """
 
-        if node.name == "InceptionResnetV2/Logits/AvgPool_1a_8x8/AvgPool__1822":
-            print("Here")
-
         attrs = node.attrs
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
