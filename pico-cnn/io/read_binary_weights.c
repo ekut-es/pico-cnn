@@ -169,14 +169,16 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
 #ifdef DEBUG
                 printf("Number of gamma values: %d\n", num_gamma);
 #endif
-                float *gamma_values = (float *) malloc(num_gamma * sizeof(float));
+                if(num_gamma) {
+                    float *gamma_values = (float *) malloc(num_gamma * sizeof(float));
 
-                fread((void *) gamma_values, sizeof(float), num_gamma, binary_file);
-                memcpy((*biases)[bias_idx], gamma_values, num_gamma * sizeof(float));
+                    fread((void *) gamma_values, sizeof(float), num_gamma, binary_file);
+                    memcpy((*biases)[bias_idx], gamma_values, num_gamma * sizeof(float));
 
-                bias_idx++;
+                    bias_idx++;
 
-                free(gamma_values);
+                    free(gamma_values);
+                }
 
                 // read beta values
                 uint32_t num_beta = 0;
@@ -188,14 +190,16 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
 #ifdef DEBUG
                 printf("Number of beta values: %d\n", num_beta);
 #endif
-                float *beta_values = (float *) malloc(num_beta * sizeof(float));
+                if(num_beta) {
+                    float *beta_values = (float *) malloc(num_beta * sizeof(float));
 
-                fread((void *) beta_values, sizeof(float), num_beta, binary_file);
-                memcpy((*biases)[bias_idx], beta_values, num_beta * sizeof(float));
+                    fread((void *) beta_values, sizeof(float), num_beta, binary_file);
+                    memcpy((*biases)[bias_idx], beta_values, num_beta * sizeof(float));
 
-                bias_idx++;
+                    bias_idx++;
 
-                free(beta_values);
+                    free(beta_values);
+                }
 
                 // read mean values
                 uint32_t num_mean = 0;
@@ -207,14 +211,16 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
 #ifdef DEBUG
                 printf("Number of mean values: %d\n", num_mean);
 #endif
-                float *mean_values = (float *) malloc(num_mean * sizeof(float));
+                if(num_mean) {
+                    float *mean_values = (float *) malloc(num_mean * sizeof(float));
 
-                fread((void *) mean_values, sizeof(float), num_mean, binary_file);
-                memcpy((*biases)[bias_idx], mean_values, num_mean * sizeof(float));
+                    fread((void *) mean_values, sizeof(float), num_mean, binary_file);
+                    memcpy((*biases)[bias_idx], mean_values, num_mean * sizeof(float));
 
-                bias_idx++;
+                    bias_idx++;
 
-                free(mean_values);
+                    free(mean_values);
+                }
 
                 // read variance values
                 uint32_t num_variance = 0;
@@ -226,16 +232,18 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
 #ifdef DEBUG
                 printf("Number of variance values: %d\n", num_variance);
 #endif
-                float *variance_values = (float *) malloc(num_variance * sizeof(float));
+                if(num_variance) {
+                    float *variance_values = (float *) malloc(num_variance * sizeof(float));
 
-                fread((void *) variance_values, sizeof(float), num_variance, binary_file);
-                memcpy((*biases)[bias_idx], variance_values, num_variance * sizeof(float));
+                    fread((void *) variance_values, sizeof(float), num_variance, binary_file);
+                    memcpy((*biases)[bias_idx], variance_values, num_variance * sizeof(float));
 
-                bias_idx++;
+                    bias_idx++;
 
-                free(variance_values);
+                    free(variance_values);
+                }
 
-            } else if (strcmp(buffer_layer_type, "Gemm") == 0) {
+            } else if (strcmp(buffer_layer_type, "Gemm") == 0 || strcmp(buffer_layer_type, "MatMul") == 0) {
                 uint32_t kernel_height = 0;
                 uint32_t kernel_width = 0;
                 uint32_t num_kernels = 0;
@@ -294,8 +302,29 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
 
                     free(bias_values);
                 }
+            } else if (strcmp(buffer_layer_type, "Add") == 0) {
+                uint32_t num_biases = 0;
+                if (fread((void *) &num_biases, sizeof(num_biases), 1, binary_file) != 1) {
+                    printf("Error while reading number of biases\n");
+                    fclose(binary_file);
+                    return 1;
+                }
+#ifdef DEBUG
+                printf("Number of biases: %d\n", num_biases);
+#endif
+
+                if (num_biases) {
+                    float *bias_values = (float *) malloc(num_biases * sizeof(float));
+
+                    fread((void *) bias_values, sizeof(float), num_biases, binary_file);
+                    memcpy((*biases)[bias_idx], bias_values, num_biases * sizeof(float));
+
+                    bias_idx++;
+
+                    free(bias_values);
+                }
             } else {
-                printf("ERROR: Unknown layer type in weights file.\n");
+                printf("ERROR: Unknown layer type \"%s\" in weights file. Layer number: %d\n", buffer_layer_type, layer);
                 fclose(binary_file);
                 return 1;
             }
@@ -304,6 +333,25 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
         #ifdef DEBUG
         printf("Layer idx: %d, kernel idx: %d, bias idx: %d\n", layer, kernel_idx, bias_idx);
         #endif
+
+        // Read end marker
+        char end_marker[5];
+        if(fread((void*)&end_marker, 1, 4, binary_file) != 4) {
+            printf("Error reading end marker\n");
+            fclose(binary_file);
+            return 1;
+        }
+        end_marker[4] = '\0';
+
+        if(strcmp(end_marker,"end\n") != 0) {
+            printf("Wrong magic number: %s\n", end_marker);
+            fclose(binary_file);
+            return 1;
+        }
+#ifdef DEBUG
+        printf("%s", magic_number);
+#endif
+
     }
     fclose(binary_file);
     return 0;

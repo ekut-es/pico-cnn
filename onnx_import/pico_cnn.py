@@ -588,36 +588,76 @@ OperationRegistry.register(BatchNorm)
 #
 #
 # OperationRegistry.register(Clip)
-#
-#
-# class MatMul(BaseLayer):
-#     name = "PicoCNNMatMul"
-#     operator = "MatMul"
-#     template_file = "pico_cnn_matmul.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         weight_buffer = memory_manager.get_buffer(graph, node.inputs[1])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_size = reduce_mult(input_buffer.shape)
-#         output_size = reduce_mult(output_buffer.shape)
-#
-#         operation = cls(node, graph)
-#
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['input_size'] = input_size
-#         operation.attributes['weight_buffer'] = weight_buffer
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['output_size'] = output_size
-#
-#         return operation
-#
-#
-# OperationRegistry.register(MatMul)
+
+
+class MatMul(BaseLayer):
+    name = "PicoCNNMatMul"
+    operator = "MatMul"
+    template_file = "pico_cnn_matmul.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        weight_buffer = memory_manager.get_buffer(graph, node.inputs[1])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_size = reduce_mult(input_buffer.shape)
+        output_size = reduce_mult(output_buffer.shape)
+
+        operation = cls(node, graph)
+
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['input_size'] = input_size
+        operation.attributes['weight_buffer'] = weight_buffer
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['output_size'] = output_size
+
+        return operation
+
+
+OperationRegistry.register(MatMul)
+
+
+class Mul(BaseLayer):
+    name = "PicoCNNMul"
+    operator = "Mul"
+    template_file = "mul.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        factor = node.input_tensors[node.inputs[1]]
+
+        input_shape = input_buffer.shape
+        output_shape = output_buffer.shape
+
+        assert(input_shape == output_shape)
+
+        mul_code = ""
+        mul_code += "for(int i = 0; i < {}; i++)\n".format(input_shape[1])
+        mul_code += "    for(int j = 0; j < {}*{}; j++)\n".format(input_shape[2], input_shape[3])
+        mul_code += "        {}[i][j] = {}[i][j] * {};\n".format(output_buffer.name, input_buffer.name, factor)
+
+        operation = cls(node, graph)
+
+        operation.attributes['mul_code'] = mul_code
+
+        # operation.attributes['input_buffer'] = input_buffer
+        # operation.attributes['input_size'] = input_size
+        # operation.attributes['weight_buffer'] = weight_buffer
+        # operation.attributes['output_buffer'] = output_buffer
+        # operation.attributes['output_size'] = output_size
+
+        return operation
+
+
+OperationRegistry.register(Mul)
 
 
 class AveragePool2D(BaseLayer):
@@ -920,6 +960,10 @@ class Reshape(BaseLayer):
         :param memory_manager: MemoryManager object containing information about input and output buffers.
         :return:
         """
+
+        if node.name == "InceptionResnetV2/Logits/AvgPool_1a_8x8/AvgPool__1822":
+            print("Here")
+
         attrs = node.attrs
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
@@ -948,6 +992,11 @@ class Reshape(BaseLayer):
             print("ERROR: Unsupported input shape for reshape layer: {}".format(input_shape))
             exit(1)
 
+        if len(output_shape) == 4:
+            hotfix = "[0]"
+        else:
+            hotfix = ""
+
         # TODO: Find better alternative to this. See issue #60
         if input_shape == output_shape:
             no_change = True
@@ -961,6 +1010,7 @@ class Reshape(BaseLayer):
         operation.attributes['input_width'] = input_width
         operation.attributes['no_change'] = no_change
         operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['hotfix'] = hotfix
 
         return operation
 
@@ -1041,14 +1091,30 @@ class Add(BaseLayer):
         input_shapes = [b.shape for b in input_buffers]
         for shape in input_shapes:
             if shape != input_shapes[0]:
-                print("Broadcasting is not supported for add operation")
-                return None
+                if len(input_shapes[0]) <= 2 and len(shape) <= 2:
+                    print("Broadcasting, but it still works without doing anything...")
+                else:
+                    # TODO: This needs a better solution!!!
+                    print("Broadcasting is not supported for add operation")
+                    return None
 
-        num_channels = input_shapes[0][1]
-        height = input_shapes[0][2]
-        width = input_shapes[0][3]
+        dimensionality = 0
+
+        if len(input_shapes[0]) == 4:
+            dimensionality = 4
+            num_channels = input_shapes[0][1]
+            height = input_shapes[0][2]
+            width = input_shapes[0][3]
+        elif len(input_shapes[0]) == 2:
+            dimensionality = 2
+            num_channels = 1
+            height = input_shapes[0][0]
+            width = input_shapes[0][1]
+        else:
+            return None
 
         operation = cls(node, graph)
+        operation.attributes['dimensionality'] = dimensionality
         operation.attributes['input_buffers'] = input_buffers
         operation.attributes['output_buffer'] = output_buffer
         operation.attributes['num_channels'] = num_channels
@@ -1060,7 +1126,7 @@ class Add(BaseLayer):
 
 OperationRegistry.register(Add)
 
-#
+
 # class Sum(Add):
 #     name = "SumGeneric"
 #     operator = "Sum"

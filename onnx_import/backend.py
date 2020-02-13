@@ -152,6 +152,10 @@ class BackendRep(backend_base.BackendRep):
         :return:
         """
 
+        ops_to_ignore = ['Reshape', 'Mul']
+
+        buffers_written = []
+
         packed_file = list(bytes())
 
         tupac = bytes("FD\n", "ascii")
@@ -161,7 +165,7 @@ class BackendRep(backend_base.BackendRep):
         num_layers = 0
 
         for node in graph.nodes:
-            if len(node.input_tensors) > 0 and node.op_type != "Reshape":
+            if len(node.input_tensors) > 0 and node.op_type not in ops_to_ignore:
                 num_layers += 1
 
         packed_file.append(struct.pack('i', num_layers))
@@ -169,8 +173,7 @@ class BackendRep(backend_base.BackendRep):
         weights_packed = list(bytes())
 
         for node in graph.nodes:
-
-            if len(node.input_tensors) > 0 and node.op_type != "Reshape":
+            if len(node.input_tensors) > 0 and node.op_type not in ops_to_ignore:
                 layer_name = bytes(node.name + "\n", "ascii")
                 weights_packed.append(struct.pack('{}s'.format(len(layer_name)), layer_name))
                 layer_type = bytes(node.op_type + "\n", "ascii")
@@ -180,6 +183,12 @@ class BackendRep(backend_base.BackendRep):
 
             for num, input in enumerate(node.input_tensors):
 
+                if input in buffers_written:
+                    write_buffer = False
+                else:
+                    buffers_written.append(input)
+                    write_buffer = True
+
                 data = node.input_tensors[input]
 
                 if node.op_type == "Gemm":
@@ -187,63 +196,90 @@ class BackendRep(backend_base.BackendRep):
 
                 if len(data.shape) == 4:
 
-                    height = data.shape[2]  # height
-                    width = data.shape[3]  # width
-                    num_data = data.shape[0] * data.shape[1]  # num_kernels
+                    if write_buffer:
+                        height = data.shape[2]  # height
+                        width = data.shape[3]  # width
+                        num_data = data.shape[0] * data.shape[1]  # num_kernels
+                    else:
+                        height = 0  # height
+                        width = 0  # width
+                        num_data = 0  # num_kernels
 
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
                     weights_packed.append(struct.pack('i', num_data))
 
-                    for channel in data:
-                        for kernel in channel:
-                            for row in kernel:
-                                weights_packed.append(struct.pack('f'*len(row), *row))
+                    if write_buffer:
+                        for channel in data:
+                            for kernel in channel:
+                                for row in kernel:
+                                    weights_packed.append(struct.pack('f'*len(row), *row))
 
                 elif len(data.shape) == 3:
 
-                    height = 1
-                    width = data.shape[2]
-                    num_data = data.shape[0] * data.shape[1]
+                    if write_buffer:
+                        height = 1
+                        width = data.shape[2]
+                        num_data = data.shape[0] * data.shape[1]
+                    else:
+                        height = 0
+                        width = 0
+                        num_data = 0
 
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
                     weights_packed.append(struct.pack('i', num_data))
 
-                    for channel in data:
-                        for kernel in channel:
-                            weights_packed.append(struct.pack('f'*len(kernel), *kernel))
+                    if write_buffer:
+                        for channel in data:
+                            for kernel in channel:
+                                weights_packed.append(struct.pack('f'*len(kernel), *kernel))
 
                 elif len(data.shape) == 2:
 
-                    height = data.shape[0]  # height
-                    width = data.shape[1]  # width
-                    num_data = 1  # num_kernels
+                    if write_buffer:
+                        height = data.shape[0]  # height
+                        width = data.shape[1]  # width
+                        num_data = 1  # num_kernels
+                    else:
+                        height = 0  # height
+                        width = 0  # width
+                        num_data = 0  # num_kernels
 
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
                     weights_packed.append(struct.pack('i', num_data))
 
-                    for row in data:
-                        weights_packed.append(struct.pack('f'*len(row), *row))
+                    if write_buffer:
+                        for row in data:
+                            weights_packed.append(struct.pack('f'*len(row), *row))
 
                 elif len(data.shape) == 1:
-                    num_data = data.shape[0]  # num_biases
+
+                    if write_buffer:
+                        num_data = data.shape[0]  # num_biases
+                    else:
+                        num_data = 0
 
                     weights_packed.append(struct.pack('i', num_data))
-                    weights_packed.append(struct.pack('f'*len(data), *data))
+
+                    if write_buffer:
+                        weights_packed.append(struct.pack('f'*len(data), *data))
 
                 else:
-                    print("ERROR: Unknown input tensor shape!")
+                    print("ERROR: Unknown weights/biases/etc. tensor shape!")
                     exit(1)
 
                 # This handles the case that no bias values are available in the onnx file.
                 # So we need to add num_biases = 0 into the binary file.
-                if len(node.input_tensors) == 1:
+                if len(node.input_tensors) == 1 and node.op_type != "Add":
                     # print("No biases in onnx file.")
                     weights_packed.append(struct.pack('i', 0))
 
         packed_file += weights_packed
+
+        tupac = bytes("end\n", "ascii")
+        packed_file.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
         self.packed_file = packed_file
 
@@ -255,6 +291,11 @@ class BackendRep(backend_base.BackendRep):
         :param memory_manager: MemoryManager containing information about input and output buffers of each operation.
         :return:
         """
+
+        ops_to_ignore = ['Reshape', 'Mul']
+
+        buffers_allocated = []
+
         initialization_header = "#ifndef NETWORK_INITIALIZATION_H\n"
         initialization_header += "#define NETWORK_INITIALIZATION_H\n"
         initialization_header += "#include <stdlib.h>\n"
@@ -272,14 +313,18 @@ class BackendRep(backend_base.BackendRep):
 
         for node in graph.nodes:
             """Do not count the reshape layers as the input tensor will only define the dimensions"""
-            if len(node.input_tensors) > 0 and node.op_type != "Reshape":
+            if len(node.input_tensors) > 0 and node.op_type not in ops_to_ignore:
                 num_layers += 1
                 for num, input in enumerate(node.input_tensors):
-                    tensor = node.input_tensors[input]
-                    if len(tensor.shape) == 1:
-                        num_biases += 1
+                    if input in buffers_allocated:
+                        continue
                     else:
-                        num_kernels += 1
+                        tensor = node.input_tensors[input]
+                        buffers_allocated.append(input)
+                        if len(tensor.shape) == 1:
+                            num_biases += 1
+                        else:
+                            num_kernels += 1
 
         """The arrays kernels and biases will be used to pass only two variables to read_binary_weights"""
         initialization_code += "kernels = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(num_kernels)
@@ -289,10 +334,12 @@ class BackendRep(backend_base.BackendRep):
         pos_kernel = -1
         pos_bias = -1
 
+        buffers_allocated.clear()
+
         """Iterate over all nodes in the graph and generate the corresponding allocation code."""
         for node_id, node in enumerate(graph.nodes):
 
-            if len(node.input_tensors) > 0 and node.op_type != "Reshape":
+            if len(node.input_tensors) > 0 and node.op_type not in ops_to_ignore:
                 pos += 1
 
             initialization_header += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
@@ -303,32 +350,37 @@ class BackendRep(backend_base.BackendRep):
             initialization_code += "// Inputs\n"
             for num, input in enumerate(node.input_tensors):
 
-                if node.op_type == "Reshape":
+                if node.op_type in ops_to_ignore:
                     continue
 
-                tensor = node.input_tensors[input]
-                if len(tensor.shape) == 1:
-                    pos_bias += 1
+                if input in buffers_allocated:
+                    continue
                 else:
-                    pos_kernel += 1
+                    buffers_allocated.append(input)
 
-                buffer = memory_manager.get_buffer(graph, input)
+                    tensor = node.input_tensors[input]
+                    if len(tensor.shape) == 1:
+                        pos_bias += 1
+                    else:
+                        pos_kernel += 1
 
-                initialization_header += "// " + str(buffer.shape) + "\n"
-                data_type = "fp_t "
-                for i in range(buffer.buffer_depth):
-                    data_type += "*"
+                    buffer = memory_manager.get_buffer(graph, input)
 
-                initialization_header += data_type + buffer.name + ";\n"
+                    initialization_header += "// " + str(buffer.shape) + "\n"
+                    data_type = "fp_t "
+                    for i in range(buffer.buffer_depth):
+                        data_type += "*"
 
-                initialization_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
+                    initialization_header += data_type + buffer.name + ";\n"
 
-                functionality = CodeRegistry.get_funct("KernelAllocation")
-                impl = functionality[0].create(buffer, pos, pos_kernel, pos_bias)
+                    initialization_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
 
-                if impl:
-                    initialization_code += impl.generate_code()
-                    initialization_code += "\n"
+                    functionality = CodeRegistry.get_funct("KernelAllocation")
+                    impl = functionality[0].create(buffer, pos, pos_kernel, pos_bias)
+
+                    if impl:
+                        initialization_code += impl.generate_code()
+                        initialization_code += "\n"
 
             initialization_header += "// Outputs\n"
             initialization_code += "// Outputs\n"
@@ -452,24 +504,24 @@ class BackendRep(backend_base.BackendRep):
                 if input in range_starts:
                     range_ends[input] = num
 
-        print("Live Ranges:")
-        for name in sorted(range_starts.keys()):
-            print("{:^5}".format(name),  end="")
-        print()
-
-        for num, _, _ in schedule:
-            for name in sorted(range_starts.keys()):
-                if num < range_starts[name]:
-                    print("     ", end="")
-                elif num == range_starts[name]:
-                    print("  s  ", end="")
-                elif num < range_ends[name]:
-                    print("  |  ", end="")
-                elif num == range_ends[name]:
-                    print("  e  ", end="")
-                else:
-                    print("     ", end="")
-            print()
+        # print("Live Ranges:")
+        # for name in sorted(range_starts.keys()):
+        #     print("{:^5}".format(name),  end="")
+        # print()
+        #
+        # for num, _, _ in schedule:
+        #     for name in sorted(range_starts.keys()):
+        #         if num < range_starts[name]:
+        #             print("     ", end="")
+        #         elif num == range_starts[name]:
+        #             print("  s  ", end="")
+        #         elif num < range_ends[name]:
+        #             print("  |  ", end="")
+        #         elif num == range_ends[name]:
+        #             print("  e  ", end="")
+        #         else:
+        #             print("     ", end="")
+        #     print()
 
     def _export_model(self):
         """
@@ -497,18 +549,18 @@ class BackendRep(backend_base.BackendRep):
             elif res.shape is not None:
                 graph.shape_dict[var] = res.shape
 
-        print("Inference graph:")
-        for node in graph.nodes:
-            inputs = node.inputs
-            input_shapes = (str(graph.shape_dict[i]) for i in node.inputs if i in graph.shape_dict)
-            outputs = node.outputs
-            output_shapes = (str(graph.shape_dict[o]) for o in node.outputs if o in graph.shape_dict)
-            print("{:<24}  {:<20}  {:<30}  {:<30}  {:<20}  {:<30}".format(node.name,
-                                                                          node.op_type,
-                                                                          ",".join(inputs),
-                                                                          ",".join(input_shapes),
-                                                                          ",".join(outputs),
-                                                                          ",".join(output_shapes)))
+        # print("Inference graph:")
+        # for node in graph.nodes:
+        #     inputs = node.inputs
+        #     input_shapes = (str(graph.shape_dict[i]) for i in node.inputs if i in graph.shape_dict)
+        #     outputs = node.outputs
+        #     output_shapes = (str(graph.shape_dict[o]) for o in node.outputs if o in graph.shape_dict)
+        #     print("{:<24}  {:<20}  {:<30}  {:<30}  {:<20}  {:<30}".format(node.name,
+        #                                                                   node.op_type,
+        #                                                                   ",".join(inputs),
+        #                                                                   ",".join(input_shapes),
+        #                                                                   ",".join(outputs),
+        #                                                                   ",".join(output_shapes)))
 
         memory_manager = MemoryManager()
 
@@ -578,6 +630,11 @@ class BackendRep(backend_base.BackendRep):
             implementation_code += "    //Parameters\n"
             implementation_code += "    //Inputs: " + ",".join(node.inputs) + "\n"
             implementation_code += "    //Outputs: " + ",".join(node.outputs) + "\n"
+            implementation_code += "    //Shape:\n"
+            for i in node.inputs:
+                implementation_code += "    //    {}: {}\n".format(i, graph.get_shape(i))
+            for o in node.outputs:
+                implementation_code += "    //    {}: {}\n".format(o, graph.get_shape(o))
 
             if impl:
                 implementation_code += impl.generate_code()
