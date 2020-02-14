@@ -29,6 +29,7 @@ The pico-cnn framework currently supports the following neural networks:
 * VGG-19
 * MobileNet-V2
 * Inception-V3
+* Inception-Resnet-V2
 * EKUT-Raw
  * CNN-3-Relu
  * CNN-3-Relu-2
@@ -186,6 +187,18 @@ See [Reference Input](#user-content-reference-input) section for details on inpu
 cd onnx_import
 python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/inceptionv3.onnx
 cd generated_code/inceptionv3
+make reference_input
+./reference_input network.weights.bin input.data output.data
+```
+
+### Inception-Resnet-V2
+Inception-V3 model retrieved from http://download.tensorflow.org/models/inception_resnet_v2_2016_08_30.tar.gz and converted using [tensorflow slim](https://github.com/tensorflow/models/tree/master/research/slim).
+
+See [Reference Input](#user-content-reference-input) section for details on input and output data generation.
+```bash
+cd onnx_import
+python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/inception_resnet_v2.onnx
+cd generated_code/inception_resnet_v2
 make reference_input
 ./reference_input network.weights.bin input.data output.data
 ```

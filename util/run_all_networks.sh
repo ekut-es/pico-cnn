@@ -75,6 +75,15 @@ popd
 echo "Inception-V3 done."
 echo ""
 
+echo "Inception-Resnet-V2..."
+python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/inception_resnet_v2/inception_resnet_v2.onnx
+pushd generated_code/inception_resnet_v2
+make reference_input
+./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/inception_resnet_v2/inception_resnet_v2_input.data /nfs/es-genial/pico-cnn/data/onnx/inception_resnet_v2/inception_resnet_v2_output.data
+popd
+echo "Inception-Resnet-V2 done."
+echo ""
+
 echo "ekut-raw-cnn3-relu..."
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu/ekut-raw-cnn3-relu.onnx
 pushd generated_code/ekut-raw-cnn3-relu
