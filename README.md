@@ -30,6 +30,7 @@ The pico-cnn framework currently supports the following neural networks:
 * MobileNet-V2
 * Inception-V3
 * Inception-Resnet-V2
+* TC-ResNet-8
 * EKUT-Raw
  * CNN-3-Relu
  * CNN-3-Relu-2
@@ -204,6 +205,15 @@ make reference_input
 ```
 
 ## Speech Recognition
+### TC-ResNet-8
+```bash
+cd onnx_import
+python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/tc-res8-update.onnx
+cd generated_code/tc-res8-update
+make reference_input
+./reference_input network.weights.bin input.data output.data
+```
+
 ### EKUT-Raw
 For those models the reference data has been generated with the script `util/create_sample_data.py` by running an inference using `caffe2` as backend:
 ```bash
