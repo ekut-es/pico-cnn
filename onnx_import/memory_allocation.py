@@ -126,7 +126,7 @@ class OutputAllocation(BaseCode):
         elif buffer.buffer_depth == 1:
             operation.attributes['one_dimensional'] = 1
             if len(buffer_shape) == 2:
-                num_outputs = buffer_shape[1]
+                num_outputs = buffer_shape[0]*buffer_shape[1]
             elif len(buffer_shape) == 1:
                 num_outputs = buffer_shape[0]
             else:

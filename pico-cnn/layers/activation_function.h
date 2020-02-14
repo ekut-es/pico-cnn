@@ -21,6 +21,9 @@
 #include "../driver/neon_mathfun.h"
 #endif
 
+void clip_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
+                const fp_t min, const fp_t max, fp_t* output_channel);
+
 /**
  * @brief applies tanh(x) to all pixel of input_channel and stores it in
  * output_channel

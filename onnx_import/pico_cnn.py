@@ -552,42 +552,44 @@ class BatchNorm(BaseLayer):
 
 
 OperationRegistry.register(BatchNorm)
-#
-#
-# class Clip(BaseLayer):
-#     name = "PicoCNNClip"
-#     operator = "Clip"
-#     template_file = "pico_cnn_clip.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         print("generating clip layer")
-#
-#         attrs = node.attrs
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_shape = input_buffer.shape
-#         input_channels = input_shape[1]
-#         input_height = input_shape[2]
-#         input_width = 1
-#         if len(input_shape) >= 4:
-#             input_width = input_shape[3]
-#
-#         operation = cls(node, graph)
-#
-#         operation.attributes['input_channels'] = input_channels
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['input_height'] = input_height
-#         operation.attributes['input_width'] = input_width
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['max'] = attrs['max']
-#         operation.attributes['min'] = attrs['min']
-#
-#         return operation
-#
-#
-# OperationRegistry.register(Clip)
+
+
+class Clip(BaseLayer):
+    name = "PicoCNNClip"
+    operator = "Clip"
+    template_file = "pico_cnn_clip.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+
+        attrs = node.attrs
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shape = input_buffer.shape
+        num_input_channels = input_shape[1]
+
+        if len(input_shape) >= 4:
+            input_height = input_shape[2]
+            input_width = input_shape[3]
+        else:
+            input_height = 1
+            input_width = input_shape[2]
+
+        operation = cls(node, graph)
+
+        operation.attributes['num_input_channels'] = num_input_channels
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['input_height'] = input_height
+        operation.attributes['input_width'] = input_width
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['max'] = attrs['max']
+        operation.attributes['min'] = attrs['min']
+
+        return operation
+
+
+OperationRegistry.register(Clip)
 
 
 class MatMul(BaseLayer):
@@ -755,6 +757,11 @@ class AveragePool1D(BaseLayer):
 
         count_include_pad = attrs.get("count_include_pad", 0)
 
+        # As we have to pass the count_include_pad attribute even if we don't have padding we need to
+        # set it manually so that the correct amount of pixels is used for the average computation
+        if not padding_needed:
+            count_include_pad = 1
+
         operation = cls(node, graph)
 
         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
@@ -852,14 +859,30 @@ class Transpose(BaseLayer):
             transpose_code += "\n"
 
         transpose_code += "    " * len(permutations)
-        test_code = "{}[{}][{}]".format(output_buffer.name,
-                                        "dim"+str(permutations[1]),
-                                        "dim"+str(permutations[2]) + "*" +
-                                        str(input_buffer.shape[permutations[3]] if permutations[3] < len(input_buffer.shape) else 1)
-                                        + " + " + "dim"+str(permutations[3])) + " = " \
-                    + "{}[{}][{}];".format(input_buffer.name, "dim"+str(orig_permutation[1]), "dim"+str(orig_permutation[2])
-                                           + "*" + str(input_buffer.shape[orig_permutation[3]] if orig_permutation[3] < len(input_buffer.shape) else 1)
-                                           + " + " + "dim"+str(orig_permutation[3]))
+
+        if len(permutations) == 4:
+            test_code = "{}[{}][{}]".format(output_buffer.name,
+                                            "dim"+str(permutations[1]),
+                                            "dim"+str(permutations[2]) + "*" +
+                                            str(input_buffer.shape[permutations[3]] if permutations[3] < len(input_buffer.shape) else 1) + " + " +
+                                            "dim"+str(permutations[3])) + " = " \
+                        + "{}[{}][{}];".format(input_buffer.name,
+                                               "dim"+str(orig_permutation[1]),
+                                               "dim"+str(orig_permutation[2]) + "*" +
+                                               str(input_buffer.shape[orig_permutation[3]] if orig_permutation[3] < len(input_buffer.shape) else 1) + " + " +
+                                               "dim"+str(orig_permutation[3]))
+        elif len(permutations) == 2:
+            test_code = "{}[{}]".format(output_buffer.name,
+                                            "dim"+str(permutations[0]) + "*" +
+                                            str(input_buffer.shape[permutations[1]] if permutations[1] < len(input_buffer.shape) else 1) + " + " +
+                                            "dim"+str(permutations[1])) + " = " \
+                        + "{}[{}];".format(input_buffer.name,
+                                               "dim"+str(orig_permutation[0]) + "*" +
+                                               str(input_buffer.shape[orig_permutation[1]] if orig_permutation[1] < len(input_buffer.shape) else 1) + " + " +
+                                               "dim"+str(orig_permutation[1]))
+        else:
+            print("ERROR: Unsupported permutation in Transpose operation.")
+            return None
 
         transpose_code += "    " + test_code
 
@@ -1102,6 +1125,11 @@ class Add(BaseLayer):
             num_channels = input_shapes[0][1]
             height = input_shapes[0][2]
             width = input_shapes[0][3]
+        elif len(input_shapes[0]) == 3:
+            dimensionality = 4
+            num_channels = input_shapes[0][1]
+            height = 1
+            width = input_shapes[0][2]
         elif len(input_shapes[0]) == 2:
             dimensionality = 2
             num_channels = 1

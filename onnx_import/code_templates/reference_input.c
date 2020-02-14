@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
     free(output);
     free(ref_output);
 
-    {% if input_shape_len == 4 %}
+    {% if input_shape_len == 4 or input_shape_len == 3 %}
     for(int i = 0; i < {{num_input_channels}}; i++) {
         free(input[i]);
     }

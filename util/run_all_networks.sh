@@ -84,6 +84,15 @@ popd
 echo "Inception-Resnet-V2 done."
 echo ""
 
+echo "tc-res8-update..."
+python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/tc-res8-update/tc-res8-update.onnx
+pushd generated_code/tc-res8-update
+make reference_input
+./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/tc-res8-update/random_tc-res8-update_input.data /nfs/es-genial/pico-cnn/data/onnx/tc-res8-update/random_tc-res8-update_output.data
+popd
+echo "tc-res8-update done."
+echo ""
+
 echo "ekut-raw-cnn3-relu..."
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu/ekut-raw-cnn3-relu.onnx
 pushd generated_code/ekut-raw-cnn3-relu

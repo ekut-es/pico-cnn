@@ -243,7 +243,10 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                     free(variance_values);
                 }
 
-            } else if (strcmp(buffer_layer_type, "Gemm") == 0 || strcmp(buffer_layer_type, "MatMul") == 0) {
+            } else if (strcmp(buffer_layer_type, "Gemm") == 0 ||
+                       strcmp(buffer_layer_type, "MatMul") == 0 ||
+                       strcmp(buffer_layer_type, "Transpose") == 0) {
+
                 uint32_t kernel_height = 0;
                 uint32_t kernel_width = 0;
                 uint32_t num_kernels = 0;

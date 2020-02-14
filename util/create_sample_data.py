@@ -29,8 +29,16 @@ def main():
     parser.add_argument(
         "--file",
         type=Text,
-        required=True,
+        required=False,
         help="Path to the data the network should process."
+    )
+    parser.add_argument(
+        "--range",
+        type=int,
+        nargs=2,
+        required=False,
+        default=[0, 1],
+        help="Range for random input values. Default is [0,1)"
     )
     parser.add_argument(
         "--shape",
@@ -42,17 +50,25 @@ def main():
     )
     args = parser.parse_args()
 
-    input_file = args.file
-    input_file_path = os.path.dirname(input_file)
-    input_file_name = os.path.basename(input_file)
+    if args.file:
+        input_file = args.file
+        input_file_path = os.path.dirname(input_file)
+        input_file_name = os.path.basename(input_file)
+
+        # Check file type
+        file_type = magic.from_file(input_file, mime=True)
+        if file_type not in supported_file_types:
+            print("Unsupported file type: {}. At the moment this tool only supports: {}".format(file_type,
+                                                                                                supported_file_types))
+            exit(1)
+    else:
+        print("No input file specified. Generating random input.")
+        file_type = 'random'
+        input_file = "random"
+        r = args.range
+
     onnx_model = args.model
     input_shape = tuple(args.shape)
-
-    # Check file type
-    file_type = magic.from_file(input_file, mime=True)
-    if file_type not in supported_file_types:
-        print("Unsupported file type: {}. At the moment this tool only supports: {}".format(file_type, supported_file_types))
-        exit(1)
 
     model = onnx.load(onnx_model)
     onnx.checker.check_model(model)
@@ -143,6 +159,41 @@ def main():
                 f.write(packed_struct)
 
         input_data = input_data.reshape(input_shape)
+
+    elif file_type == 'random':
+        input_data = np.random.uniform(r[0], r[1], input_shape)
+        input_data = input_data.astype(np.float32)
+
+        if len(input_shape) == 4:
+            packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
+            packed_input.append(struct.pack('i', input_shape[1]))  # Number of channels
+            packed_input.append(struct.pack('i', input_shape[2]))  # Channel height
+            packed_input.append(struct.pack('i', input_shape[2]))  # Channel width
+
+            for channel in input_data[0]:
+                for row in channel:
+                    packed_input.append(struct.pack('f' * len(row), *row))  # Data
+
+        elif len(input_shape) == 3:
+            packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
+            packed_input.append(struct.pack('i', input_shape[1]))  # Number of channels
+            packed_input.append(struct.pack('i', 1))  # Channel height
+            packed_input.append(struct.pack('i', input_shape[2]))  # Channel width
+
+            for channel in input_data[0]:
+                packed_input.append(struct.pack('f' * len(channel), *channel))  # Data
+
+        else:
+            print("ERROR: Unsupported input shape length: {}".format(input_shape))
+            exit(1)
+
+        in_path = "{}_{}_input.data".format(os.path.splitext(input_file)[0],
+                                            os.path.splitext(os.path.basename(onnx_model))[0])
+
+        print("Saving input to {}".format(in_path))
+        with open(in_path, "wb") as f:
+            for packed_struct in packed_input:
+                f.write(packed_struct)
 
     else:
         print("ERROR: Something went wrong during input data processing...")

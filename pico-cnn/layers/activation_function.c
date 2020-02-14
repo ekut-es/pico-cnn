@@ -1,5 +1,24 @@
 #include "activation_function.h"
 
+void clip_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
+                const fp_t min, const fp_t max, fp_t* output_channel) {
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    #else
+    uint32_t i;
+    #endif
+
+    for(i = 0; i < height*width; i++) {
+        if(input_channel[i] < 0.0)
+            output_channel[i] = min;
+        else if(input_channel[i] > max)
+            output_channel[i] = max;
+        else
+            output_channel[i] = input_channel[i];
+
+    }
+}
+
 void tanh_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
 
     #ifdef BIG_LOOPS

@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 
         srand(time(NULL));
 
-        {% if input_shape_len == 4 %}
+        {% if input_shape_len == 4 or input_shape_len == 3 %}
         for(int channel = 0; channel < {{num_input_channels}}; channel++) {
             for(int pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
                 input[channel][pos] = urand(LOWER_BOUND, UPPER_BOUND);
@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
         if(!GENERATE_ONCE) {
             srand(time(NULL));
 
-            {% if input_shape_len == 4 %}
+            {% if input_shape_len == 4 or input_shape_len == 3 %}
             for(int channel = 0; channel < {{num_input_channels}}; channel++) {
                 for(int pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
                     input[channel][pos] = urand(LOWER_BOUND, UPPER_BOUND);
@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
 
     free(output);
 
-    {% if input_shape_len == 4 %}
+    {% if input_shape_len == 4 or input_shape_len == 3 %}
     for(int i = 0; i < {{num_input_channels}}; i++) {
         free(input[i]);
     }
