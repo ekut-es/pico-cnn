@@ -330,6 +330,40 @@ void global_max_pooling2d_naive(const fp_t* input_channel, const uint16_t input_
     output_channel[0] = global_maximum;
 }
 
+void pad_2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
+                  fp_t* output_channel, const int* padding, fp_t initializer) {
+
+    uint16_t height_padded = height + padding[0] + padding[2];
+    uint16_t width_padded = width + padding[1] + padding[3];
+
+
+    if(initializer != 0.0) {
+        for(int r = 0; r < height_padded; r++){
+            for(int c = 0; c < width_padded; c++){
+                output_channel[r*width_padded+c] = initializer;
+            }
+        }
+    }
+
+    for (int16_t channel_row = 0; channel_row < height; channel_row++) {
+        memcpy(output_channel + (channel_row + padding[0]) * width_padded + padding[1],
+               input_channel + channel_row * width, width * sizeof(fp_t));
+    }
+}
+
+void pad_1d_naive(const fp_t* input_channel, const uint16_t width,
+                  fp_t* output_channel, const int* padding, fp_t initializer) {
+    uint16_t width_padded = width + padding[0] + padding[1];
+
+    if(initializer != 0.0) {
+        for(int i = 0; i < width_padded; i++){
+            output_channel[i] = initializer;
+        }
+    }
+
+    memcpy(output_channel+padding[0], input_channel, width*sizeof(fp_t));
+}
+
 
 #ifdef FIXED16
 

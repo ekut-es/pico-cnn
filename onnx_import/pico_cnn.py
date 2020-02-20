@@ -1288,3 +1288,71 @@ class Squeeze(BaseLayer):
 
 
 OperationRegistry.register(Squeeze)
+
+
+class Pad(BaseLayer):
+    name = "PicoCNNPad"
+    operator = "Pad"
+    template_file = "pad.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shape = input_buffer.shape
+        output_shape = output_buffer.shape
+
+        pads = attrs['pads']
+        mode = attrs['mode'].decode("utf-8")
+        value = attrs['value']
+
+        height = width = dimensionality = num_input_channels = 0
+
+        if mode != 'constant':
+            print("ERROR: Pad layer only supported in mode constant (not: {}).").format(mode)
+            exit(1)
+
+        if len(input_shape) == 4:
+            if pads[0] != 0 or pads[1] != 0 or pads[4] != 0 or pads[5] != 0:
+                print("ERROR: Padding only supported for height and width dimension. pads = {}").format(pads)
+                exit(1)
+            else:
+                num_input_channels = input_shape[1]
+                height = input_shape[2]
+                width = input_shape[3]
+                dimensionality = 4
+        elif len(input_shape) == 3:
+            num_input_channels = input_shape[1]
+            height = 1
+            width = input_shape[2]
+            dimensionality = 3
+        elif len(input_shape) == 2:
+            num_input_channels = 1
+            height = input_shape[0]
+            width = input_shape[1]
+            dimensionality = 2
+        else:
+            print("ERROR: Unsupported shape for pad operation: {}".format(input_shape))
+            exit(1)
+
+        operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+        operation.attributes['identifier'] = identifier
+
+        operation.attributes['num_input_channels'] = num_input_channels
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['input_height'] = height
+        operation.attributes['input_width'] = width
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['dimensionality'] = dimensionality
+        operation.attributes['padding'] = pads
+        operation.attributes['initializer'] = value
+
+        return operation
+
+
+OperationRegistry.register(Pad)
