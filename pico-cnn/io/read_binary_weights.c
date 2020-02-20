@@ -120,22 +120,24 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 }
 
                 #ifdef DEBUG
-                printf("Height: %d, width: %d, num: %d\n", kernel_height, kernel_width, num_kernels);
+                printf("Height: %d, width: %d, num: %d, kernel_idx: %d\n", kernel_height, kernel_width, num_kernels, kernel_idx);
                 #endif
 
-                uint32_t kernel;
-                float *values = (float *) malloc(kernel_height * kernel_width * sizeof(float));
+                if(kernel_height != 0 && kernel_width != 0 && num_kernels != 0) {
+                    uint32_t kernel;
+                    float *values = (float *) malloc(kernel_height * kernel_width * sizeof(float));
 
-                int numbers_read = -1;
+                    int numbers_read = -1;
 
-                for (kernel = 0; kernel < num_kernels; kernel++) {
-                    numbers_read = fread((void *) values, sizeof(float), kernel_height * kernel_width, binary_file);
-                    memcpy((*kernels)[kernel_idx][kernel], values, kernel_height * kernel_width * sizeof(float));
+                    for (kernel = 0; kernel < num_kernels; kernel++) {
+                        numbers_read = fread((void *) values, sizeof(float), kernel_height * kernel_width, binary_file);
+                        memcpy((*kernels)[kernel_idx][kernel], values, kernel_height * kernel_width * sizeof(float));
+                    }
+
+                    kernel_idx++;
+
+                    free(values);
                 }
-
-                kernel_idx++;
-
-                free(values);
 
                 uint32_t num_biases = 0;
                 if (fread((void *) &num_biases, sizeof(num_biases), 1, binary_file) != 1) {
@@ -268,7 +270,7 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 }
 
 #ifdef DEBUG
-                printf("Height: %d, width: %d, num: %d\n", kernel_height, kernel_width, num_kernels);
+                printf("Height: %d, width: %d, num: %d, kernel_idx: %d\n", kernel_height, kernel_width, num_kernels, kernel_idx);
 #endif
 
                 uint32_t kernel;
