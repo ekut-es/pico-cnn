@@ -2,9 +2,9 @@
 //
 // Created by junga on 27.08.19.
 //
-#include "read_binary_sample_data.h"
+#include "read_binary_reference_data.h"
 
-int read_binary_sample_input_data(const char* path_to_sample_data, fp_t*** input) {
+int read_binary_reference_input_data(const char* path_to_sample_data, fp_t*** input) {
 
     FILE *binary_file;
     binary_file = fopen(path_to_sample_data, "r");
@@ -94,7 +94,7 @@ int read_binary_sample_input_data(const char* path_to_sample_data, fp_t*** input
     return 0;
 }
 
-int read_binary_sample_output_data(const char* path_to_sample_data, fp_t** output) {
+int read_binary_reference_output_data(const char* path_to_sample_data, fp_t** output) {
 
     FILE *binary_file;
     binary_file = fopen(path_to_sample_data, "r");

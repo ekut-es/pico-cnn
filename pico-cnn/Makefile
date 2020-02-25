@@ -22,7 +22,7 @@ utils: parameters.h ./utils.h ./utils.c
 #---------------------------------------------- io ----------------------------------------------
 
 # list of all files to consider in io
-IO_SRC = io/read_binary_sample_data.o \
+IO_SRC = io/read_binary_reference_data.o \
          io/read_binary_weights.o \
   		 io/read_imagenet_labels.o \
   		 io/read_imagenet_validation_labels.o \

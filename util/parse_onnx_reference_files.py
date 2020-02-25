@@ -11,23 +11,23 @@ from onnx import numpy_helper
 def main():
 
     parser = argparse.ArgumentParser(
-        description="Tool to parse the sample input and output files from the onnx model zoo.")
+        description="Tool to parse the reference input and output files from the onnx model zoo.")
     parser.add_argument(
         "--input",
         type=Text,
         required=True,
-        help="Path to sample files."
+        help="Path to reference files."
     )
     args = parser.parse_args()
 
-    sample_data_dir = args.input
+    reference_data_dir = args.input
 
-    print("Using sample data from:", sample_data_dir)
+    print("Using reference data from:", reference_data_dir)
 
     # Load inputs
-    inputs_num = len(glob.glob(os.path.join(sample_data_dir, 'input_*.pb')))
+    inputs_num = len(glob.glob(os.path.join(reference_data_dir, 'input_*.pb')))
     for i in range(inputs_num):
-        input_file = os.path.join(sample_data_dir, 'input_{}.pb'.format(i))
+        input_file = os.path.join(reference_data_dir, 'input_{}.pb'.format(i))
         tensor = onnx.TensorProto()
         with open(input_file, 'rb') as f:
             tensor.ParseFromString(f.read())
@@ -59,9 +59,9 @@ def main():
 
     # Load reference outputs
     ref_outputs = []
-    ref_outputs_num = len(glob.glob(os.path.join(sample_data_dir, 'output_*.pb')))
+    ref_outputs_num = len(glob.glob(os.path.join(reference_data_dir, 'output_*.pb')))
     for i in range(ref_outputs_num):
-        output_file = os.path.join(sample_data_dir, 'output_{}.pb'.format(i))
+        output_file = os.path.join(reference_data_dir, 'output_{}.pb'.format(i))
         tensor = onnx.TensorProto()
         with open(output_file, 'rb') as f:
             tensor.ParseFromString(f.read())

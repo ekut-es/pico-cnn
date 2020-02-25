@@ -11,7 +11,7 @@
 #include "pico-cnn/pico-cnn.h"
 
 void usage() {
-    printf("./reference_input PATH_TO_BINARY_WEIGHTS_FILE PATH_TO_SAMPLE_INPUT PATH_TO_SAMPLE_OUTPUT\n");
+    printf("./reference_input PATH_TO_BINARY_WEIGHTS_FILE PATH_TO_REFERENCE_INPUT PATH_TO_REFERENCE_OUTPUT\n");
 }
 
 int almost_equal(float a, float b, float epsilon){
@@ -65,9 +65,9 @@ int main(int argc, char** argv) {
     fp_t* ref_output = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
     {% endif %}
 
-    if(read_binary_sample_input_data(sample_input_path, &input) != 0)
+    if(read_binary_reference_input_data(sample_input_path, &input) != 0)
         return -1;
-    if(read_binary_sample_output_data(sample_output_path, &ref_output) != 0)
+    if(read_binary_reference_output_data(sample_output_path, &ref_output) != 0)
         return -1;
 
     initialize_network();

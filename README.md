@@ -17,10 +17,38 @@ sudo yum install libjpeg-devel
 Depending on the (system-) compiler you are using you might have to add a specific C-Standard to the `CFLAGS` variable in the generated Makefile. Assuming a modern operating system like Ubuntu 18.04 the default C-Standard is `-std=gnu11`. If you are using an older version of GCC it should suffice to chose `-std=c99` or `-std=gnu99` as the C-Standard.
 
 ### All distributions
-Install `python3.6` for example with [pyenv](https://github.com/pyenv/pyenv) (probably also works with other Python versions). Then install the required Python packages with the requirements.txt file located in `pico-cnn/onnx_import`:
+Install Python in version 3.6.5 for example with [pyenv](https://github.com/pyenv/pyenv) (probably also works with other versions of Python 3.6). Then install the required Python packages with the requirements.txt file located in `pico-cnn/onnx_import`:
 ```bash
+cd onnx_import
 pip install -r requirements.txt
 ```
+Of course you can always install the requirements into a virtual environment like this:
+```bash
+cd onnx_import
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+In the future you always have to activate the environment:
+```bash
+cd onnx_import
+source venv/bin/activate
+```
+
+### Utils
+If you want to use scripts from the `pico-cnn/utils` folder you should create a virtual environment for it and install the respective python packages:
+```bash
+cd utils
+python -m venv venv
+source venv/bin/activate
+pip install -r util_requirements.txt
+```
+In the future you always have to activate the environment:
+```bash
+cd utils
+source venv/bin/activate
+```
+
 ## Supported Neural Networks
 The pico-cnn framework currently supports the following neural networks:
 * LeNet
@@ -58,7 +86,7 @@ If you might want to monitor overall progress by uncommenting `#define PRINT` in
 #### Reference Input
 There will also be generated a `reference_input.c` which can be used to validate the imported network against the reference input/output that is provided for onnx models from the official [onnx model-zoo](https://github.com/onnx/models). The data has to be preprocessed:
 ```bash
-python util/parse_onnx_sample_files.py --input PATH_TO_SAMPLE_DATA
+python util/parse_onnx_reference_files.py --input PATH_TO_REFERENCE_DATA
 ```
 The script will generate an `input_X.data` and `output_X.data` file which can then be used like this:
 ```bash
@@ -70,7 +98,7 @@ make reference_input
 If the model was acquired in some other way (self-trained or converted) you can create sample data with the following script:
 ```bash
 cd util
-python3.6 create_sample_data.py --model model.onnx --file PATH_TO_INPUT_DATA.[jpeg/wav] --shape 1 NUM_CHANNELS HEIGHT WIDTH
+python3.6 generate_reference_data.py --model model.onnx --file PATH_TO_INPUT_DATA.[jpeg/wav] --shape 1 NUM_CHANNELS HEIGHT WIDTH
 ```
 
 ## MNIST Dataset
