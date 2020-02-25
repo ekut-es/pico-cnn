@@ -15,14 +15,6 @@
 #include <float.h>
 #include <math.h>
 
-#ifdef FIXED16
-#include "driver/fixed16.h"
-#endif
-
-#ifdef ARM_NEON
-#include "arm_neon.h"
-#endif
-
 /**
  * @brief Extends input_channel with padding by copying the data into a bigger array.
  *

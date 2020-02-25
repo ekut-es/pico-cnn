@@ -16,7 +16,6 @@
 #include "layers/batch_normalization.h"
 #include "layers/concatenate.h"
 
-#include "io/read_weights.h"
 #include "io/read_binary_weights.h"
 #include "io/read_binary_sample_data.h"
 #include "io/read_pgm.h"
@@ -39,9 +38,5 @@
 #include "io/write_pgm.h"
 #include "io/write_float.h"
 #endif
-
-#ifdef FIXED16
-#include "driver/fixed16.h"
-#endif 
 
 #endif // PICO_CNN_H

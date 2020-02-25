@@ -16,8 +16,4 @@ extern fp_t min_float;
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-#ifdef __arm__
-#define BLOCK_SIZE 16
-#endif
-
 #endif // PARAMETERS_H
