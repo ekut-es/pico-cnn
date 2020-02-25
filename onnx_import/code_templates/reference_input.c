@@ -44,8 +44,26 @@ int main(int argc, char** argv) {
     fp_t* input = (fp_t*) malloc({{input_channel_height}}*{{input_channel_width}}*sizeof(fp_t));
     {% endif %}
 
-    fp_t* output = (fp_t*) malloc({{output_size}}*sizeof(fp_t));
-    fp_t* ref_output = (fp_t*) malloc({{output_size}}*sizeof(fp_t));
+    {% if output_shape_len == 4 or output_shape_len == 3 %}
+    fp_t** output = (fp_t**) malloc({{num_output_channels}}*sizeof(fp_t*));
+
+    for(int i = 0; i < {{num_input_channels}}; i++){
+        output[i] = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
+    }
+    {% elif output_shape_len == 2 %}
+    fp_t* output = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
+    {% endif %}
+
+
+    {% if output_shape_len == 4 or output_shape_len == 3 %}
+    fp_t** ref_output = (fp_t**) malloc({{num_output_channels}}*sizeof(fp_t*));
+
+    for(int i = 0; i < {{num_input_channels}}; i++){
+        ref_output[i] = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
+    }
+    {% elif output_shape_len == 2 %}
+    fp_t* ref_output = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
+    {% endif %}
 
     if(read_binary_sample_input_data(sample_input_path, &input) != 0)
         return -1;
@@ -71,7 +89,20 @@ int main(int argc, char** argv) {
 
     int all_equal = 1;
 
-    for(int i = 0; i < {{output_size}}; i++) {
+    {% if output_shape_len == 4 or output_shape_len == 3 %}
+    for(int channel = 0; channel < {{num_output_channels}}; channel++) {
+        for(int i = 0; i < {{output_channel_height}}*{{output_channel_width}}; i++) {
+        #ifdef PRINT
+        printf("Channel: %d\tPosition: %d\toutput: %f\tref_output: %f\n", channel, i, output[channel][i], ref_output[channel][i]);
+        #endif
+        if(!almost_equal(output[channel][i], ref_output[channel][i], EPSILON)) {
+            all_equal = 0;
+            printf("Not equal at in channel: %d at position: %d, output: %f, ref_output: %f\n", channel, i, output[channel][i], ref_output[channel][i]);
+        }
+    }
+    }
+    {% elif output_shape_len == 2 %}
+    for(int i = 0; i < {{output_channel_height}}*{{output_channel_width}}; i++) {
         #ifdef PRINT
         printf("Position: %d\toutput: %f\tref_output: %f\n", i, output[i], ref_output[i]);
         #endif
@@ -80,6 +111,8 @@ int main(int argc, char** argv) {
             printf("Not equal at position: %d, output: %f, ref_output: %f\n", i, output[i], ref_output[i]);
         }
     }
+    {% endif %}
+
     if(all_equal)
         printf("Output is almost equal (epsilon=%f) to reference output!\n", EPSILON);
     else

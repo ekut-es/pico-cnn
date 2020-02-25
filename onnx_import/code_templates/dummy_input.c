@@ -51,6 +51,16 @@ int main(int argc, char** argv) {
     fp_t* input = (fp_t*) malloc({{input_channel_height}}*{{input_channel_width}}*sizeof(fp_t));
     {% endif %}
 
+    {% if output_shape_len == 4 or output_shape_len == 3 %}
+    fp_t** output = (fp_t**) malloc({{num_output_channels}}*sizeof(fp_t*));
+
+    for(int i = 0; i < {{num_input_channels}}; i++){
+        output[i] = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
+    }
+    {% elif output_shape_len == 2 %}
+    fp_t* output = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
+    {% endif %}
+
 
     if(GENERATE_ONCE) {
         printf("Random input will be generated once for all inference runs.\n");
@@ -81,8 +91,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "could not read weights from '%s'\n", weights_path);
         return 1;
     }
-
-    fp_t* output = (fp_t*) malloc({{output_size}}*sizeof(fp_t));
 
     printf("Starting CNN for %d runs...\n", RUNS);
 

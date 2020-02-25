@@ -549,18 +549,18 @@ class BackendRep(backend_base.BackendRep):
             elif res.shape is not None:
                 graph.shape_dict[var] = res.shape
 
-        # print("Inference graph:")
-        # for node in graph.nodes:
-        #     inputs = node.inputs
-        #     input_shapes = (str(graph.shape_dict[i]) for i in node.inputs if i in graph.shape_dict)
-        #     outputs = node.outputs
-        #     output_shapes = (str(graph.shape_dict[o]) for o in node.outputs if o in graph.shape_dict)
-        #     print("{:<24}  {:<20}  {:<30}  {:<30}  {:<20}  {:<30}".format(node.name,
-        #                                                                   node.op_type,
-        #                                                                   ",".join(inputs),
-        #                                                                   ",".join(input_shapes),
-        #                                                                   ",".join(outputs),
-        #                                                                   ",".join(output_shapes)))
+        print("Inference graph:")
+        for node in graph.nodes:
+            inputs = node.inputs
+            input_shapes = (str(graph.shape_dict[i]) for i in node.inputs if i in graph.shape_dict)
+            outputs = node.outputs
+            output_shapes = (str(graph.shape_dict[o]) for o in node.outputs if o in graph.shape_dict)
+            print("{:<24}  {:<20}  {:<30}  {:<30}  {:<20}  {:<30}".format(node.name,
+                                                                          node.op_type,
+                                                                          ",".join(inputs),
+                                                                          ",".join(input_shapes),
+                                                                          ",".join(outputs),
+                                                                          ",".join(output_shapes)))
 
         memory_manager = MemoryManager()
 
@@ -587,7 +587,7 @@ class BackendRep(backend_base.BackendRep):
             print("ERROR: Multiple inputs not supported!")
             exit(1)
         else:
-            input_shape = inputs[0].shape
+            input_shape = graph.shape_dict[inputs[0].name]
             print("Input shape: {}".format(input_shape))
 
             if len(input_shape) == 4:
@@ -595,21 +595,39 @@ class BackendRep(backend_base.BackendRep):
                     print("ERROR: Inference for batch_size > 1 currently not supported!")
                     exit(1)
 
-                input_defs = ["float **"+n for n in input_names]
+                input_defs = ["fp_t **"+n for n in input_names]
 
             elif len(input_shape) == 3:
                 if input_shape[0] != 1:
                     print("ERROR: Inference for batch_size > 1 currently not supported!")
                     exit(1)
 
-                input_defs = ["float **"+n for n in input_names]
+                input_defs = ["fp_t **"+n for n in input_names]
 
             elif len(input_shape) == 2:
                 print("Input is one-dimensional (batch_size = 1 and num_input_channels = 1)")
-                input_defs = ["float *"+n for n in input_names]
+                input_defs = ["fp_t *"+n for n in input_names]
 
-        # TODO: Has to be changed as soon as be want to support multiple other data types (e.g. fixed-point)
-        output_defs = ["float *"+n for n in output_names]
+        outputs = graph.outputs
+        if len(outputs) > 1:
+            print("ERROR: Multiple outputs not supported")
+            exit(1)
+        else:
+            output_shape = graph.shape_dict[outputs[0].name]
+            print("Output shape: {}".format(output_shape))
+
+            if len(output_shape) == 2:
+                print("Output is one-dimensional (batch_size = 1 and num_input_channels = 1)")
+                output_defs = ["fp_t *" + n for n in output_names]
+            elif len(output_shape) == 3:
+                print("ERROR: Unknown output shape of network: {}".format(output_shape))
+                exit(1)
+            elif len(output_shape) == 4:
+                print("Output is multi-dimensional.")
+
+
+
+
         network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
         # network_def = "int network(" + ", ".join(input_defs) + ")"
 

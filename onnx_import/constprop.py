@@ -143,7 +143,8 @@ const_impls = {
     "BatchNormalization": KeepDimsImpl(),
     "Clip": KeepDimsImpl(),
     "Squeeze": SqueezeImpl(),
-    "Unsqueeze": UnsqueezeImpl()
+    "Unsqueeze": UnsqueezeImpl(),
+    "Softmax": KeepDimsImpl()
 }
 
 
