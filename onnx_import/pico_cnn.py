@@ -786,10 +786,10 @@ class AveragePool1D(BaseLayer):
 OperationRegistry.register(AveragePool1D)
 
 
-class GlobalAveragePool2D(BaseLayer):
-    name = "PicoCNNGlobalAveragePool"
-    operator = "GlobalAveragePool"
-    template_file = "pico_cnn_average_pool2d.c"
+class GlobalMaxPool2D(BaseLayer):
+    name = "PicoCNNGlobalMaxPool2D"
+    operator = "GlobalMaxPool2D"
+    template_file = "pico_cnn_global_max_pool2d.c"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -801,34 +801,54 @@ class GlobalAveragePool2D(BaseLayer):
 
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-        bias_buffer = None
 
         input_shape = input_buffer.shape
-        kernel_size = input_shape[2]
-        kernel_stride = 1
-
         num_input_channels = input_shape[1]
-
-        padding = None
-        padding_needed = False
-
-        # Only needed as long as we use the regular average_pool2d implementation
-        # as we want to compute the average over all pixels
-        count_include_pad = 1
+        input_height = input_shape[2]
+        input_width = input_shape[3]
 
         operation = cls(node, graph)
 
         operation.attributes["num_input_channels"] = num_input_channels
         operation.attributes["input_buffer"] = input_buffer
-        operation.attributes["input_height"] = input_shape[2]
-        operation.attributes["input_width"] = input_shape[3]
+        operation.attributes["input_height"] = input_height
+        operation.attributes["input_width"] = input_width
         operation.attributes["output_buffer"] = output_buffer
-        operation.attributes["kernel_size"] = kernel_size
-        operation.attributes["kernel_stride"] = kernel_stride
-        operation.attributes["bias_buffer"] = bias_buffer
-        operation.attributes['padding_needed'] = padding_needed
-        operation.attributes['padding'] = padding
-        operation.attributes['count_include_pad'] = count_include_pad
+
+        return operation
+
+
+OperationRegistry.register(GlobalMaxPool2D)
+
+
+class GlobalAveragePool2D(BaseLayer):
+    name = "PicoCNNGlobalAveragePool"
+    operator = "GlobalAveragePool"
+    template_file = "pico_cnn_global_average_pool2d.c"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        # if not len(kernel_shape) == 2:
+        #     print("{} is not a 2DAvgPool".format(node.name))
+        #     return None
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shape = input_buffer.shape
+        num_input_channels = input_shape[1]
+        input_height = input_shape[2]
+        input_width = input_shape[3]
+
+        operation = cls(node, graph)
+
+        operation.attributes["num_input_channels"] = num_input_channels
+        operation.attributes["input_buffer"] = input_buffer
+        operation.attributes["input_height"] = input_height
+        operation.attributes["input_width"] = input_width
+        operation.attributes["output_buffer"] = output_buffer
 
         return operation
 

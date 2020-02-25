@@ -135,11 +135,11 @@ void average_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t in
 
 
 
-void global_average_pooling2d_naive(const fp_t* input_channel, const uint16_t input_width,
-                                    const uint16_t input_height, fp_t* output_channel);
+void global_average_pooling2d_naive(const fp_t* input_channel, const uint16_t input_height,
+                                    const uint16_t input_width, fp_t* output_channel);
 
-void global_max_pooling2d_naive(const fp_t* input_channel, const uint16_t input_width,
-                                const uint16_t input_height, fp_t* output_channel);
+void global_max_pooling2d_naive(const fp_t* input_channel, const uint16_t input_height,
+                                const uint16_t input_width, fp_t* output_channel);
 
 void pad_2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
                   fp_t* output_channel, const int* padding, fp_t initializer);
