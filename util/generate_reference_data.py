@@ -65,9 +65,12 @@ def main():
         print("No input file specified. Generating random input.")
         file_type = 'random'
         input_file = "random"
+        input_file_name = input_file
         r = args.range
 
     onnx_model = args.model
+    onnx_file_path = os.path.dirname(onnx_model)
+
     input_shape = tuple(args.shape)
 
     model = onnx.load(onnx_model)
@@ -101,8 +104,11 @@ def main():
         # tmp = os.path.splitext(os.path.basename(onnx_model))
         # tmp2 = os.path.splitext(input_file)
 
-        in_path = "{}_{}_input.data".format(os.path.splitext(input_file)[0],
+        in_path = "{}_{}_input.data".format(os.path.splitext(input_file_name)[0],
                                             os.path.splitext(os.path.basename(onnx_model))[0])
+
+        in_path = os.path.join(onnx_file_path, in_path)
+
         print("Saving input to {}".format(in_path))
         with open(in_path, "wb") as f:
             for packed_struct in packed_input:
@@ -129,8 +135,10 @@ def main():
             for row in channel:
                 packed_input.append(struct.pack('f' * len(row), *row))  # Data
 
-        in_path = "{}_{}_input.data".format(os.path.splitext(input_file)[0],
+        in_path = "{}_{}_input.data".format(os.path.splitext(input_file_name)[0],
                                             os.path.splitext(os.path.basename(onnx_model))[0])
+
+        in_path = os.path.join(onnx_file_path, in_path)
 
         print("Saving input to {}".format(in_path))
         with open(in_path, "wb") as f:
@@ -151,8 +159,11 @@ def main():
         for row in input_data:
             packed_input.append(struct.pack('f' * len(row), *row))  # Data
 
-        in_path = "{}_{}_input.data".format(os.path.splitext(input_file)[0],
+        in_path = "{}_{}_input.data".format(os.path.splitext(input_file_name)[0],
                                             os.path.splitext(os.path.basename(onnx_model))[0])
+
+        in_path = os.path.join(onnx_file_path, in_path)
+
         print("Saving input to {}".format(in_path))
         with open(in_path, "wb") as f:
             for packed_struct in packed_input:
@@ -187,8 +198,10 @@ def main():
             print("ERROR: Unsupported input shape length: {}".format(input_shape))
             exit(1)
 
-        in_path = "{}_{}_input.data".format(os.path.splitext(input_file)[0],
+        in_path = "{}_{}_input.data".format(os.path.splitext(input_file_name)[0],
                                             os.path.splitext(os.path.basename(onnx_model))[0])
+
+        in_path = os.path.join(onnx_file_path, in_path)
 
         print("Saving input to {}".format(in_path))
         with open(in_path, "wb") as f:
@@ -212,7 +225,8 @@ def main():
     for output in outputs[0]:
         packed_output.append(struct.pack('f'*len(output), *output))  # Data
 
-    out_path = "{}_{}_output.data".format(os.path.splitext(input_file)[0], os.path.splitext(os.path.basename(onnx_model))[0])
+    out_path = "{}_{}_output.data".format(os.path.splitext(input_file_name)[0], os.path.splitext(os.path.basename(onnx_model))[0])
+    out_path = os.path.join(onnx_file_path, out_path)
     print("Saving output to {}".format(out_path))
     with open(out_path, "wb") as f:
         for packed_struct in packed_output:
