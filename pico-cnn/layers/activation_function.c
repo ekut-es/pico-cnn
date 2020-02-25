@@ -47,15 +47,15 @@ void relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t
 
 void leaky_relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel, const fp_t leak) {
 
-  #ifdef BIG_LOOPS
- uint64_t i;
-  # else
-  uint32_t i;
-  #endif
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    # else
+    uint32_t i;
+    #endif
 
-  for(i = 0; i < height*width; i++) {
-    output_channel[i] = (input_channel[i] < 0.0) ? (leak*input_channel[i]) : input_channel[i];
-  }
+    for(i = 0; i < height*width; i++) {
+        output_channel[i] = (input_channel[i] < 0.0) ? (leak*input_channel[i]) : input_channel[i];
+    }
 }
 
 
@@ -63,15 +63,15 @@ void leaky_relu_naive(const fp_t* input_channel, const uint16_t height, const ui
 // TODO: rename kernel?
 void parametrized_relu_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel, fp_t* kernel) {
 
-  #ifdef BIG_LOOPS
- uint64_t i;
-  # else
-  uint32_t i;
-  #endif
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    # else
+    uint32_t i;
+    #endif
 
-  for(i = 0; i < height*width; i++) {
-    output_channel[i] = (input_channel[i] < 0.0) ? (kernel[i] * input_channel[i]) : input_channel[i];
-  }
+    for(i = 0; i < height*width; i++) {
+        output_channel[i] = (input_channel[i] < 0.0) ? (kernel[i] * input_channel[i]) : input_channel[i];
+    }
 
 }
 
@@ -79,17 +79,17 @@ void parametrized_relu_naive(const fp_t* input_channel, const uint16_t height, c
 // TODO: check whether correct
 void sigmoid_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,  fp_t* output_channel) {
 
-  #ifdef BIG_LOOPS
-  uint64_t i;
-  #else
-  uint32_t i;
-  #endif
+    #ifdef BIG_LOOPS
+    uint64_t i;
+    #else
+    uint32_t i;
+    #endif
 
-  for(i = 0; i < height*width; i++) {
-    output_channel[i] = 1 / (1+expf(- input_channel[i]));
-    // alternative formula:
-    //  output_channel[i] = 0.5 * (1 + tanhf(input_channel[i] / 2));
-  }
+    for(i = 0; i < height*width; i++) {
+        output_channel[i] = 1 / (1+expf(- input_channel[i]));
+        // alternative formula:
+        //  output_channel[i] = 0.5 * (1 + tanhf(input_channel[i] / 2));
+    }
 }
 
 void softmax_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel) {
