@@ -28,7 +28,8 @@ def main():
 
     warnings.filterwarnings('ignore')
 
-    parser = argparse.ArgumentParser(description="Debugging-Tool to save output of any layer in a model to text files.")
+    parser = argparse.ArgumentParser(description="Debugging-Tool to save output of any (intermediate) \
+                                                 layer in a model to text files.")
     parser.add_argument(
         "--input",
         type=Text,
