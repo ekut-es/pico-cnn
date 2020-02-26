@@ -10,7 +10,7 @@ void concatenate_1D(fp_t** input_channels, const uint16_t width,
     }
 }
 
-void concatenate_2D(fp_t** input_channels, const uint16_t width, const uint16_t height,
+void concatenate_2D(fp_t** input_channels, const uint16_t height, const uint16_t width,
                     const uint16_t dimension, const uint16_t num_inputs, fp_t* output_channel) {
 
     uint16_t input_channel;
