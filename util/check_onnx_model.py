@@ -17,7 +17,8 @@ def main():
 
     warnings.filterwarnings('ignore')
 
-    parser = argparse.ArgumentParser(description="Tool to compare output of onnx model to sample data.")
+    parser = argparse.ArgumentParser(description="Tool to compare output of onnx model to \
+                                                 sample data obtained from the onnx model-zoo.")
     parser.add_argument(
         "--input",
         type=Text,
