@@ -2,6 +2,8 @@
  * @brief provides all includes to construct a CNN
  *
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
  */
 
 #ifndef PICO_CNN_H

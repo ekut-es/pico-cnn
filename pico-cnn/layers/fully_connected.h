@@ -2,6 +2,8 @@
  * @brief contains the fully connected layer
  *
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
  */
 
 #ifndef FULLY_CONNECTED_H

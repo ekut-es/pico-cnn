@@ -9,7 +9,7 @@ void clip_naive(const fp_t* input_channel, const uint16_t height, const uint16_t
     #endif
 
     for(i = 0; i < height*width; i++) {
-        if(input_channel[i] < 0.0)
+        if(input_channel[i] < min)
             output_channel[i] = min;
         else if(input_channel[i] > max)
             output_channel[i] = max;

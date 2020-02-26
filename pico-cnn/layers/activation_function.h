@@ -2,6 +2,8 @@
  * @brief contains all activation functions
  *
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
  */
 
 #ifndef ACTIVATION_FUNCTION_H
@@ -12,6 +14,17 @@
 #include <stdio.h>
 #include <math.h>
 
+/**
+ * @brief Performs clip operation on the input_channel. All values smaller than min will be set to min.
+ *        All values bigger than max will be set to max. All other values stay the same.
+ *
+ * @param input_channel
+ * @param height
+ * @param width
+ * @param min
+ * @param max
+ * @param output_channel
+ */
 void clip_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
                 const fp_t min, const fp_t max, fp_t* output_channel);
 

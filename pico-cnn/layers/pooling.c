@@ -337,11 +337,9 @@ void pad_2d_naive(const fp_t* input_channel, const uint16_t height, const uint16
     uint16_t width_padded = width + padding[1] + padding[3];
 
 
-    if(initializer != 0.0) {
-        for(int r = 0; r < height_padded; r++){
-            for(int c = 0; c < width_padded; c++){
-                output_channel[r*width_padded+c] = initializer;
-            }
+    for(int r = 0; r < height_padded; r++){
+        for(int c = 0; c < width_padded; c++){
+            output_channel[r*width_padded+c] = initializer;
         }
     }
 
@@ -355,10 +353,8 @@ void pad_1d_naive(const fp_t* input_channel, const uint16_t width,
                   fp_t* output_channel, const int* padding, fp_t initializer) {
     uint16_t width_padded = width + padding[0] + padding[1];
 
-    if(initializer != 0.0) {
-        for(int i = 0; i < width_padded; i++){
-            output_channel[i] = initializer;
-        }
+    for(int i = 0; i < width_padded; i++){
+        output_channel[i] = initializer;
     }
 
     memcpy(output_channel+padding[0], input_channel, width*sizeof(fp_t));

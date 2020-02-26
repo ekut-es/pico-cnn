@@ -2,6 +2,7 @@
  * @brief provides global parameters for pico-cnn 
  *
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */
 
 #ifndef PARAMETERS_H

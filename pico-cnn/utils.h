@@ -2,6 +2,8 @@
  * @brief provides utility functions used in the CNN
  *
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
  */
 
 #ifndef UTILS_H
