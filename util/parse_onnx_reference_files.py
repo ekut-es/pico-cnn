@@ -7,6 +7,8 @@ import glob
 import onnx
 from onnx import numpy_helper
 
+__author__ = "Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
+
 
 def main():
 

@@ -12,6 +12,8 @@ import caffe2.python.onnx.backend as backend
 
 import warnings
 
+__author__ = "Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
+
 
 def main():
 

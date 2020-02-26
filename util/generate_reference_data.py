@@ -9,8 +9,10 @@ import caffe2.python.onnx.backend as backend
 
 import magic
 from scipy.io.wavfile import read
-# from PIL import Image
 import imageio
+
+__author__ = "Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
+
 supported_file_types = ['audio/x-wav', 'image/jpeg', 'image/x-portable-greymap']
 
 
