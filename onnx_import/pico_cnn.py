@@ -1,3 +1,4 @@
+""" All operator related code will be generated from the corresponding operator classes. """
 from ir import *
 from utils import reduce_mult
 
@@ -11,6 +12,8 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 template_dir = os.path.join(base_dir, "code_templates")
 
 template_env = Environment(loader=FileSystemLoader(template_dir))
+
+__author__ = "Christoph Gerum, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
 
 
 class BaseLayer(object):
@@ -1313,7 +1316,7 @@ OperationRegistry.register(Squeeze)
 class Pad(BaseLayer):
     name = "PicoCNNPad"
     operator = "Pad"
-    template_file = "pad.c"
+    template_file = "pico_cnn_pad.c"
 
     @classmethod
     def create(cls, node, graph, memory_manager):

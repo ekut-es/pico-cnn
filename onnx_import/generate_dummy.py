@@ -6,6 +6,8 @@ template_dir = os.path.join(base_dir, "code_templates")
 
 template_env = Environment(loader=FileSystemLoader(template_dir))
 
+__author__ = "Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
+
 
 def generate_dummy_main(graph):
     """

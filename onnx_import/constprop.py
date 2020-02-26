@@ -2,6 +2,8 @@ import numpy as np
 from collections import defaultdict
 import math
 
+__author__ = "Christoph Gerum, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
+
 
 class ConstPropState(object):
     def __init__(self, value=None, shape=None):

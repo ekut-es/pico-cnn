@@ -3,6 +3,8 @@ from typing import Any, Text, Iterable, List, Dict, Sequence, Optional, Tuple, U
 from onnx import AttributeProto, numpy_helper
 import numpy as np
 
+__author__ = "Christoph Gerum, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
+
 
 def _convertAttributeProto(onnx_arg): 
     """

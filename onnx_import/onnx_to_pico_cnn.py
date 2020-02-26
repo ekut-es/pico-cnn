@@ -12,6 +12,8 @@ from compute_graph import *
 from constprop import constant_propagation
 from backend import Backend, BackendRep
 
+__author__ = "Christoph Gerum, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
+
 
 def onnx_to_pico_cnn(onnx_model, model_name):
 

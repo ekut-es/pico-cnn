@@ -7,13 +7,14 @@ from ir import CodeRegistry
 from pico_cnn import *
 from memory_allocation import *
 from generate_dummy import *
-# import cffi
 
 import onnx.backend.base as backend_base
 import onnx
 
 import os
 import struct
+
+__author__ = "Christoph Gerum, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
 
 
 class BackendRep(backend_base.BackendRep):
@@ -35,19 +36,6 @@ class BackendRep(backend_base.BackendRep):
         self.dummy_input = ""
         self.reference_input = ""
         self._export_model()
-
-    def run(self, inputs, **kwargs):
-        ffibuilder = cffi.FFI()
-        print(self.network_def)
-        ffibuilder.cdef(self.network_def)
-
-        ffibuilder.set_source("__network", self.network_header,
-                              sources=["network.c", "network_parameters.c"],
-                              include_dirs=["/local/gerum/projects/ocean12/speech_recognition/runtime/pico-cnn"],
-                              libraries=["m", "pthread"],
-                              extra_compile_args=["-O3", "-g", "-std=c99"])
-
-        ffibuilder.compile(verbose=True)
 
     def _remove_constants(self, graph, constant_states):
         # Remove nodes with constant values
@@ -488,7 +476,7 @@ class BackendRep(backend_base.BackendRep):
 
         return schedule
 
-    def _allocate_memory(self, schedule):
+    def _print_live_ranges(self, schedule):
         """
         Calculate Live Ranges and print them. For debug purposes.
         :param schedule: Previously comuted pseudo-schedule.
@@ -504,24 +492,24 @@ class BackendRep(backend_base.BackendRep):
                 if input in range_starts:
                     range_ends[input] = num
 
-        # print("Live Ranges:")
-        # for name in sorted(range_starts.keys()):
-        #     print("{:^5}".format(name),  end="")
-        # print()
-        #
-        # for num, _, _ in schedule:
-        #     for name in sorted(range_starts.keys()):
-        #         if num < range_starts[name]:
-        #             print("     ", end="")
-        #         elif num == range_starts[name]:
-        #             print("  s  ", end="")
-        #         elif num < range_ends[name]:
-        #             print("  |  ", end="")
-        #         elif num == range_ends[name]:
-        #             print("  e  ", end="")
-        #         else:
-        #             print("     ", end="")
-        #     print()
+        print("Live Ranges:")
+        for name in sorted(range_starts.keys()):
+            print("{:^5}".format(name),  end="")
+        print()
+
+        for num, _, _ in schedule:
+            for name in sorted(range_starts.keys()):
+                if num < range_starts[name]:
+                    print("     ", end="")
+                elif num == range_starts[name]:
+                    print("  s  ", end="")
+                elif num < range_ends[name]:
+                    print("  |  ", end="")
+                elif num == range_ends[name]:
+                    print("  e  ", end="")
+                else:
+                    print("     ", end="")
+            print()
 
     def _export_model(self):
         """
@@ -576,7 +564,7 @@ class BackendRep(backend_base.BackendRep):
 
         implementations = self._select_implementations(graph, memory_manager)
         schedule = self._get_schedule(graph, implementations)
-        self._allocate_memory(schedule)
+        # self._print_live_ranges(schedule)
 
         input_names = ["input_"+name.replace('.', '_').replace(':', '_').replace('/', '_') for name, type, shape in graph.inputs]
         output_names = ["output_"+name.replace('.', '_').replace(':', '_').replace('/', '_') for name, type, shape in graph.outputs]
@@ -625,11 +613,7 @@ class BackendRep(backend_base.BackendRep):
             elif len(output_shape) == 4:
                 print("Output is multi-dimensional.")
 
-
-
-
         network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
-        # network_def = "int network(" + ", ".join(input_defs) + ")"
 
         self.network_def = network_def + ";"
 
@@ -661,14 +645,14 @@ class BackendRep(backend_base.BackendRep):
                 print("ERROR: Unsupported layer: {}! Aborting code generation.".format(node.op_type))
                 return 1
 
-        # TODO: What does this loop do?
-        for id, buffer in memory_manager.buffers.items():
-            if graph.is_tensor(id):
-                continue
-            if graph.is_input(id):
-                continue
-            if graph.is_output(id):
-                continue
+        # # TODO: What does this loop do?
+        # for id, buffer in memory_manager.buffers.items():
+        #     if graph.is_tensor(id):
+        #         continue
+        #     if graph.is_input(id):
+        #         continue
+        #     if graph.is_output(id):
+        #         continue
 
         network_code += implementation_code
 
@@ -774,18 +758,3 @@ class Backend(object):
 
         return rep
 
-
-def export_data(config):
-    print("Exporting_input_data")
-    train_set, dev_set, test_set = dataset.SpeechDataset.splits(config)
-    test_loader = DataLoader(test_set, batch_size=1, shuffle=True)
-
-    data, label = next(iter(test_loader))
-    data = data.numpy().flatten()
-
-    data_code = "#ifndef INPUT_DATA_H\n"
-    data_code += "#include \"pico-cnn/parameters.h\"\n\n"
-    data_code += "fp_t input[] = {" + ",".join((str(x) for x in data)) + "};\n"
-    data_code += "#endif //INPUT_DATA_H\n"
-    with open("input_data.h", "w") as f:
-        f.write(data_code)

@@ -1,6 +1,8 @@
 from utils import reduce_mult
 import numpy as np
 
+__author__ = "Christoph Gerum, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
+
 
 class Buffer(object):
     """
