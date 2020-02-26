@@ -9,15 +9,6 @@
 #include <float.h>
 #include <math.h>
 
-#ifdef FIXED16
-#include "../driver/fixed16.h"
-#endif
-
-#ifdef ARM_NEON
-#include "arm_neon.h"
-#include <float.h>
-#endif
-
 /*  @brief concatenates 1D channels into a single (2D) channel
  *         output channel needs to be of size width  * num_inputs * sizeof(fp_t)
  */
