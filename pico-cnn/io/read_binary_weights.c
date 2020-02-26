@@ -349,7 +349,7 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
         end_marker[4] = '\0';
 
         if(strcmp(end_marker,"end\n") != 0) {
-            printf("Wrong magic number: %s\n", end_marker);
+            printf("Wrong end marker read: %s\n", end_marker);
             fclose(binary_file);
             return 1;
         }
