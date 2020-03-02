@@ -1,6 +1,8 @@
-//
-// Created by junga on 04.07.19.
-//
+/**
+ * @brief provides the function for reading the binary weights file
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ */
 
 #ifndef PICO_CNN_READ_BINARY_WEIGHTS_H
 #define PICO_CNN_READ_BINARY_WEIGHTS_H
