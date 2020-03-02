@@ -13,8 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <float.h>
-#include <math.h>
 
 /**
  * @brief Concatenates 1D channels into a single (2D) channel.

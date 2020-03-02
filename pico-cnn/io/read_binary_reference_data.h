@@ -8,9 +8,9 @@
 #define PICO_CNN_READ_BINARY_REFERENCE_DATA_H
 
 #include "../parameters.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 
 //#define DEBUG

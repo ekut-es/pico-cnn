@@ -12,11 +12,6 @@
 #include "../parameters.h"
 #include "../utils.h"
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <assert.h>
 
 /**
  * @brief performs a 1D convolution on input_channel with kernel and stores the

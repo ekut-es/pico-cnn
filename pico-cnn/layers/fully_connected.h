@@ -11,9 +11,6 @@
 
 #include "../parameters.h"
 #include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
 /**
  * @brief implementation of fully connected layer
