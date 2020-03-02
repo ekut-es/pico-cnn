@@ -1,7 +1,6 @@
 /**
  * @brief contains concatenate operation
  *
- * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
  */
@@ -14,8 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <float.h>
-#include <math.h>
 
 /**
  * @brief Concatenates 1D channels into a single (2D) channel.

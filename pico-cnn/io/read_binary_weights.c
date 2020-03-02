@@ -12,14 +12,14 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
         // Read magic number
         char magic_number[4];
         if(fread((void*)&magic_number, 1, 3, binary_file) != 3) {
-            printf("Error reading magic number\n");
+            printf("ERROR reading magic number\n");
             fclose(binary_file);
             return 1;
         }
         magic_number[3] = '\0';
 
         if(strcmp(magic_number,"FD\n") != 0) {
-            printf("Wrong magic number: %s\n", magic_number);
+            printf("ERROR: Wrong magic number: %s\n", magic_number);
             fclose(binary_file);
             return 1;
         }
@@ -33,7 +33,7 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
         uint32_t i = 0;
         for(; c != '\n'; i++){
             if(fread((void*)&c, sizeof(c), 1, binary_file) != 1) {
-                printf("Error while reading name\n");
+                printf("ERROR while reading name\n");
                 fclose(binary_file);
                 return 1;
             }
@@ -71,7 +71,7 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
             i = 0;
             for(; c != '\n'; i++) {
                 if(fread((void*)&c, sizeof(c), 1, binary_file) != 1) {
-                    printf("Error while reading layer name\n");
+                    printf("ERROR while reading layer name\n");
                     fclose(binary_file);
                     return 1;
                 }
@@ -85,7 +85,7 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
             i = 0;
             for(; c != '\n'; i++) {
                 if(fread((void*)&c, sizeof(c), 1, binary_file) != 1) {
-                    printf("Error while reading layer type\n");
+                    printf("ERROR while reading layer type\n");
                     fclose(binary_file);
                     return 1;
                 }
@@ -104,17 +104,17 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 uint32_t num_kernels = 0;
 
                 if (fread((void *) &kernel_height, sizeof(kernel_height), 1, binary_file) != 1) {
-                    printf("Error while reading kernel height\n");
+                    printf("ERROR while reading kernel height\n");
                     fclose(binary_file);
                     return 1;
                 }
                 if (fread((void *) &kernel_width, sizeof(kernel_width), 1, binary_file) != 1) {
-                    printf("Error while reading kernel width\n");
+                    printf("ERROR while reading kernel width\n");
                     fclose(binary_file);
                     return 1;
                 }
                 if (fread((void *) &num_kernels, sizeof(num_kernels), 1, binary_file) != 1) {
-                    printf("Error while reading number of kernels\n");
+                    printf("ERROR while reading number of kernels\n");
                     fclose(binary_file);
                     return 1;
                 }
@@ -127,10 +127,13 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                     uint32_t kernel;
                     float *values = (float *) malloc(kernel_height * kernel_width * sizeof(float));
 
-                    int numbers_read = -1;
-
                     for (kernel = 0; kernel < num_kernels; kernel++) {
-                        numbers_read = fread((void *) values, sizeof(float), kernel_height * kernel_width, binary_file);
+                        if(fread((void *) values, sizeof(float), kernel_height * kernel_width, binary_file) != (kernel_height*kernel_width)) {
+                            printf("ERROR while reading kernel values.\n");
+                            free(values);
+                            fclose(binary_file);
+                            return 1;
+                        }
                         memcpy((*kernels)[kernel_idx][kernel], values, kernel_height * kernel_width * sizeof(float));
                     }
 
@@ -141,7 +144,7 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
 
                 uint32_t num_biases = 0;
                 if (fread((void *) &num_biases, sizeof(num_biases), 1, binary_file) != 1) {
-                    printf("Error while reading number of biases\n");
+                    printf("ERROR while reading number of biases\n");
                     fclose(binary_file);
                     return 1;
                 }
@@ -152,7 +155,12 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 if (num_biases) {
                     float *bias_values = (float *) malloc(num_biases * sizeof(float));
 
-                    fread((void *) bias_values, sizeof(float), num_biases, binary_file);
+                    if(fread((void *) bias_values, sizeof(float), num_biases, binary_file) != num_biases) {
+                        printf("ERROR while reading bias values.\n");
+                        free(bias_values);
+                        fclose(binary_file);
+                        return 1;
+                    }
                     memcpy((*biases)[bias_idx], bias_values, num_biases * sizeof(float));
 
                     bias_idx++;
@@ -163,8 +171,8 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
             } else if (strcmp(buffer_layer_type, "BatchNormalization") == 0) {
                 // read gamma values
                 uint32_t num_gamma = 0;
-                if (fread((void *) &num_gamma, sizeof(num_gamma), 1, binary_file) != 1) {
-                    printf("Error while reading number of gamma values\n");
+                if(fread((void *) &num_gamma, sizeof(num_gamma), 1, binary_file) != 1) {
+                    printf("ERROR while reading number of gamma values\n");
                     fclose(binary_file);
                     return 1;
                 }
@@ -174,7 +182,12 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 if(num_gamma) {
                     float *gamma_values = (float *) malloc(num_gamma * sizeof(float));
 
-                    fread((void *) gamma_values, sizeof(float), num_gamma, binary_file);
+                    if(fread((void *) gamma_values, sizeof(float), num_gamma, binary_file) != num_gamma) {
+                        printf("ERROR while reading gamma values.\n");
+                        free(gamma_values);
+                        fclose(binary_file);
+                        return 1;
+                    }
                     memcpy((*biases)[bias_idx], gamma_values, num_gamma * sizeof(float));
 
                     bias_idx++;
@@ -184,8 +197,8 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
 
                 // read beta values
                 uint32_t num_beta = 0;
-                if (fread((void *) &num_beta, sizeof(num_beta), 1, binary_file) != 1) {
-                    printf("Error while reading number of beta values\n");
+                if(fread((void *) &num_beta, sizeof(num_beta), 1, binary_file) != 1) {
+                    printf("ERROR while reading number of beta values\n");
                     fclose(binary_file);
                     return 1;
                 }
@@ -195,7 +208,12 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 if(num_beta) {
                     float *beta_values = (float *) malloc(num_beta * sizeof(float));
 
-                    fread((void *) beta_values, sizeof(float), num_beta, binary_file);
+                    if(fread((void *) beta_values, sizeof(float), num_beta, binary_file) != num_beta) {
+                        printf("ERROR while reading beta values.\n");
+                        free(beta_values);
+                        fclose(binary_file);
+                        return 1;
+                    }
                     memcpy((*biases)[bias_idx], beta_values, num_beta * sizeof(float));
 
                     bias_idx++;
@@ -205,8 +223,8 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
 
                 // read mean values
                 uint32_t num_mean = 0;
-                if (fread((void *) &num_mean, sizeof(num_mean), 1, binary_file) != 1) {
-                    printf("Error while reading number of beta values\n");
+                if(fread((void *) &num_mean, sizeof(num_mean), 1, binary_file) != 1) {
+                    printf("ERROR while reading number of beta values\n");
                     fclose(binary_file);
                     return 1;
                 }
@@ -216,7 +234,12 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 if(num_mean) {
                     float *mean_values = (float *) malloc(num_mean * sizeof(float));
 
-                    fread((void *) mean_values, sizeof(float), num_mean, binary_file);
+                    if(fread((void *) mean_values, sizeof(float), num_mean, binary_file) != num_mean) {
+                        printf("ERROR while reading mean values.\n");
+                        free(mean_values);
+                        fclose(binary_file);
+                        return 1;
+                    }
                     memcpy((*biases)[bias_idx], mean_values, num_mean * sizeof(float));
 
                     bias_idx++;
@@ -226,8 +249,8 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
 
                 // read variance values
                 uint32_t num_variance = 0;
-                if (fread((void *) &num_variance, sizeof(num_variance), 1, binary_file) != 1) {
-                    printf("Error while reading number of variance values\n");
+                if(fread((void *) &num_variance, sizeof(num_variance), 1, binary_file) != 1) {
+                    printf("ERROR while reading number of variance values\n");
                     fclose(binary_file);
                     return 1;
                 }
@@ -237,7 +260,12 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 if(num_variance) {
                     float *variance_values = (float *) malloc(num_variance * sizeof(float));
 
-                    fread((void *) variance_values, sizeof(float), num_variance, binary_file);
+                    if(fread((void *) variance_values, sizeof(float), num_variance, binary_file) != num_variance) {
+                        printf("ERROR while reading variance values.\n");
+                        free(variance_values);
+                        fclose(binary_file);
+                        return 1;
+                    }
                     memcpy((*biases)[bias_idx], variance_values, num_variance * sizeof(float));
 
                     bias_idx++;
@@ -253,18 +281,18 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 uint32_t kernel_width = 0;
                 uint32_t num_kernels = 0;
 
-                if (fread((void *) &kernel_height, sizeof(kernel_height), 1, binary_file) != 1) {
-                    printf("Error while reading kernel height\n");
+                if(fread((void *) &kernel_height, sizeof(kernel_height), 1, binary_file) != 1) {
+                    printf("ERROR while reading kernel height\n");
                     fclose(binary_file);
                     return 1;
                 }
-                if (fread((void *) &kernel_width, sizeof(kernel_width), 1, binary_file) != 1) {
-                    printf("Error while reading kernel width\n");
+                if(fread((void *) &kernel_width, sizeof(kernel_width), 1, binary_file) != 1) {
+                    printf("ERROR while reading kernel width\n");
                     fclose(binary_file);
                     return 1;
                 }
-                if (fread((void *) &num_kernels, sizeof(num_kernels), 1, binary_file) != 1) {
-                    printf("Error while reading number of kernels\n");
+                if(fread((void *) &num_kernels, sizeof(num_kernels), 1, binary_file) != 1) {
+                    printf("ERROR while reading number of kernels\n");
                     fclose(binary_file);
                     return 1;
                 }
@@ -276,10 +304,13 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 uint32_t kernel;
                 float *values = (float *) malloc(kernel_height * kernel_width * sizeof(float));
 
-                int numbers_read = -1;
-
-                for (kernel = 0; kernel < num_kernels; kernel++) {
-                    numbers_read = fread((void *) values, sizeof(float), kernel_height * kernel_width, binary_file);
+                for(kernel = 0; kernel < num_kernels; kernel++) {
+                    if(fread((void *) values, sizeof(float), kernel_height * kernel_width, binary_file) != (kernel_height*kernel_width)) {
+                        printf("ERROR while reading kernel values.\n");
+                        free(values);
+                        fclose(binary_file);
+                        return 1;
+                    }
                     memcpy((*kernels)[kernel_idx][kernel], values, kernel_height * kernel_width * sizeof(float));
                 }
 
@@ -288,8 +319,8 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 free(values);
 
                 uint32_t num_biases = 0;
-                if (fread((void *) &num_biases, sizeof(num_biases), 1, binary_file) != 1) {
-                    printf("Error while reading number of biases\n");
+                if(fread((void *) &num_biases, sizeof(num_biases), 1, binary_file) != 1) {
+                    printf("ERROR while reading number of biases\n");
                     fclose(binary_file);
                     return 1;
                 }
@@ -297,10 +328,15 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 printf("Number of biases: %d\n", num_biases);
 #endif
 
-                if (num_biases) {
+                if(num_biases) {
                     float *bias_values = (float *) malloc(num_biases * sizeof(float));
 
-                    fread((void *) bias_values, sizeof(float), num_biases, binary_file);
+                    if(fread((void *) bias_values, sizeof(float), num_biases, binary_file) != num_biases) {
+                        printf("ERROR while reading bias values.\n");
+                        free(bias_values);
+                        fclose(binary_file);
+                        return 1;
+                    }
                     memcpy((*biases)[bias_idx], bias_values, num_biases * sizeof(float));
 
                     bias_idx++;
@@ -309,8 +345,8 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 }
             } else if (strcmp(buffer_layer_type, "Add") == 0) {
                 uint32_t num_biases = 0;
-                if (fread((void *) &num_biases, sizeof(num_biases), 1, binary_file) != 1) {
-                    printf("Error while reading number of biases\n");
+                if(fread((void *) &num_biases, sizeof(num_biases), 1, binary_file) != 1) {
+                    printf("ERROR while reading number of biases\n");
                     fclose(binary_file);
                     return 1;
                 }
@@ -321,7 +357,12 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
                 if (num_biases) {
                     float *bias_values = (float *) malloc(num_biases * sizeof(float));
 
-                    fread((void *) bias_values, sizeof(float), num_biases, binary_file);
+                    if(fread((void *) bias_values, sizeof(float), num_biases, binary_file) != num_biases) {
+                        printf("ERROR while reading bias values.\n");
+                        free(bias_values);
+                        fclose(binary_file);
+                        return 1;
+                    }
                     memcpy((*biases)[bias_idx], bias_values, num_biases * sizeof(float));
 
                     bias_idx++;
@@ -342,7 +383,7 @@ int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t
         // Read end marker
         char end_marker[5];
         if(fread((void*)&end_marker, 1, 4, binary_file) != 4) {
-            printf("Error reading end marker\n");
+            printf("ERROR reading end marker\n");
             fclose(binary_file);
             return 1;
         }

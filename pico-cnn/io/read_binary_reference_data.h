@@ -1,14 +1,16 @@
-//
-// Created by junga on 27.08.19.
-//
+/**
+ * @brief provides functions for reading reference input and ouput data
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ */
 
 #ifndef PICO_CNN_READ_BINARY_REFERENCE_DATA_H
 #define PICO_CNN_READ_BINARY_REFERENCE_DATA_H
 
 #include "../parameters.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 
 //#define DEBUG

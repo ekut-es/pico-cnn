@@ -1,7 +1,6 @@
 /**
- * @brief provides utility functions used in the CNN
+ * @brief provides utility functions used in pico-cnn
  *
- * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
  */
@@ -11,11 +10,8 @@
 
 #include "parameters.h"
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <float.h>
-#include <math.h>
 
 /**
  * @brief Extends input_channel with padding by copying the data into a bigger array.

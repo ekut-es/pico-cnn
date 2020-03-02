@@ -6,7 +6,7 @@ void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* 
     int32_t input_channel_idx;
     int32_t kernel_idx;
     int32_t crop = kernel_size/2;
-    int32_t output_channel_idx, output_channel_size;
+    int32_t output_channel_idx;
 
     fp_t pixel;
 
@@ -14,7 +14,6 @@ void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* 
 
     // padding valid
     if(padding == 0) {
-        output_channel_size = ((input_size-kernel_size)/stride)+1;
 
         for(input_channel_idx = crop; input_channel_idx < input_size-crop; input_channel_idx+=stride) {
             pixel = 0.0;
@@ -28,12 +27,10 @@ void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* 
             output_channel[output_channel_idx] = pixel;
             output_channel_idx++;
         }
-//        assert(output_channel_idx == output_channel_size);
     }
 
     // padding same
     else if(padding == kernel_size/2) {
-        output_channel_size = (((input_size+2*(kernel_size/2))-kernel_size)/stride)+1;
 
         for(input_channel_idx = 0; input_channel_idx < input_size; input_channel_idx+=stride) {
             pixel = 0.0;
@@ -49,7 +46,6 @@ void convolution1d_naive(const fp_t* input_channel, const int input_size, fp_t* 
             output_channel[output_channel_idx] = pixel;
             output_channel_idx++;
         }
-//        assert(output_channel_idx == output_channel_size);
     }
 }
 
@@ -66,7 +62,7 @@ void convolution2d_padding_naive(const fp_t* input_channel, const uint16_t heigh
                                    output_channel, kernel, kernel_height, kernel_width,
                                    stride_height, stride_width, bias);
 
-   free(new_input_channel); //todo : is this really needed?
+   free(new_input_channel);
 }
 
 void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
@@ -84,8 +80,6 @@ void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const
    int32_t output_channel_row = 0;
    int32_t output_channel_column = 0;
 
-
-   uint16_t output_channel_height = (height - kernel_height)/stride_height + 1;
    uint16_t output_channel_width = (width - kernel_width)/stride_width + 1;
 
 

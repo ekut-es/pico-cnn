@@ -133,9 +133,13 @@ int read_binary_reference_output_data(const char* path_to_sample_data, fp_t** ou
 
         float *values = (float*) malloc(num_outputs*sizeof(float));
 
-        int numbers_read = -1;
+        if(fread((void*)values, sizeof(float), num_outputs, binary_file) != num_outputs) {
+            printf("ERROR reading output values.\n");
+            free(values);
+            fclose(binary_file);
+            return 1;
+        }
 
-        numbers_read = fread((void*)values, sizeof(float), num_outputs, binary_file);
         memcpy((*output), values, num_outputs*sizeof(float));
 
         free(values);

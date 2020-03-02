@@ -13,10 +13,6 @@
 #include "../utils.h"
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <float.h>
-#include <math.h>
 
 /**
  * @brief applies max pooling of kernel_size to input_channel

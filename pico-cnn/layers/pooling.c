@@ -164,9 +164,6 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
                 // edge case
                 } else {
 
-                    int orig_height = height-2*crop;
-                    int orig_width = width-2*crop;
-
                     int up_row, down_row, left_col, right_col;
                     int divisor, div_row, div_col;
 
@@ -184,10 +181,6 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
                         printf("ERROR: Division by zero! Aborting execution.\n");
                         exit(1);
                     }
-
-//                    printf("Edge case: output_row: %d, output_column: %d\n", output_channel_row, output_channel_column);
-//                    printf("div_row: %d, div_col: %d\n", div_row, div_col);
-//                    printf("Divisor: %d\n", divisor);
 
                     output_channel[output_channel_row * output_channel_width + output_channel_column] =
                             pixel / ((fp_t) (divisor)) + bias;
@@ -266,8 +259,6 @@ void average_pooling1d_naive(const fp_t* input_channel, const uint16_t input_wid
 
              // edge case
             } else {
-
-                int orig_width = input_width-2*crop;
 
                 int left_col, right_col;
                 int divisor, div_col;
