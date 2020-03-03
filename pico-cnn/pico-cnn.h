@@ -8,6 +8,8 @@
 #ifndef PICO_CNN_H
 #define PICO_CNN_H
 
+#define VERSION 1.0
+
 #include "parameters.h"
 
 #include "layers/activation_function.h"
