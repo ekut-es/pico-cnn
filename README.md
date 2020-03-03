@@ -258,8 +258,8 @@ Please cite Pico-CNN in your publications if it helps your research:
 ```
 @inproceedings{luebeck2019picocnn,
     author = {Lübeck, Konstantin and Bringmann, Oliver},
-    title= {A Heterogeneous and Reconfigurable Embedded Architecture for Energy-Efficient Execution of Convolutional Neural Networks},
-    booktitle={Architecture of Computing Systems (ARCS 2019)},
+    title = {A Heterogeneous and Reconfigurable Embedded Architecture for Energy-Efficient Execution of Convolutional Neural Networks},
+    booktitle = {Architecture of Computing Systems (ARCS 2019)},
     year = {2019},
     month = {May},
     pages = {267--280},
