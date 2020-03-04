@@ -8,6 +8,8 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
+#define VERSION 1.0
+
 typedef float fp_t;
 extern fp_t max_float;
 extern fp_t min_float;
