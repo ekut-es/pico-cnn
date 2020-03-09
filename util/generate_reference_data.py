@@ -32,7 +32,7 @@ def main():
         "--file",
         type=Text,
         required=False,
-        help="Path to the data the network should process."
+        help="Path to the data the network should process. If not provided random values will be used."
     )
     parser.add_argument(
         "--range",
@@ -195,6 +195,14 @@ def main():
 
             for channel in input_data[0]:
                 packed_input.append(struct.pack('f' * len(channel), *channel))  # Data
+
+        elif len(input_shape) == 2:
+            packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
+            packed_input.append(struct.pack('i', 1))  # Number of channels
+            packed_input.append(struct.pack('i', 1))  # Channel height
+            packed_input.append(struct.pack('i', input_shape[1]))  # Channel width
+
+            packed_input.append(struct.pack('f' * len(input_data[0]), *input_data[0]))  # Data
 
         else:
             print("ERROR: Unsupported input shape length: {}".format(input_shape))
