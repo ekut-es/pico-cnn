@@ -1,5 +1,5 @@
 {% if buffer_depth == 2 %}
-for(int i = 0; i < {{num_buffers}}; i++){
+for(uint32_t i = 0; i < {{num_buffers}}; i++){
     free({{buffer_name}}[i]);
 }
 {% endif %}

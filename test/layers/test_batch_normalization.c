@@ -1,13 +1,9 @@
-//
-// Created by junga on 10.01.20.
-//
-
 #include "test_batch_normalization.h"
 
-int test_batch_normalization_naive_1() {
+int32_t test_batch_normalization_naive_1() {
 
     printf("test_batch_normalization_naive_1()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_width 3
     #define input_height 1
@@ -39,10 +35,10 @@ int test_batch_normalization_naive_1() {
     return return_value;
 }
 
-int test_batch_normalization_naive_2() {
+int32_t test_batch_normalization_naive_2() {
 
     printf("test_batch_normalization_naive_2()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_width 3
     #define input_height 3

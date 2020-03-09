@@ -1,6 +1,6 @@
 #include "read_means.h"
 
-int read_means(const char* path_to_means_file, fp_t* means) {
+int32_t read_means(const char* path_to_means_file, fp_t* means) {
     FILE *means_file;
     means_file = fopen(path_to_means_file, "r");
 

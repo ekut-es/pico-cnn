@@ -25,6 +25,6 @@
  *
  * @return 0 = error occured
  */
-int read_imagenet_validation_labels(const char* path_to_imagenet_validation_labels, uint32_t** imagenet_validation_labels, uint32_t num_labels);
+int32_t read_imagenet_validation_labels(const char* path_to_imagenet_validation_labels, uint32_t** imagenet_validation_labels, uint32_t num_labels);
 
 #endif // READ_IMAGENET_VALIDATION_LABELS_H

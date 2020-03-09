@@ -1,6 +1,6 @@
 #include "read_binary_reference_data.h"
 
-int read_binary_reference_input_data(const char* path_to_sample_data, fp_t*** input) {
+int32_t read_binary_reference_input_data(const char* path_to_sample_data, fp_t*** input) {
 
     FILE *binary_file;
     binary_file = fopen(path_to_sample_data, "r");
@@ -57,17 +57,17 @@ int read_binary_reference_input_data(const char* path_to_sample_data, fp_t*** in
 
             float *values = (float*) malloc(height*width*sizeof(float));
 
-            int numbers_read = -1;
+            int32_t numbers_read = -1;
 
             numbers_read = fread((void*)values, sizeof(float), height*width, binary_file);
 
             if(numbers_read != height*width) {
-                ERROR_MSG("ERROR reading data.");
+                ERROR_MSG("ERROR reading data. numbers_read = %d\n", numbers_read);
                 free(values);
                 return 1;
             } else {
                 #ifdef DEBUG
-                for(int i = 0; i < height*width; i++) {
+                for(uint32_t i = 0; i < height*width; i++) {
                     DEBUG_MSG("%f\n", values[i]);
                 }
                 #endif
@@ -82,7 +82,7 @@ int read_binary_reference_input_data(const char* path_to_sample_data, fp_t*** in
     return 0;
 }
 
-int read_binary_reference_output_data(const char* path_to_sample_data, fp_t** output) {
+int32_t read_binary_reference_output_data(const char* path_to_sample_data, fp_t** output) {
 
     FILE *binary_file;
     binary_file = fopen(path_to_sample_data, "r");

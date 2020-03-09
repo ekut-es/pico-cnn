@@ -21,6 +21,6 @@
  *
  * @return success = 0
  */
-int write_float(const fp_t* image, const uint16_t height, const uint16_t width, const char* float_path);
+int32_t write_float(const fp_t* image, const uint16_t height, const uint16_t width, const char* float_path);
 
 #endif // WRITE_FLOAT_H

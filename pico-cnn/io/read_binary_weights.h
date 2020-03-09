@@ -13,6 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** biases);
+int32_t read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** biases);
 
 #endif //PICO_CNN_READ_BINARY_WEIGHTS_H

@@ -1,7 +1,7 @@
 {% if padding_needed %}
-const int {{identifier}}_padding[4] = { {{padding.0}}, {{padding.1}}, {{padding.2}}, {{padding.3}} };
-for(int g = 0; g < {{num_groups}}; g++) {
-    for(int i = g*{{num_output_channels}}/{{num_groups}}; i < (g+1)*{{num_output_channels}}/{{num_groups}}; i+=1){
+const uint16_t {{identifier}}_padding[4] = { {{padding.0}}, {{padding.1}}, {{padding.2}}, {{padding.3}} };
+for(uint32_t g = 0; g < {{num_groups}}; g++) {
+    for(uint32_t i = g*{{num_output_channels}}/{{num_groups}}; i < (g+1)*{{num_output_channels}}/{{num_groups}}; i+=1){
         convolution2d_padding_naive({{input_buffer.name}}[g*{{num_input_channels}}/{{num_groups}}],
                                     {{input_height}},
                                     {{input_width}},
@@ -18,8 +18,8 @@ for(int g = 0; g < {{num_groups}}; g++) {
                                     0
                                     {% endif %});
         {% if num_input_channels > num_groups %}
-        int cnt = 1;
-        for(int j = g*{{num_input_channels}}/{{num_groups}}+1; j < (g+1)*{{num_input_channels}}/{{num_groups}}; j+=1){
+        uint32_t cnt = 1;
+        for(uint32_t j = g*{{num_input_channels}}/{{num_groups}}+1; j < (g+1)*{{num_input_channels}}/{{num_groups}}; j+=1){
             static fp_t temp_buffer[{{output_feature_size}}*{{output_feature_size}}];
             convolution2d_padding_naive({{input_buffer.name}}[j],
                                         {{input_height}},
@@ -43,8 +43,8 @@ for(int g = 0; g < {{num_groups}}; g++) {
     }
 }
 {% else %}
-for(int g = 0; g < {{num_groups}}; g++) {
-    for(int i = g*{{num_output_channels}}/{{num_groups}}; i < (g+1)*{{num_output_channels}}/{{num_groups}}; i+=1){
+for(uint32_t g = 0; g < {{num_groups}}; g++) {
+    for(uint32_t i = g*{{num_output_channels}}/{{num_groups}}; i < (g+1)*{{num_output_channels}}/{{num_groups}}; i+=1){
         convolution2d_naive({{input_buffer.name}}[g*{{num_input_channels}}/{{num_groups}}],
                             {{input_height}},
                             {{input_width}},
@@ -60,8 +60,8 @@ for(int g = 0; g < {{num_groups}}; g++) {
                             0
                             {% endif %});
         {% if num_input_channels > num_groups %}
-        int cnt = 1;
-        for(int j = g*{{num_input_channels}}/{{num_groups}}+1; j < (g+1)*{{num_input_channels}}/{{num_groups}}; j+=1){
+        uint32_t cnt = 1;
+        for(uint32_t j = g*{{num_input_channels}}/{{num_groups}}+1; j < (g+1)*{{num_input_channels}}/{{num_groups}}; j+=1){
             static fp_t temp_buffer[{{output_feature_size}}*{{output_feature_size}}];
             convolution2d_naive({{input_buffer.name}}[j],
                                 {{input_height}},

@@ -23,7 +23,7 @@
  *
  * @return =! 0 means an error occured
  */
-int read_means(const char* path_to_means_file, fp_t* means);
+int32_t read_means(const char* path_to_means_file, fp_t* means);
 
 
 

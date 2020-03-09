@@ -25,7 +25,7 @@ static inline fp_t urand(fp_t min, fp_t max) {
 }
 
 
-int main(int argc, char** argv) {
+int32_t main(int32_t argc, char** argv) {
 
     if(argc != 4) {
         usage();
@@ -35,14 +35,14 @@ int main(int argc, char** argv) {
     char weights_path[1024];
     strcpy(weights_path, argv[1]);
 
-    int RUNS = atoi(argv[2]);
+    int32_t RUNS = atoi(argv[2]);
 
-    int GENERATE_ONCE = atoi(argv[3]);
+    int32_t GENERATE_ONCE = atoi(argv[3]);
 
     {% if input_shape_len == 4 or input_shape_len == 3 %}
     fp_t** input = (fp_t**) malloc({{num_input_channels}}*sizeof(fp_t*));
 
-    for(int i = 0; i < {{num_input_channels}}; i++){
+    for(uint32_t i = 0; i < {{num_input_channels}}; i++){
         input[i] = (fp_t*) malloc({{input_channel_height}}*{{input_channel_width}}*sizeof(fp_t));
     }
     {% elif input_shape_len == 2 %}
@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
     {% if output_shape_len == 4 or output_shape_len == 3 %}
     fp_t** output = (fp_t**) malloc({{num_output_channels}}*sizeof(fp_t*));
 
-    for(int i = 0; i < {{num_input_channels}}; i++){
+    for(uint32_t i = 0; i < {{num_input_channels}}; i++){
         output[i] = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
     }
     {% elif output_shape_len == 2 %}
@@ -66,13 +66,13 @@ int main(int argc, char** argv) {
         srand(time(NULL));
 
         {% if input_shape_len == 4 or input_shape_len == 3 %}
-        for(int channel = 0; channel < {{num_input_channels}}; channel++) {
-            for(int pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
+        for(uint32_t channel = 0; channel < {{num_input_channels}}; channel++) {
+            for(uint32_t pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
                 input[channel][pos] = urand(LOWER_BOUND, UPPER_BOUND);
             }
         }
         {% elif input_shape_len == 2 %}
-        for(int pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
+        for(uint32_t pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
                 input[pos] = urand(LOWER_BOUND, UPPER_BOUND);
         }
         {% endif %}
@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
 
     INFO_MSG("Starting CNN for %d runs...\n", RUNS);
 
-    for(int run = 0; run < RUNS; run++) {
+    for(uint32_t run = 0; run < RUNS; run++) {
 
         DEBUG_MSG("Run %d of %d\n", run+1, RUNS);
 
@@ -100,13 +100,13 @@ int main(int argc, char** argv) {
             srand(time(NULL));
 
             {% if input_shape_len == 4 or input_shape_len == 3 %}
-            for(int channel = 0; channel < {{num_input_channels}}; channel++) {
-                for(int pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
+            for(uint32_t channel = 0; channel < {{num_input_channels}}; channel++) {
+                for(uint32_t pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
                     input[channel][pos] = urand(LOWER_BOUND, UPPER_BOUND);
                 }
             }
             {% elif input_shape_len == 2 %}
-            for(int pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
+            for(uint32_t pos = 0; pos < {{input_channel_height}}*{{input_channel_width}}; pos++) {
                     input[pos] = urand(LOWER_BOUND, UPPER_BOUND);
                 }
             {% endif %}
@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
     free(output);
 
     {% if input_shape_len == 4 or input_shape_len == 3 %}
-    for(int i = 0; i < {{num_input_channels}}; i++) {
+    for(uint32_t i = 0; i < {{num_input_channels}}; i++) {
         free(input[i]);
     }
     {% endif %}

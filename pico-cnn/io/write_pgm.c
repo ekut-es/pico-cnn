@@ -1,11 +1,11 @@
 #include "write_pgm.h"
 
-int write_pgm(const fp_t* image, const uint16_t height, const uint16_t width, const char* pgm_path) {
+int32_t write_pgm(const fp_t* image, const uint16_t height, const uint16_t width, const char* pgm_path) {
 
     // determine max gray value
     fp_t max_gray_value = -1000;
     fp_t min_gray_value = 1000;
-    int row, column;
+    uint16_t row, column;
 
     for(row = 0; row < height; row++) {
         for(column = 0; column < width; column++) {

@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-int read_binary_reference_input_data(const char* path_to_sample_data, fp_t*** input);
+int32_t read_binary_reference_input_data(const char* path_to_sample_data, fp_t*** input);
 
-int read_binary_reference_output_data(const char* path_to_sample_data, fp_t** output);
+int32_t read_binary_reference_output_data(const char* path_to_sample_data, fp_t** output);
 
 #endif //PICO_CNN_READ_BINARY_REFERENCE_DATA_H

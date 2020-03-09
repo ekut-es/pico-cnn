@@ -13,11 +13,11 @@ void usage() {
     printf("./reference_input PATH_TO_BINARY_WEIGHTS_FILE PATH_TO_REFERENCE_INPUT PATH_TO_REFERENCE_OUTPUT\n");
 }
 
-int almost_equal(float a, float b, float epsilon){
+int32_t almost_equal(float a, float b, float epsilon){
     return (fabs(a-b) <= epsilon);
 }
 
-int main(int argc, char** argv) {
+int32_t main(int32_t argc, char** argv) {
 
     if(argc != 4) {
         usage();
@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
     {% if input_shape_len == 4 or input_shape_len == 3 %}
     fp_t** input = (fp_t**) malloc({{num_input_channels}}*sizeof(fp_t*));
 
-    for(int i = 0; i < {{num_input_channels}}; i++){
+    for(uint32_t i = 0; i < {{num_input_channels}}; i++){
         input[i] = (fp_t*) malloc({{input_channel_height}}*{{input_channel_width}}*sizeof(fp_t));
     }
     {% elif input_shape_len == 2 %}
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     {% if output_shape_len == 4 or output_shape_len == 3 %}
     fp_t** output = (fp_t**) malloc({{num_output_channels}}*sizeof(fp_t*));
 
-    for(int i = 0; i < {{num_input_channels}}; i++){
+    for(uint32_t i = 0; i < {{num_input_channels}}; i++){
         output[i] = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
     }
     {% elif output_shape_len == 2 %}
@@ -57,15 +57,21 @@ int main(int argc, char** argv) {
     {% if output_shape_len == 4 or output_shape_len == 3 %}
     fp_t** ref_output = (fp_t**) malloc({{num_output_channels}}*sizeof(fp_t*));
 
-    for(int i = 0; i < {{num_input_channels}}; i++){
+    for(uint32_t i = 0; i < {{num_input_channels}}; i++){
         ref_output[i] = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
     }
     {% elif output_shape_len == 2 %}
     fp_t* ref_output = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
     {% endif %}
 
+    {% if input_shape_len == 4 or input_shape_len == 3 %}
     if(read_binary_reference_input_data(sample_input_path, &input) != 0)
         return -1;
+    {% elif input_shape_len == 2 %}
+    fp_t** input_helper = &input;
+    if(read_binary_reference_input_data(sample_input_path, &input_helper) != 0)
+        return -1;
+    {% endif %}
     if(read_binary_reference_output_data(sample_output_path, &ref_output) != 0)
         return -1;
 
@@ -86,11 +92,11 @@ int main(int argc, char** argv) {
 
     cleanup_network();
 
-    int all_equal = 1;
+    int32_t all_equal = 1;
 
     {% if output_shape_len == 4 or output_shape_len == 3 %}
-    for(int channel = 0; channel < {{num_output_channels}}; channel++) {
-        for(int i = 0; i < {{output_channel_height}}*{{output_channel_width}}; i++) {
+    for(uint32_t channel = 0; channel < {{num_output_channels}}; channel++) {
+        for(uint32_t i = 0; i < {{output_channel_height}}*{{output_channel_width}}; i++) {
 
             DEBUG_MSG("Channel: %d\tPosition: %d\toutput: %f\tref_output: %f\n", channel, i, output[channel][i], ref_output[channel][i]);
 
@@ -101,7 +107,7 @@ int main(int argc, char** argv) {
         }
     }
     {% elif output_shape_len == 2 %}
-    for(int i = 0; i < {{output_channel_height}}*{{output_channel_width}}; i++) {
+    for(uint32_t i = 0; i < {{output_channel_height}}*{{output_channel_width}}; i++) {
 
         DEBUG_MSG("Position: %d\toutput: %f\tref_output: %f\n", i, output[i], ref_output[i]);
 
@@ -122,7 +128,7 @@ int main(int argc, char** argv) {
     free(ref_output);
 
     {% if input_shape_len == 4 or input_shape_len == 3 %}
-    for(int i = 0; i < {{num_input_channels}}; i++) {
+    for(uint32_t i = 0; i < {{num_input_channels}}; i++) {
         free(input[i]);
     }
     {% endif %}

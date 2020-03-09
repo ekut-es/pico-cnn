@@ -1,9 +1,9 @@
 #include "test_activation_function.h"
 
-int test_relu_naive() {
+int32_t test_relu_naive() {
 
     printf("test_relu_naive()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_width 10
     #define input_height 1
@@ -26,10 +26,10 @@ int test_relu_naive() {
 }
 
 
-int test_leaky_relu_naive() {
+int32_t test_leaky_relu_naive() {
 
     printf("test_leaky_relu_naive()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_width 11
     #define input_height 1
@@ -55,10 +55,10 @@ int test_leaky_relu_naive() {
 
 }
 
-int test_parametrized_relu_naive() {
+int32_t test_parametrized_relu_naive() {
 
     printf("test_parametrized_relu_naive()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_width 10 // also slope width
     #define input_height 1 // also slope height
@@ -81,10 +81,10 @@ int test_parametrized_relu_naive() {
     #undef input_height
 }
 
-int test_sigmoid_naive() {
+int32_t test_sigmoid_naive() {
 
     printf("test_sigmoid_naive()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_width 10
     #define input_height 1
@@ -108,10 +108,10 @@ int test_sigmoid_naive() {
     #undef input_height
 }
 
-int test_softmax_naive() {
+int32_t test_softmax_naive() {
 
     printf("test_softmax_naive()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_width 10
     #define input_height 1
@@ -138,9 +138,9 @@ int test_softmax_naive() {
 
 }
 
-int test_local_response_normalization_naive() {
+int32_t test_local_response_normalization_naive() {
 
-    int return_value = 0;
+    int32_t return_value = 0;
     printf("test_local_response_normalization_naive()\n");
 
     #define input_width 3
@@ -149,7 +149,7 @@ int test_local_response_normalization_naive() {
     fp_t error = 0.0001;
     fp_t alpha = 0.1;
     fp_t beta =  0.5;
-    int n = 2;
+    int32_t n = 2;
 
     fp_t input1[input_width*input_height] = {-1, -2,  2, 0, -2, -2};
     fp_t input2[input_width*input_height] = {-1, -5, -1, 2,  1,  0};
@@ -176,7 +176,7 @@ int test_local_response_normalization_naive() {
     expected_output[2] = expected_output3;
 
     fp_t** output = (fp_t**) malloc(input_depth *sizeof(fp_t*));
-    for(int i = 0; i < input_depth; i++) {
+    for(int32_t i = 0; i < input_depth; i++) {
         output[i] = (fp_t*) malloc(input_width * input_height * sizeof(fp_t));
     }
 
@@ -185,7 +185,7 @@ int test_local_response_normalization_naive() {
 
     return_value = compare2dFloatArray(output, expected_output, input_depth, input_height * input_width,error);
 
-    for(int i = 0; i < input_depth; i++){
+    for(int32_t i = 0; i < input_depth; i++){
         free(output[i]);
     }
     free(output);

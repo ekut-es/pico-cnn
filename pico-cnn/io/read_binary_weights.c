@@ -1,6 +1,6 @@
 #include "read_binary_weights.h"
 
-int read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** biases) {
+int32_t read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** biases) {
 
     FILE *binary_file;
     binary_file = fopen(path_to_weights_file, "r");

@@ -645,8 +645,8 @@ class Mul(BaseLayer):
         assert(input_shape == output_shape)
 
         mul_code = ""
-        mul_code += "for(int i = 0; i < {}; i++)\n".format(input_shape[1])
-        mul_code += "    for(int j = 0; j < {}*{}; j++)\n".format(input_shape[2], input_shape[3])
+        mul_code += "for(uint32_t i = 0; i < {}; i++)\n".format(input_shape[1])
+        mul_code += "    for(uint32_t j = 0; j < {}*{}; j++)\n".format(input_shape[2], input_shape[3])
         mul_code += "        {}[i][j] = {}[i][j] * {};\n".format(output_buffer.name, input_buffer.name, factor)
 
         operation = cls(node, graph)
@@ -877,7 +877,7 @@ class Transpose(BaseLayer):
         for input_dim, output_dim in enumerate(permutations):
             dim_size = input_buffer.shape[input_dim] if input_dim < len(input_buffer.shape) else 1
             transpose_code += "    " * (input_dim + 1)
-            transpose_code += "for(int dim{} = 0; dim{} < {}; dim{}++)".format(input_dim, input_dim, dim_size,
+            transpose_code += "for(uint32_t dim{} = 0; dim{} < {}; dim{}++)".format(input_dim, input_dim, dim_size,
                                                                                input_dim)
             transpose_code += "\n"
 
@@ -1293,7 +1293,7 @@ class Squeeze(BaseLayer):
         if 2 in attrs['axes'] and 3 in attrs['axes'] and len(output_shape) == 2 and input_shape[1] == output_shape[1]:
             for idx, dim in enumerate(output_shape):
                 squeeze_code += "    " * (idx + 1)
-                squeeze_code += "for(int dim{} = 0; dim{} < {}; dim{}++)".format(idx, idx, dim, idx)
+                squeeze_code += "for(uint32_t dim{} = 0; dim{} < {}; dim{}++)".format(idx, idx, dim, idx)
                 squeeze_code += "\n"
 
             squeeze_code += "    " * len(output_shape)

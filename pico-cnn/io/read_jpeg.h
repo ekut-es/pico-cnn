@@ -30,6 +30,6 @@
  *
  * @return error (0 = success, 1 = error)
  */
-int read_jpeg(fp_t*** image, const char* jpeg_path, const fp_t lower_bound, const fp_t upper_bound, uint16_t *height, uint16_t *width);
+int32_t read_jpeg(fp_t*** image, const char* jpeg_path, const fp_t lower_bound, const fp_t upper_bound, uint16_t *height, uint16_t *width);
 
 #endif // READ_JPEG_H

@@ -1,4 +1,4 @@
-for(int i = 0; i < {{num_output_channels}}; i++){
+for(uint32_t i = 0; i < {{num_output_channels}}; i++){
     convolution1d_naive({{input_buffer.name}}[0],
                         {{input_size}},
                         {{output_buffer.name}}[i],
@@ -13,7 +13,7 @@ for(int i = 0; i < {{num_output_channels}}; i++){
                         {% endif %});
 
     {% if num_input_channels >  1 %}
-    for(int j = 1; j < {{num_input_channels}}; j++){
+    for(uint32_t j = 1; j < {{num_input_channels}}; j++){
         static fp_t temp_buffer[{{output_feature_size}}];
 
         convolution1d_naive({{input_buffer.name}}[j],

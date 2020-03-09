@@ -22,6 +22,6 @@
  *
  * @return error (0 = success, 1 = error)
  */
-int write_pgm(const fp_t* image, const uint16_t height, const uint16_t width, const char* pgm_path);
+int32_t write_pgm(const fp_t* image, const uint16_t height, const uint16_t width, const char* pgm_path);
 
 #endif // WRITE_PGM_H

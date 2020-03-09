@@ -29,7 +29,7 @@ class Buffer(object):
         The property 'name' was needed to strip self._name from characters that mess up the generated variable names.
         :return: The name of the buffer without '.' (if this character is in the name)
         """
-        self._name = self._name.replace('.', '')
+        self._name = self._name.replace('.', '_')
         self._name = self._name.replace('/', '_')
         self._name = self._name.replace(':', '_')
 
