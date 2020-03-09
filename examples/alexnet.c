@@ -1,6 +1,7 @@
 #define JPEG
 #define IMAGENET
-//#define DEBUG
+
+#define IMAGE_SIZE 224
 
 #include "network.h"
 #include "network_initialization.h"
@@ -14,7 +15,7 @@
 #include "pico-cnn/pico-cnn.h"
 
 void usage() {
-    printf("./ekut_es_alexnet_naive \\\n");
+    printf("./alexnet \\\n");
     printf("PATH_TO_EKUT_ES_ALEXNET_WEIGHTS.weights \\\n");
     printf("PATH_TO_MEANS_FILE.means \\\n");
     printf("PATH_TO_IMAGE_NET_LABELS.txt \\\n");
@@ -55,7 +56,7 @@ void sort_prediction(fp_t* prediction, uint16_t* labels_pos, const uint16_t leng
 int main(int argc, char** argv) {
 
     if(argc != 5) {
-        fprintf(stderr, "too few or to many arguments!\n");
+        ERROR_MSG("Too few or to many arguments!\n");
         usage();
         return 1;
     }
@@ -70,43 +71,43 @@ int main(int argc, char** argv) {
     strcpy(labels_path, argv[3]);
     strcpy(jpeg_path, argv[4]);
 
-    unsigned int i, j;
+    uint32_t i;
 
     initialize_network();
 
-    printf("reading binary weights from '%s'\n", weights_path);
+    INFO_MSG("Reading binary weights from '%s'\n", weights_path);
 
     if(read_binary_weights(weights_path, &kernels, &biases) != 0) {
-        fprintf(stderr, "could not read weights from '%s'\n", weights_path);
+        ERROR_MSG("Could not read weights from '%s'\n", weights_path);
         return 1;
     }
 
     // read means
-    printf("reading means from '%s'\n", means_path);
+    INFO_MSG("Reading means from '%s'\n", means_path);
 
     fp_t* means = (fp_t*) malloc(3*sizeof(fp_t));
 
     if(read_means(means_path, means) != 0) {
-        fprintf(stderr, "could not read means file '%s'!\n", means_path);
+        ERROR_MSG("Could not read means file '%s'!\n", means_path);
         return 1;
     }
 
 
     // read labels
-    printf("reading labels from '%s'\n", labels_path);
+    INFO_MSG("Reading labels from '%s'\n", labels_path);
 
     char** labels;
     int num_labels;
     num_labels = read_imagenet_labels(labels_path, &labels, 1000);
 
     if(num_labels != 1000) {
-        fprintf(stderr, "could not read imagenet labels '%s'\n", labels_path);
+        ERROR_MSG("Could not read imagenet labels '%s'\n", labels_path);
         return 1;
     }
 
 
     // read input image
-    printf("reading input image '%s'\n", jpeg_path);
+    INFO_MSG("Reading input image '%s'\n", jpeg_path);
 
     fp_t** pre_mean_input;
 
@@ -115,13 +116,11 @@ int main(int argc, char** argv) {
 
     read_jpeg(&pre_mean_input, jpeg_path, 0.0, 255.0, &height, &width);
 
-    printf("After read_jpeg\n");
-
     // substract mean from each channel
     fp_t** input = (fp_t**) malloc(3*sizeof(fp_t*));
-    input[0] = (fp_t*) malloc(227*227*sizeof(fp_t));
-    input[1] = (fp_t*) malloc(227*227*sizeof(fp_t));
-    input[2] = (fp_t*) malloc(227*227*sizeof(fp_t));
+    input[0] = (fp_t*) malloc(IMAGE_SIZE*IMAGE_SIZE*sizeof(fp_t));
+    input[1] = (fp_t*) malloc(IMAGE_SIZE*IMAGE_SIZE*sizeof(fp_t));
+    input[2] = (fp_t*) malloc(IMAGE_SIZE*IMAGE_SIZE*sizeof(fp_t));
 
     uint16_t row;
     uint16_t column;
@@ -143,15 +142,13 @@ int main(int argc, char** argv) {
     // free means
     free(means);
 
-//    fp_t** input = pre_mean_input;
-
-    printf("starting CNN\n");
-
     float *output  = (float*) malloc(1000*sizeof(float));
+
+    INFO_MSG("Starting CNN\n");
 
     network(input, output);
 
-    printf("after CNN\n");
+    INFO_MSG("After CNN\n");
 
     cleanup_network();
 
@@ -172,10 +169,10 @@ int main(int argc, char** argv) {
 
     sort_prediction(output, labels_pos, 1000);
 
-    printf("prediction:\n");
+    INFO_MSG("Prediction:\n");
 
     for(i = 0; i < 10; i++) {
-        printf("%d %f %s\n", i+1, output[i], labels[labels_pos[i]]);
+        INFO_MSG("%d %f %s\n", i+1, output[i], labels[labels_pos[i]]);
     }
 
     free(output);
@@ -185,7 +182,7 @@ int main(int argc, char** argv) {
     }
     free(labels);
 
-    fprintf(stderr, "%d\n", labels_pos[0]);
+    INFO_MSG("%d\n", labels_pos[0]);
 
     free(labels_pos);
 

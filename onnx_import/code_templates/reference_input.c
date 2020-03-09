@@ -1,5 +1,4 @@
 #define EPSILON 0.001
-//#define PRINT
 
 #include "network.h"
 #include "network_initialization.h"
@@ -72,18 +71,18 @@ int main(int argc, char** argv) {
 
     initialize_network();
 
-    printf("reading weights from '%s'\n", weights_path);
+    INFO_MSG("Reading weights from '%s'\n", weights_path);
 
     if(read_binary_weights(weights_path, &kernels, &biases) != 0){
-        fprintf(stderr, "could not read weights from '%s'\n", weights_path);
+        ERROR_MSG("Could not read weights from '%s'\n", weights_path);
         return 1;
     }
 
-    printf("Starting CNN...\n");
+    INFO_MSG("Starting CNN...\n");
 
     network(input, output);
 
-    printf("After CNN\n");
+    INFO_MSG("After CNN\n");
 
     cleanup_network();
 
@@ -92,31 +91,32 @@ int main(int argc, char** argv) {
     {% if output_shape_len == 4 or output_shape_len == 3 %}
     for(int channel = 0; channel < {{num_output_channels}}; channel++) {
         for(int i = 0; i < {{output_channel_height}}*{{output_channel_width}}; i++) {
-        #ifdef PRINT
-        printf("Channel: %d\tPosition: %d\toutput: %f\tref_output: %f\n", channel, i, output[channel][i], ref_output[channel][i]);
-        #endif
-        if(!almost_equal(output[channel][i], ref_output[channel][i], EPSILON)) {
-            all_equal = 0;
-            printf("Not equal at in channel: %d at position: %d, output: %f, ref_output: %f\n", channel, i, output[channel][i], ref_output[channel][i]);
+
+            DEBUG_MSG("Channel: %d\tPosition: %d\toutput: %f\tref_output: %f\n", channel, i, output[channel][i], ref_output[channel][i]);
+
+            if(!almost_equal(output[channel][i], ref_output[channel][i], EPSILON)) {
+                all_equal = 0;
+                ERROR_MSG("Not equal at in channel: %d at position: %d, output: %f, ref_output: %f\n", channel, i, output[channel][i], ref_output[channel][i]);
+            }
         }
-    }
     }
     {% elif output_shape_len == 2 %}
     for(int i = 0; i < {{output_channel_height}}*{{output_channel_width}}; i++) {
-        #ifdef PRINT
-        printf("Position: %d\toutput: %f\tref_output: %f\n", i, output[i], ref_output[i]);
-        #endif
+
+        DEBUG_MSG("Position: %d\toutput: %f\tref_output: %f\n", i, output[i], ref_output[i]);
+
         if(!almost_equal(output[i], ref_output[i], EPSILON)) {
             all_equal = 0;
-            printf("Not equal at position: %d, output: %f, ref_output: %f\n", i, output[i], ref_output[i]);
+            ERROR_MSG("Not equal at position: %d, output: %f, ref_output: %f\n", i, output[i], ref_output[i]);
         }
     }
     {% endif %}
 
-    if(all_equal)
-        printf("Output is almost equal (epsilon=%f) to reference output!\n", EPSILON);
-    else
-        fprintf(stderr, "WARNING: Output is not almost equal (epsilon=%f) to reference output!\n", EPSILON);
+    if(all_equal) {
+        INFO_MSG("Output is almost equal (epsilon=%f) to reference output!\n", EPSILON);
+    } else {
+        ERROR_MSG("WARNING: Output is not almost equal (epsilon=%f) to reference output!\n", EPSILON);
+    }
 
     free(output);
     free(ref_output);

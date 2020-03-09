@@ -13,8 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-//#define DEBUG
-
 int read_binary_reference_input_data(const char* path_to_sample_data, fp_t*** input);
 
 int read_binary_reference_output_data(const char* path_to_sample_data, fp_t** output);

@@ -156,8 +156,6 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
                 if(output_channel_row >= crop && output_channel_row < output_channel_height-crop &&
                    output_channel_column >= crop && output_channel_column < output_channel_width-crop){
 
-//                    printf("Center case: output_row: %d, output_column: %d\n", output_channel_row, output_channel_column);
-
                     output_channel[output_channel_row * output_channel_width + output_channel_column] =
                             pixel / ((fp_t)(kernel_size * kernel_size)) + bias;
 
@@ -178,7 +176,7 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
                     divisor = div_row * div_col;
 
                     if(divisor == 0) {
-                        printf("ERROR: Division by zero! Aborting execution.\n");
+                        ERROR_MSG("ERROR: Division by zero! Aborting execution.\n");
                         exit(1);
                     }
 
@@ -193,7 +191,7 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
             output_channel_column = 0;
         }
     } else {
-        printf( "ERROR: Unsupported values for 'count_include_pad'.\n");
+        ERROR_MSG("ERROR: Unsupported values for 'count_include_pad'.\n");
     }
 }
 
@@ -275,7 +273,7 @@ void average_pooling1d_naive(const fp_t* input_channel, const uint16_t input_wid
             output_channel_idx++;
         }
     } else {
-        printf( "ERROR: Unsupported values for 'count_include_pad'.\n");
+        ERROR_MSG("ERROR: Unsupported values for 'count_include_pad'.\n");
     }
 }
 

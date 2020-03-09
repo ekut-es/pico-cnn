@@ -1,8 +1,6 @@
 #define LOWER_BOUND 0.0
 #define UPPER_BOUND 1.0
 
-//#define PRINT
-
 #include "network.h"
 #include "network_initialization.h"
 #include "network_cleanup.h"
@@ -63,7 +61,7 @@ int main(int argc, char** argv) {
 
 
     if(GENERATE_ONCE) {
-        printf("Random input will be generated once for all inference runs.\n");
+        INFO_MSG("Random input will be generated once for all inference runs.\n");
 
         srand(time(NULL));
 
@@ -80,24 +78,23 @@ int main(int argc, char** argv) {
         {% endif %}
 
     } else {
-        printf("Random input will be generated with new seed for each inference run.\n");
+        INFO_MSG("Random input will be generated with new seed for each inference run.\n");
     }
 
     initialize_network();
 
-    printf("reading weights from '%s'\n", weights_path);
+    INFO_MSG("Reading weights from '%s'\n", weights_path);
 
     if(read_binary_weights(weights_path, &kernels, &biases) != 0){
-        fprintf(stderr, "could not read weights from '%s'\n", weights_path);
+        ERROR_MSG("could not read weights from '%s'\n", weights_path);
         return 1;
     }
 
-    printf("Starting CNN for %d runs...\n", RUNS);
+    INFO_MSG("Starting CNN for %d runs...\n", RUNS);
 
     for(int run = 0; run < RUNS; run++) {
-        #ifdef PRINT
-        printf("Run %d of %d\n", run+1, RUNS);
-        #endif
+
+        DEBUG_MSG("Run %d of %d\n", run+1, RUNS);
 
         if(!GENERATE_ONCE) {
             srand(time(NULL));
@@ -117,7 +114,7 @@ int main(int argc, char** argv) {
         network(input, output);
     }
 
-    printf("After CNN\n");
+    INFO_MSG("After CNN\n");
 
     cleanup_network();
 

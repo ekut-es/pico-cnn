@@ -611,7 +611,8 @@ class BackendRep(backend_base.BackendRep):
                 print("ERROR: Unknown output shape of network: {}".format(output_shape))
                 exit(1)
             elif len(output_shape) == 4:
-                print("Output is multi-dimensional.")
+                print("ERROR: Multi-dimensional output is currently not supported.")
+                exit(1)
 
         network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
 
@@ -676,11 +677,10 @@ class BackendRep(backend_base.BackendRep):
         """
         # TODO: Does this need to be more sophisticated?
         self.makefile = "CC = gcc\n"
-        self.makefile += "CFLAGS = -Wall -g\n"
+        self.makefile += "CFLAGS = -Wall -g -DINFO\n"
         self.makefile += "LDFLAGS = -L../../../pico-cnn\n"
         self.makefile += "LD_LIBS = -lpico-cnn -lm\n\n"
         self.makefile += "# list of all generated .c files.\n"
-        self.makefile += "#TODO: right now, all .c files are compiled in each make call: change for higher effiency?\n"
         self.makefile += "NETWORK_LIST = network_initialization.c network_cleanup.c network.c"
         self.makefile += "\n\ndummy_input: dummy_input.c $(NETWORK_LIST) libpico-cnn.a\n\t"
         self.makefile += "$(CC) dummy_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o dummy_input"

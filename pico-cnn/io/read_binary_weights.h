@@ -7,8 +7,6 @@
 #ifndef PICO_CNN_READ_BINARY_WEIGHTS_H
 #define PICO_CNN_READ_BINARY_WEIGHTS_H
 
-//#define DEBUG
-
 #include "../parameters.h"
 #include <stdint.h>
 #include <stdio.h>

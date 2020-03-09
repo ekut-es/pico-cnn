@@ -114,7 +114,7 @@ void concatenate_naive(fp_t*** inputs, const uint16_t** input_shape, const uint1
         }
 
     } else {
-        printf("ERROR: Concatenation (3-dimensional) operation not supported for dimension: %d\n", dimension);
+        ERROR_MSG("ERROR: Concatenation (3-dimensional) operation not supported for dimension: %d\n", dimension);
         exit(1);
     }
 
