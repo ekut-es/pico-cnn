@@ -83,7 +83,7 @@ make dummy_input
 `GENERATE_ONCE = 0` will lead to new random input for each inference run.  
 `GENERATE_ONCE = 1` will lead to the same random input for each inference run.
 
-If you might want to monitor overall progress by uncommenting `#define PRINT` in `dummy_input.c`.
+You can monitor overall progress of the current `RUN` by adding `-DDEBUG` in the generated Makefile.
 
 #### Reference Input
 There will also be generated a `reference_input.c` which can be used to validate the imported network against the reference input/output that is provided for onnx models from the official [onnx model-zoo](https://github.com/onnx/models). The data has to be preprocessed:
@@ -100,8 +100,9 @@ make reference_input
 If the model was acquired in some other way (self-trained or converted) you can create sample data with the following script:
 ```bash
 cd util
-python3.6 generate_reference_data.py --model model.onnx --file PATH_TO_INPUT_DATA.[jpeg/wav] --shape 1 NUM_CHANNELS HEIGHT WIDTH
+python3.6 generate_reference_data.py --model model.onnx --file PATH_TO_INPUT_DATA --shape 1 NUM_CHANNELS HEIGHT WIDTH
 ```
+If `--file` is not given the script will use random values instead. Supported file types are `audio/x-wav`, `image/jpeg` and `image/x-portable-greymap`.
 
 ## MNIST Dataset
 ### LeNet-5
