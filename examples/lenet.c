@@ -40,7 +40,7 @@ void sort_prediction(fp_t* prediction, uint8_t* labels, const uint16_t length) {
     }
 }
 
-int main(int argc, char** argv) {
+int32_t main(int32_t argc, char** argv) {
 
     if(argc == 1) {
         ERROR_MSG("No path to dataset and weights provided!\n");
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
     strcpy(mnist_path, argv[1]);
     strcpy(weights_path, argv[2]);
 
-    unsigned int i, j;
+    uint32_t i, j;
 
     // read mnist t10k images
     char t10k_images_path[strlen(mnist_path) + 20];
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     strcat(t10k_images_path, "/t10k-images.idx3-ubyte");
 
     fp_t** t10k_images;
-    int num_t10k_images;
+    uint32_t num_t10k_images;
 
     INFO_MSG("Reading images from '%s'\n", t10k_images_path);
 
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
     strcat(t10k_labels_path, "/t10k-labels.idx1-ubyte");
 
     uint8_t* t10k_labels;
-    int num_t10k_labels;
+    uint32_t num_t10k_labels;
 
     INFO_MSG("Reading labels from '%s'\n", t10k_labels_path);
 
@@ -113,9 +113,9 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    int correct_predictions = 0;
+    uint32_t correct_predictions = 0;
 
-    int confusion_matrix[10][10] = {
+    uint32_t confusion_matrix[10][10] = {
         {0,0,0,0,0,0,0,0,0,0},
         {0,0,0,0,0,0,0,0,0,0},
         {0,0,0,0,0,0,0,0,0,0},
@@ -138,8 +138,8 @@ int main(int argc, char** argv) {
         network(&t10k_images[i], output);
 
         float max = output[0];
-        int label = 0;
-        for(int idx = 1; idx < 10; idx++) {
+        uint32_t label = 0;
+        for(uint32_t idx = 1; idx < 10; idx++) {
             if(output[idx] > max) {
                 max = output[idx];
                 label = idx;
@@ -153,11 +153,11 @@ int main(int argc, char** argv) {
 
         #ifdef DEBUG
         if(i == 0) {
-            for(int idx = 0; idx < 10; idx++){
+            for(uint32_t idx = 0; idx < 10; idx++){
                 DEBUG_MSG("%f ", output[idx]);
             }
             DEBUG_MSG("\n");
-            for(int h = 0; h < 28*28; h++){
+            for(uint32_t h = 0; h < 28*28; h++){
 //                if(t10k_images[0][h] != 0.0){
 //                    DEBUG_MSG("1 ");
 //                } else {

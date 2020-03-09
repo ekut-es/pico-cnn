@@ -1,6 +1,8 @@
 #define JPEG
 #define IMAGENET
 
+#define IMAGE_SIZE 224
+
 #include "network.h"
 #include "network_initialization.h"
 #include "network_cleanup.h"
@@ -51,7 +53,7 @@ void sort_prediction(fp_t* prediction, uint16_t* labels_pos, const uint16_t leng
     }
 }
 
-int main(int argc, char** argv) {
+int32_t main(int32_t argc, char** argv) {
 
     if(argc != 5) {
         ERROR_MSG("Too few or to many arguments!\n");
@@ -69,7 +71,7 @@ int main(int argc, char** argv) {
     strcpy(labels_path, argv[3]);
     strcpy(jpeg_path, argv[4]);
 
-    unsigned int i, j;
+    uint32_t i;
 
     initialize_network();
 
@@ -94,7 +96,7 @@ int main(int argc, char** argv) {
     INFO_MSG("Reading labels from '%s'\n", labels_path);
 
     char** labels;
-    int num_labels;
+    int32_t num_labels;
     num_labels = read_imagenet_labels(labels_path, &labels, 1000);
 
     if(num_labels != 1000) {
@@ -114,9 +116,9 @@ int main(int argc, char** argv) {
 
     // substract mean from each channel
     fp_t** input = (fp_t**) malloc(3*sizeof(fp_t*));
-    input[0] = (fp_t*) malloc(224*224*sizeof(fp_t));
-    input[1] = (fp_t*) malloc(224*224*sizeof(fp_t));
-    input[2] = (fp_t*) malloc(224*224*sizeof(fp_t));
+    input[0] = (fp_t*) malloc(IMAGE_SIZE*IMAGE_SIZE*sizeof(fp_t));
+    input[1] = (fp_t*) malloc(IMAGE_SIZE*IMAGE_SIZE*sizeof(fp_t));
+    input[2] = (fp_t*) malloc(IMAGE_SIZE*IMAGE_SIZE*sizeof(fp_t));
 
     uint16_t row;
     uint16_t column;
