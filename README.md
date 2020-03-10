@@ -105,13 +105,14 @@ python3.6 generate_reference_data.py --model model.onnx --file PATH_TO_INPUT_DAT
 If `--file` is not given the script will use random values instead. Supported file types are `audio/x-wav`, `image/jpeg` and `image/x-portable-greymap`.
 
 ## MNIST Dataset
+You can find ONNX models and reference data for LeNet-5, MNIST-MLP and MNIST-Perceptron in the `data/` directory of the project.
 ### LeNet-5
 LeNet-5 implementation as proposed by Yann LeCun et. al <a id="cit_LeCun1998">[[LeCun1998]](#LeCun1998)</a>
 
 **Note: MNIST dataset required to run the LeNet specific code.**
 ```bash
 cd onnx_import
-python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/lenet.onnx
+python3.6 onnx_to_pico_cnn.py --input ../data/lenet/lenet.onnx
 ```
 Copy `examples/lenet.c` from examples folder to `onnx_import/generated_code/lenet`.
 ```bash
@@ -123,7 +124,7 @@ make lenet
 ### MNIST Multi-Layer-Perceptron (MLP)
 ```bash
 cd onnx_import
-python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/mnist_mlp.onnx
+python3.6 onnx_to_pico_cnn.py --input ../data/mnist_mlp/mnist_mlp.onnx
 ```
 Copy `examples/mnist_mlp.c` to `onnx_import/generated_code/mnist_mlp`.
 ```bash
@@ -136,7 +137,7 @@ make mnist_mlp
 Single fully-connected layer
 ```bash
 cd onnx_import
-python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/mnist_simple_perceptron.onnx
+python3.6 onnx_to_pico_cnn.py --input ../data/mnist_simple_perceptron/mnist_simple_perceptron.onnx
 ```
 Copy `examples/mnist_simple_perceptron.c` to `onnx_import/generated_code/mnist_simple_perceptron`.
 ```bash
