@@ -4,8 +4,6 @@ from utils import reduce_mult
 
 from jinja2 import Environment, FileSystemLoader
 
-import numpy as np
-
 import os
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -74,7 +72,7 @@ class Conv2DLegacy(BaseLayer):
 
         kernel_size = attrs["kernel_shape"][0]
         stride = attrs["strides"][0]
-        #dilation = attrs["dilations"][0]
+        # dilation = attrs["dilations"][0]
 
         num_groups = attrs.get("group", 1)
 
@@ -155,7 +153,7 @@ class Conv2D(BaseLayer):
 
         kernel_shape = attrs["kernel_shape"]
         stride = attrs["strides"]
-        #dilation = attrs["dilations"][0]
+        # dilation = attrs["dilations"][0]
 
         num_groups = attrs.get("group", 1)
 
@@ -878,7 +876,7 @@ class Transpose(BaseLayer):
             dim_size = input_buffer.shape[input_dim] if input_dim < len(input_buffer.shape) else 1
             transpose_code += "    " * (input_dim + 1)
             transpose_code += "for(uint32_t dim{} = 0; dim{} < {}; dim{}++)".format(input_dim, input_dim, dim_size,
-                                                                               input_dim)
+                                                                                    input_dim)
             transpose_code += "\n"
 
         transpose_code += "    " * len(permutations)
@@ -887,22 +885,30 @@ class Transpose(BaseLayer):
             test_code = "{}[{}][{}]".format(output_buffer.name,
                                             "dim"+str(permutations[1]),
                                             "dim"+str(permutations[2]) + "*" +
-                                            str(input_buffer.shape[permutations[3]] if permutations[3] < len(input_buffer.shape) else 1) + " + " +
+                                            str(input_buffer.shape[permutations[3]]
+                                                if permutations[3] < len(input_buffer.shape) else 1)
+                                            + " + " +
                                             "dim"+str(permutations[3])) + " = " \
                         + "{}[{}][{}];".format(input_buffer.name,
                                                "dim"+str(orig_permutation[1]),
                                                "dim"+str(orig_permutation[2]) + "*" +
-                                               str(input_buffer.shape[orig_permutation[3]] if orig_permutation[3] < len(input_buffer.shape) else 1) + " + " +
+                                               str(input_buffer.shape[orig_permutation[3]]
+                                                   if orig_permutation[3] < len(input_buffer.shape) else 1)
+                                               + " + " +
                                                "dim"+str(orig_permutation[3]))
         elif len(permutations) == 2:
             test_code = "{}[{}]".format(output_buffer.name,
-                                            "dim"+str(permutations[0]) + "*" +
-                                            str(input_buffer.shape[permutations[1]] if permutations[1] < len(input_buffer.shape) else 1) + " + " +
-                                            "dim"+str(permutations[1])) + " = " \
+                                        "dim"+str(permutations[0]) + "*" +
+                                        str(input_buffer.shape[permutations[1]]
+                                            if permutations[1] < len(input_buffer.shape) else 1)
+                                        + " + " +
+                                        "dim"+str(permutations[1])) + " = " \
                         + "{}[{}];".format(input_buffer.name,
-                                               "dim"+str(orig_permutation[0]) + "*" +
-                                               str(input_buffer.shape[orig_permutation[1]] if orig_permutation[1] < len(input_buffer.shape) else 1) + " + " +
-                                               "dim"+str(orig_permutation[1]))
+                                           "dim"+str(orig_permutation[0]) + "*" +
+                                           str(input_buffer.shape[orig_permutation[1]]
+                                               if orig_permutation[1] < len(input_buffer.shape) else 1)
+                                           + " + " +
+                                           "dim"+str(orig_permutation[1]))
         else:
             print("ERROR: Unsupported permutation in Transpose operation.")
             return None
@@ -959,7 +965,8 @@ class Concat(BaseLayer):
 
         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
 
-        input_declaration = "fp_t*** inputs_{} = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(identifier, str(num_input_shapes))
+        input_declaration = "fp_t*** inputs_{} = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(identifier,
+                                                                                                  str(num_input_shapes))
         for idx in range(num_input_shapes):
             input_declaration += "    inputs_{}[{}] = {};\n".format(identifier, str(idx), input_buffers[idx].name)
 
@@ -968,8 +975,12 @@ class Concat(BaseLayer):
         input_shape_code = ""
         input_shape_code += "const uint16_t* input_shape_{}[{}];\n".format(identifier, len(input_shapes))
         for num, input_shape in enumerate(input_shapes):
-            input_shape_code += "    uint16_t input_shape_{}_{}[3] = {{ {}, {}, {} }};\n".format(identifier, str(num), input_shape[1], input_shape[2], input_shape[3])
-            input_shape_code += "    input_shape_{}[{}] = input_shape_{}_{};\n".format(identifier, str(num), identifier, str(num))
+            input_shape_code += "    uint16_t input_shape_{}_{}[3] = {{ {}, {}, {} }};\n".format(identifier, str(num),
+                                                                                                 input_shape[1],
+                                                                                                 input_shape[2],
+                                                                                                 input_shape[3])
+            input_shape_code += "    input_shape_{}[{}] = input_shape_{}_{};\n".format(identifier, str(num),
+                                                                                       identifier, str(num))
 
         dimension = attrs['axis'] - 1
 

@@ -1,4 +1,4 @@
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader
 import os
 
 base_dir = os.path.dirname(os.path.abspath(__file__))

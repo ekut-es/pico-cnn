@@ -7,7 +7,7 @@ __author__ = "Christoph Gerum, Alexander Jung (University of Tuebingen, Chair fo
 
 class ConstPropState(object):
     def __init__(self, value=None, shape=None):
-        assert type(shape) == tuple or shape == None
+        assert type(shape) == tuple or shape is None
         self.value = value
         self.shape = shape
         
@@ -50,7 +50,8 @@ class PoolImpl(ConstImpl):
         if input_shape is not None:
             output_shape = list(input_shape)
             for num, dim in enumerate(input_shape[2:]):
-                output_shape[num+2] = math.floor(((dim+pads[num]+pads[num+int(len(pads)/2)]) - kernel[num]) / stride[num] + 1)  # TODO: Add padding in this calculation!!!
+                output_shape[num+2] = \
+                    math.floor(((dim+pads[num]+pads[num+int(len(pads)/2)]) - kernel[num]) / stride[num] + 1)
                 out = ConstPropState(None, tuple(output_shape))
 
         return {node.outputs[0]: out}
@@ -229,7 +230,7 @@ def constant_propagation(graph):
                 
             output = node.outputs[0]
             if state_dict[output] != out:
-                changed=True
+                changed = True
                 state_dict[output] = out
 
         elif node.op_type == 'Add':
@@ -252,7 +253,7 @@ def constant_propagation(graph):
             
             output = node.outputs[0]
             if state_dict[output] != out:
-                changed=True
+                changed = True
                 state_dict[output] = out
 
         elif node.op_type == 'Constant':
@@ -261,7 +262,7 @@ def constant_propagation(graph):
             
             if out != state_dict[output]:
                 state_dict[output] = out
-                changed=True
+                changed = True
     
         elif node.op_type == 'Gather':
             data = node.inputs[0]
@@ -272,7 +273,6 @@ def constant_propagation(graph):
             index_state, index_shape = state_dict[indices]
 
             def calc(data, index):
-                out = []
                 y = np.take(data, index, axis=axis)
                 return y
 
@@ -296,7 +296,6 @@ def constant_propagation(graph):
             input_states = []
             input_shapes = []
             for i in node.inputs:
-                tmp_state = state_dict[i]
                 input_states.append(state_dict[i].value)
                 input_shapes.append(state_dict[i].shape)
         
@@ -357,7 +356,6 @@ def constant_propagation(graph):
                 changed = True
     
         elif node.op_type == "Transpose":
-            perm = attrs['perm']
 
             input_shape = state_dict[node.inputs[0]].shape
             out = ConstPropState(None, None)
@@ -374,7 +372,8 @@ def constant_propagation(graph):
                     
         else:
             # raise Exception ("ConstProp: Unhandled op {}".format(node.op_type))
-            print("ConstProp: Unhandled op {} (layer: {}) using shape information from onnx shape_dict".format(node.op_type, node.name))
+            print("ConstProp: Unhandled op {} (layer: {}) using shape "
+                  "information from onnx shape_dict".format(node.op_type, node.name))
             
             changed = False
             for o in node.outputs:
@@ -387,7 +386,7 @@ def constant_propagation(graph):
         
         if changed:
             for child in node.children:
-                if not child in worklist:
+                if child not in worklist:
                     worklist.append(child)
         
     return state_dict
