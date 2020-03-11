@@ -32,7 +32,7 @@ def main():
         "--file",
         type=Text,
         required=False,
-        help="Path to the data the network should process."
+        help="Path to the data the network should process. If not provided random values will be used."
     )
     parser.add_argument(
         "--range",
@@ -68,7 +68,8 @@ def main():
         file_type = 'random'
         input_file = "random"
         input_file_name = input_file
-        r = args.range
+
+    r = args.range
 
     onnx_model = args.model
     onnx_file_path = os.path.dirname(onnx_model)
@@ -103,9 +104,6 @@ def main():
         packed_input.append(struct.pack('i', input_shape[2]))  # Channel width
         packed_input.append(struct.pack('f' * len(input_data), *input_data))  # Data
 
-        # tmp = os.path.splitext(os.path.basename(onnx_model))
-        # tmp2 = os.path.splitext(input_file)
-
         in_path = "{}_{}_input.data".format(os.path.splitext(input_file_name)[0],
                                             os.path.splitext(os.path.basename(onnx_model))[0])
 
@@ -119,7 +117,9 @@ def main():
         input_data = input_data.reshape(input_shape)
 
     elif file_type == 'image/png':
-        pass
+        input_data = None
+        print("ERROR: File type {} currently not supported.".format(file_type))
+        exit(1)
 
     elif file_type == 'image/jpeg':
         input_data = imageio.imread(input_file)
@@ -196,6 +196,14 @@ def main():
             for channel in input_data[0]:
                 packed_input.append(struct.pack('f' * len(channel), *channel))  # Data
 
+        elif len(input_shape) == 2:
+            packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
+            packed_input.append(struct.pack('i', 1))  # Number of channels
+            packed_input.append(struct.pack('i', 1))  # Channel height
+            packed_input.append(struct.pack('i', input_shape[1]))  # Channel width
+
+            packed_input.append(struct.pack('f' * len(input_data[0]), *input_data[0]))  # Data
+
         else:
             print("ERROR: Unsupported input shape length: {}".format(input_shape))
             exit(1)
@@ -211,6 +219,7 @@ def main():
                 f.write(packed_struct)
 
     else:
+        input_data = None
         print("ERROR: Something went wrong during input data processing...")
         exit(1)
 
@@ -227,7 +236,8 @@ def main():
     for output in outputs[0]:
         packed_output.append(struct.pack('f'*len(output), *output))  # Data
 
-    out_path = "{}_{}_output.data".format(os.path.splitext(input_file_name)[0], os.path.splitext(os.path.basename(onnx_model))[0])
+    out_path = "{}_{}_output.data".format(os.path.splitext(input_file_name)[0],
+                                          os.path.splitext(os.path.basename(onnx_model))[0])
     out_path = os.path.join(onnx_file_path, out_path)
     print("Saving output to {}".format(out_path))
     with open(out_path, "wb") as f:

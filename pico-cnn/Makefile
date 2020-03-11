@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -g3
-LDFLAGS = -lm -ljpeg
+CFLAGS = -Wall -g3 -DINFO
+LDFLAGS = -lm
 
 libpico-cnn.a: utils io layers
 	ar -rcs libpico-cnn.a utils.o io/*.o layers/*.o
@@ -14,10 +14,6 @@ clean:
 
 utils: parameters.h ./utils.h ./utils.c
 	$(CC) utils.c $(CFLAGS) -c -o utils.o
-
-#---------------------------------------------- driver ----------------------------------------------
-
-
 
 #---------------------------------------------- io ----------------------------------------------
 

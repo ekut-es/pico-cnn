@@ -1,6 +1,6 @@
 #include "read_imagenet_labels.h"
 
-int read_imagenet_labels(const char* path_to_imagenet_labels, char*** imagenet_labels, uint32_t num_labels) {
+int32_t read_imagenet_labels(const char* path_to_imagenet_labels, char*** imagenet_labels, uint32_t num_labels) {
     FILE *labels_file;
     labels_file = fopen(path_to_imagenet_labels, "r");
 
@@ -9,8 +9,8 @@ int read_imagenet_labels(const char* path_to_imagenet_labels, char*** imagenet_l
         (*imagenet_labels) = (char**) malloc(1000*sizeof(char*));
 
         char buffer[255];
-        int i = 0;
-        int label_length;
+        int32_t i = 0;
+        int32_t label_length;
 
         while(fgets(buffer, 255, labels_file)) {
             label_length = strlen(buffer);

@@ -1,3 +1,9 @@
+/**
+ * @brief contains all activation functions
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef TEST_CONVOLUTION_H
 #define TEST_CONVOLUTION_H
 
@@ -9,13 +15,13 @@
 #include <stdlib.h>
 #include <assert.h>
 
-int test_convolution1d_naive();
-int test_convolution2d_naive();
-int test_convolution2d_naive_1();
-int test_convolution2d_naive_2();
-int test_convolution2d_naive_3(); // with non-square kernel
-int test_convolution2d_naive_4(); // with non-square kernel
-int test_convolution2d_naive_5(); // with non-square kernel 
-int test_add_channel2d_naive();
+int32_t test_convolution1d_naive();
+int32_t test_convolution2d_naive();
+int32_t test_convolution2d_naive_1();
+int32_t test_convolution2d_naive_2();
+int32_t test_convolution2d_naive_3(); // with non-square kernel
+int32_t test_convolution2d_naive_4(); // with non-square kernel
+int32_t test_convolution2d_naive_5(); // with non-square kernel
+int32_t test_add_channel2d_naive();
 
 #endif // TEST_CONVOLUTION_H

@@ -1,12 +1,12 @@
 from collections import namedtuple
-from typing import Any, Text, Iterable, List, Dict, Sequence, Optional, Tuple, Union
+from typing import Any, Text, Iterable, List, Dict
 from onnx import AttributeProto, numpy_helper
 import numpy as np
 
 __author__ = "Christoph Gerum, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
 
 
-def _convertAttributeProto(onnx_arg): 
+def _convertAttributeProto(onnx_arg):
     """
     Convert an ONNX AttributeProto into an appropriate Python object for the type.
     :param onnx_arg: A node of the graph representing the CNN
@@ -76,9 +76,9 @@ class ComputeNode(object):
         self.parents: List[ComputeNode] = []
         self.children: List[ComputeNode] = []
         self.metadata: Dict[Any, Any] = {}
-    
+
     @staticmethod
-    def from_onnx(node) -> Any:  
+    def from_onnx(node) -> Any:
         attrs = Attributes.from_onnx(node.attribute)
         name = Text(node.name)
         if len(name) == 0:
@@ -112,7 +112,7 @@ class ComputeGraph(object):
 
         for input_t in input_tensors:
             shape_dict[input_t] = input_tensors[input_t].shape
-       
+
         nodes_ = []
         nodes_by_input: Dict[str, List[ComputeNode]] = {}
         nodes_by_output: Dict[str, ComputeNode] = {}
@@ -165,42 +165,40 @@ class ComputeGraph(object):
 
     def remove_node(self, node):
         print("Removing node", node.name)
-        if not node in self.nodes:
+        if node not in self.nodes:
             return
-     
+
         self.nodes.remove(node)
-     
-        parents = node.parents
-     
+
         for parent in node.parents:
             parent.children.remove(node)
             if not parent.children:
                 self.remove_node(parent)
-     
+
         for child in node.children:
             child.parents.remove(node)
 
     def get_shape(self, name: Text) -> Iterable[int]:
         if name in self.shape_dict:
             return self.shape_dict[name]
-     
+
         return ()
 
-    def is_input(self, name : Text) -> bool:
+    def is_input(self, name: Text) -> bool:
         for input in self.inputs:
             if input.name == name:
                 return True
-     
+
         return False
 
-    def is_output(self, name : Text) -> bool:
+    def is_output(self, name: Text) -> bool:
         for output in self.outputs:
             if output.name == name:
                 return True
-     
+
         return False
 
-    def is_tensor(self, name : Text) -> bool:
+    def is_tensor(self, name: Text) -> bool:
         for node in self.nodes:
             if name in node.input_tensors:
                 return True

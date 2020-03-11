@@ -1,7 +1,3 @@
-//
-// Created by junga on 10.01.20.
-//
-
 #include "batch_normalization.h"
 
 void batch_normalization_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,

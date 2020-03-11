@@ -2,19 +2,20 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdint.h>
 
-int floatsAlmostEqual(fp_t f1, fp_t f2, fp_t err);
+int32_t floatsAlmostEqual(fp_t f1, fp_t f2, fp_t err);
 
-int compare1dFloatArray(fp_t* values, fp_t* expected_values, int width, fp_t error);
+int32_t compare1dFloatArray(fp_t* values, fp_t* expected_values, uint32_t width, fp_t error);
 
-int compare2dFloatArray(fp_t** values, fp_t** expected_values,
-                        int height, int width, fp_t error);
+int32_t compare2dFloatArray(fp_t** values, fp_t** expected_values,
+                            uint32_t height, uint32_t width, fp_t error);
 
-int compare1dIntArray(int* values, int* expected_values, int width);
+int32_t compare1dIntArray(int32_t* values, int32_t* expected_values, uint32_t width);
 
-void print1dFloatArray_2d(fp_t* array, int height, int width);
+void print1dFloatArray_2d(fp_t* array, uint32_t height, uint32_t width);
 
-void print2dFloatArray_3d(fp_t** array, int depth, int height, int width);
+void print2dFloatArray_3d(fp_t** array, uint32_t depth, uint32_t height, uint32_t width);
 
 // write values from 1d array into 2d array
-void initialize2dFloatArray(fp_t* values, int num_channels, int height, int width, fp_t** channels); 
+void initialize2dFloatArray(fp_t* values, uint32_t num_channels, uint32_t height, uint32_t width, fp_t** channels);

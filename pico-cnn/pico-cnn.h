@@ -23,6 +23,10 @@
 
 #ifdef MNIST
 #include "io/read_mnist.h"
+#ifdef DEBUG
+#include "io/write_pgm.h"
+#include "io/write_float.h"
+#endif
 #endif
 
 #ifdef JPEG
@@ -36,8 +40,7 @@
 #endif
 
 #ifdef DEBUG
-#include "io/write_pgm.h"
-#include "io/write_float.h"
+#include <stdio.h>
 #endif
 
 #endif // PICO_CNN_H

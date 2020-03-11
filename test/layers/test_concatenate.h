@@ -1,3 +1,9 @@
+/**
+ * @brief contains all activation functions
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef TEST_CONCATENATE_H
 #define TEST_CONCATENATE_H
 
@@ -9,13 +15,10 @@
 #include <stdlib.h>
 #include <assert.h>
 
-int test_concatenate_2D_1();
-int test_concatenate_2D_2();
-int test_concatenate_3D_1();
-int test_concatenate_3D_2();
-int test_concatenate_3D_3();
-int test_concatenate_naive_dim_0();
-int test_concatenate_naive_dim_1();
-int test_concatenate_naive_dim_2();
+int32_t test_concatenate_2D_1();
+int32_t test_concatenate_2D_2();
+int32_t test_concatenate_naive_dim_0();
+int32_t test_concatenate_naive_dim_1();
+int32_t test_concatenate_naive_dim_2();
 
 #endif //TEST_CONCATENATE_H

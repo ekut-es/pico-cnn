@@ -1,7 +1,9 @@
-//
-// Created by junga on 10.01.20.
-//
-
+/**
+ * @brief contains all activation functions
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef PICO_CNN_TEST_BATCH_NORMALIZATION_H
 #define PICO_CNN_TEST_BATCH_NORMALIZATION_H
 
@@ -11,7 +13,7 @@
 
 #include <stdlib.h>
 
-int test_batch_normalization_naive_1();
-int test_batch_normalization_naive_2();
+int32_t test_batch_normalization_naive_1();
+int32_t test_batch_normalization_naive_2();
 
 #endif //PICO_CNN_TEST_BATCH_NORMALIZATION_H

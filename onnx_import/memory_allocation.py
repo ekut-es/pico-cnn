@@ -41,9 +41,12 @@ class KernelAllocationCode(BaseCode):
         """
         Derive necessary information from the shapes of the inputs and pass them to the code template.
         :param buffer: Buffer object containing different information about the kernel/bias input.
-        :param pos: Position of the kernel/bias-array when moving through the CNN. Needed for reading weights from binary weights file.
-        :param pos_kernel: Position of the kernel-array when moving through the CNN. Needed for reading weights from binary weights file.
-        :param pos_bias: Position of the bias-array when moving through the CNN. Needed for reading weights from binary weights file.
+        :param pos: Position of the kernel/bias-array when moving through the CNN.
+        Needed for reading weights from binary weights file.
+        :param pos_kernel: Position of the kernel-array when moving through the CNN.
+        Needed for reading weights from binary weights file.
+        :param pos_bias: Position of the bias-array when moving through the CNN.
+        Needed for reading weights from binary weights file.
         :return: KernelAllocationCode object
         """
         operation = cls(buffer)
@@ -165,7 +168,7 @@ class BufferCleanup(BaseCode):
     template_file = "buffer_cleanup.c"
 
     @classmethod
-    def create(cls, buffer, pos=-1):
+    def create(cls, buffer, pos=-1, pos_kernel=-1, pos_bias=-1):
         """
         Generate code that frees the allocated memory buf the specified buffer.
         :param buffer: Buffer object for which memory has to be freed again.

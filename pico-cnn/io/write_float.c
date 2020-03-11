@@ -1,8 +1,8 @@
 #include "write_float.h"
 
-int write_float(const fp_t* image, const uint16_t height, const uint16_t width, const char* float_path) {
+int32_t write_float(const fp_t* image, const uint16_t height, const uint16_t width, const char* float_path) {
 
-    int row, column;
+    uint16_t row, column;
 
     FILE* float_file;
     float_file = fopen(float_path, "w+");

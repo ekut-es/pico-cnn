@@ -8,7 +8,8 @@ __author__ = "Alexander Jung (University of Tuebingen, Chair for Embedded System
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Tool for preparing images (scaling/cropping) to the required input size.")
+    parser = argparse.ArgumentParser(description="Tool for preparing images (scaling/cropping) \
+                                                  to the required input size.")
     parser.add_argument(
         "--directory",
         type=Text,

@@ -23,7 +23,7 @@
  * @param padding
  */
 void extend_2d_input_with_padding(const fp_t* input_channel, const uint16_t height, const uint16_t width,
-                                  fp_t** extended_input, const int* padding, fp_t initializer);
+                                  fp_t** extended_input, const uint16_t* padding, fp_t initializer);
 
 /**
  * @brief Extends input_channel with padding by copying the data into a bigger array.
@@ -34,7 +34,7 @@ void extend_2d_input_with_padding(const fp_t* input_channel, const uint16_t heig
  * @param padding
  */
 void extend_1d_input_with_padding(const fp_t* input_channel, const uint16_t width,
-                                  fp_t** extended_input, const int* padding, fp_t initializer);
+                                  fp_t** extended_input, const uint16_t* padding, fp_t initializer);
 
 
 #endif // UTILS_H

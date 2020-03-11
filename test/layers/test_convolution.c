@@ -3,29 +3,29 @@
 // padding for 2d [start of height padding, start of width_padding, end of height padding, end of width padding]
 
 
-int convolution1d_output_size(int input_size, int kernel_size, int stride, int start_padding, int end_padding) {
+int32_t convolution1d_output_size(uint16_t input_size, uint16_t kernel_size, uint16_t stride, uint16_t start_padding, uint16_t end_padding) {
     return (input_size - kernel_size + start_padding + end_padding)/stride  + 1;
 }
 
-void convolution2d_output_size(int input_height, int input_width,
-                               int kernel_height, int kernel_width,
-                               int stride_height, int stride_width,
-                               const int* padding, int* output) {
+void convolution2d_output_size(uint16_t input_height, uint16_t input_width,
+                               uint16_t kernel_height, uint16_t kernel_width,
+                               uint16_t stride_height, uint16_t stride_width,
+                               const uint16_t* padding, int32_t* output) {
     output[0] = convolution1d_output_size(input_height, kernel_height, stride_height, padding[0], padding[2]);
     output[1] = convolution1d_output_size(input_width, kernel_width, stride_width, padding[1], padding[3]);
 }
 
-int test_convolution1d_naive() {
+int32_t test_convolution1d_naive() {
 
     printf("test_convolution_1d_naive()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_size 11
     #define kernel_size 3
     #define expected_output_size 5
     fp_t error = 0.001;
-    int stride =  2;
-    int padding =  0;
+    int32_t stride =  2;
+    int32_t padding =  0;
     fp_t bias = -2;
     fp_t kernel[kernel_size] = {2, -1, 0};
     fp_t input[input_size] = {-9, 0, 3, -5, -10, 7, 3, -2, -2, 3,4};
@@ -47,9 +47,9 @@ int test_convolution1d_naive() {
     #undef expected_output_size
 }
 
-int test_convolution2d_naive_1() {
+int32_t test_convolution2d_naive_1() {
     printf("test_convolution2d_naive_1()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_height 4
     #define input_width 3
@@ -58,8 +58,8 @@ int test_convolution2d_naive_1() {
     #define expected_output_width 3
 
     fp_t error = 0.001;
-    int stride = 1 ;
-    int padding[4] = {1,1,1,1};
+    int32_t stride = 1 ;
+    uint16_t padding[4] = {1,1,1,1};
     fp_t bias = 0;
     fp_t kernel[kernel_size*kernel_size] = {-5, -1, -3,
                                              10, 3,  0,
@@ -75,7 +75,7 @@ int test_convolution2d_naive_1() {
       -39, 210,  36,
       -35, -67,-135};
 
-    int* dimensions = (int*) malloc(2 * sizeof(int));
+    int32_t* dimensions = (int32_t*) malloc(2 * sizeof(int32_t));
     convolution2d_output_size(input_height,input_width, kernel_size, kernel_size,
                               stride, stride, padding, dimensions);
 
@@ -103,10 +103,10 @@ int test_convolution2d_naive_1() {
 
 }
 
-int test_convolution2d_naive_2(){
+int32_t test_convolution2d_naive_2(){
 
     printf("test_convolution2d_naive_2()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_height 4
     #define input_width 3
@@ -115,8 +115,8 @@ int test_convolution2d_naive_2(){
     #define expected_output_width 3
 
     fp_t error = 0.001;
-    int stride = 1 ;
-    int padding[4] = {1,1,1,1};
+    int32_t stride = 1 ;
+    uint16_t padding[4] = {1,1,1,1};
     fp_t bias = 0;
     fp_t kernel[kernel_size*kernel_size] = {0,0,0,
                                             0,0,0,
@@ -132,7 +132,7 @@ int test_convolution2d_naive_2(){
        0,0,0,
        0,0,0};
 
-    int* dimensions = (int*) malloc(2 * sizeof(int));
+    int32_t* dimensions = (int32_t*) malloc(2 * sizeof(int32_t));
     convolution2d_output_size(input_height, input_width, kernel_size, kernel_size,
                               stride, stride, padding, dimensions);
 
@@ -159,9 +159,9 @@ int test_convolution2d_naive_2(){
 
 }
 
-int test_convolution2d_naive_3() {
+int32_t test_convolution2d_naive_3() {
 
-    int return_value = 0;
+    int32_t return_value = 0;
     printf("test_convolution2d_naive_3()\n");
 
 
@@ -174,9 +174,9 @@ int test_convolution2d_naive_3() {
 
     fp_t error = 0.001;
 
-    const int padding[4] = {0,1,2,3};
-    int stride_height = 1;
-    int stride_width = 1;
+    const uint16_t padding[4] = {0,1,2,3};
+    int32_t stride_height = 1;
+    int32_t stride_width = 1;
     fp_t bias = 0;
 
     fp_t kernel[kernel_height*kernel_width] = {-3, -1, 0};
@@ -204,7 +204,7 @@ int test_convolution2d_naive_3() {
           0,   0,   0,   0,   0,   0,  0, 0
        };
 
-    int* dimensions = (int*) malloc(2 * sizeof(int));
+    int32_t* dimensions = (int32_t*) malloc(2 * sizeof(int32_t));
     convolution2d_output_size(input_height, input_width, kernel_height, kernel_width,
                               stride_height, stride_width, padding, dimensions);
 
@@ -234,9 +234,9 @@ int test_convolution2d_naive_3() {
 
 }
 
-int test_convolution2d_naive_4() {
+int32_t test_convolution2d_naive_4() {
 
-    int return_value = 0;
+    int32_t return_value = 0;
     printf("test_convolution2d_naive_4()\n");
 
 
@@ -249,9 +249,9 @@ int test_convolution2d_naive_4() {
 
     fp_t error = 0.001;
 
-    int padding[4] = {0,1,2,3};
-    int stride_height = 2;
-    int stride_width = 3;
+    uint16_t padding[4] = {0,1,2,3};
+    int32_t stride_height = 2;
+    int32_t stride_width = 3;
     fp_t bias = 0;
 
     fp_t kernel[kernel_height*kernel_width] = {-3, -1, 0};
@@ -274,7 +274,7 @@ int test_convolution2d_naive_4() {
           0,   0,   0
        };
 
-    int* dimensions = (int*) malloc(2 * sizeof(int));
+    int32_t* dimensions = (int32_t*) malloc(2 * sizeof(int32_t));
     convolution2d_output_size(input_height, input_width, kernel_height, kernel_width,
                               stride_height, stride_width, padding, dimensions);
 
@@ -304,8 +304,8 @@ int test_convolution2d_naive_4() {
 
 }
 
-int test_convolution2d_naive_5() {
-    int return_value = 0;
+int32_t test_convolution2d_naive_5() {
+    int32_t return_value = 0;
     printf("test_convolution2d_naive_5()\n");
 
 
@@ -318,9 +318,9 @@ int test_convolution2d_naive_5() {
 
     fp_t error = 0.001;
 
-    int padding[4] = {1, 2, 4, 0};
-    int stride_height = 3;
-    int stride_width = 2;
+    uint16_t padding[4] = {1, 2, 4, 0};
+    int32_t stride_height = 3;
+    int32_t stride_width = 2;
     fp_t bias = 0.4;
 
     fp_t kernel[kernel_height*kernel_width] =
@@ -358,7 +358,7 @@ int test_convolution2d_naive_5() {
         75.4, 76.4, -94.6,
          -8.6, 6.4, -85.6};
 
-    int* dimensions = (int*) malloc(2 * sizeof(int));
+    int32_t* dimensions = (int32_t*) malloc(2 * sizeof(int32_t));
     convolution2d_output_size(input_height, input_width, kernel_height, kernel_width,
                               stride_height, stride_width, padding, dimensions);
 
@@ -386,10 +386,10 @@ int test_convolution2d_naive_5() {
     #undef expected_output_height
 }
 
-int test_add_channel2d_naive() {
+int32_t test_add_channel2d_naive() {
 
     printf("test_add_channel2d_naive()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_width 4
     #define input_height 3

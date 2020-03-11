@@ -28,7 +28,7 @@ void max_pooling1d_naive(const fp_t* input_channel, const uint16_t input_width,
 
 void max_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t input_width,
                                 fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
-                                const int* padding) {
+                                const uint16_t* padding) {
     fp_t* new_input_channel;
 
     extend_1d_input_with_padding(input_channel, input_width, &new_input_channel, padding, FLOAT_MIN);
@@ -79,7 +79,7 @@ void max_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const
 
 void max_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height, const uint16_t width,
                                 fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
-                                const int* padding) {
+                                const uint16_t* padding) {
 
     fp_t* new_input_channel;
     extend_2d_input_with_padding(input_channel, height, width, &new_input_channel, padding, FLOAT_MIN);
@@ -156,16 +156,14 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
                 if(output_channel_row >= crop && output_channel_row < output_channel_height-crop &&
                    output_channel_column >= crop && output_channel_column < output_channel_width-crop){
 
-//                    printf("Center case: output_row: %d, output_column: %d\n", output_channel_row, output_channel_column);
-
                     output_channel[output_channel_row * output_channel_width + output_channel_column] =
                             pixel / ((fp_t)(kernel_size * kernel_size)) + bias;
 
                 // edge case
                 } else {
 
-                    int up_row, down_row, left_col, right_col;
-                    int divisor, div_row, div_col;
+                    uint16_t up_row, down_row, left_col, right_col;
+                    int32_t divisor, div_row, div_col;
 
                     up_row = MAX(channel_row, crop);
                     down_row = MIN(channel_row+kernel_size-1, height-crop-1);
@@ -178,7 +176,7 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
                     divisor = div_row * div_col;
 
                     if(divisor == 0) {
-                        printf("ERROR: Division by zero! Aborting execution.\n");
+                        ERROR_MSG("ERROR: Division by zero! Aborting execution.\n");
                         exit(1);
                     }
 
@@ -193,13 +191,13 @@ void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, c
             output_channel_column = 0;
         }
     } else {
-        printf( "ERROR: Unsupported values for 'count_include_pad'.\n");
+        ERROR_MSG("ERROR: Unsupported values for 'count_include_pad'.\n");
     }
 }
 
 void average_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height, const uint16_t width,
                                     fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
-                                    fp_t bias, const int* padding, const uint16_t count_include_pad) {
+                                    fp_t bias, const uint16_t* padding, const uint16_t count_include_pad) {
 
     fp_t* new_input_channel;
     extend_2d_input_with_padding(input_channel, height, width, &new_input_channel, padding, 0.0);
@@ -260,8 +258,8 @@ void average_pooling1d_naive(const fp_t* input_channel, const uint16_t input_wid
              // edge case
             } else {
 
-                int left_col, right_col;
-                int divisor, div_col;
+                uint16_t left_col, right_col;
+                int32_t divisor, div_col;
 
                 left_col = MAX(input_channel_idx, crop);
                 right_col = MIN(input_channel_idx+kernel_size-1, input_width-crop-1);
@@ -275,13 +273,13 @@ void average_pooling1d_naive(const fp_t* input_channel, const uint16_t input_wid
             output_channel_idx++;
         }
     } else {
-        printf( "ERROR: Unsupported values for 'count_include_pad'.\n");
+        ERROR_MSG("ERROR: Unsupported values for 'count_include_pad'.\n");
     }
 }
 
 void average_pooling1d_naive_padded(const fp_t* input_channel, const uint16_t input_width, fp_t* output_channel,
-                                    const uint16_t kernel_size, const uint16_t stride, fp_t bias, const int* padding,
-                                    const uint16_t count_include_pad) {
+                                    const uint16_t kernel_size, const uint16_t stride, fp_t bias,
+                                    const uint16_t* padding, const uint16_t count_include_pad) {
     fp_t* new_input_channel;
 
     extend_1d_input_with_padding(input_channel, input_width, &new_input_channel, padding, 0.0);
@@ -322,14 +320,14 @@ void global_max_pooling2d_naive(const fp_t* input_channel, const uint16_t input_
 }
 
 void pad_2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
-                  fp_t* output_channel, const int* padding, fp_t initializer) {
+                  fp_t* output_channel, const uint16_t* padding, fp_t initializer) {
 
     uint16_t height_padded = height + padding[0] + padding[2];
     uint16_t width_padded = width + padding[1] + padding[3];
 
 
-    for(int r = 0; r < height_padded; r++){
-        for(int c = 0; c < width_padded; c++){
+    for(uint16_t r = 0; r < height_padded; r++){
+        for(uint16_t c = 0; c < width_padded; c++){
             output_channel[r*width_padded+c] = initializer;
         }
     }
@@ -341,10 +339,10 @@ void pad_2d_naive(const fp_t* input_channel, const uint16_t height, const uint16
 }
 
 void pad_1d_naive(const fp_t* input_channel, const uint16_t width,
-                  fp_t* output_channel, const int* padding, fp_t initializer) {
+                  fp_t* output_channel, const uint16_t* padding, fp_t initializer) {
     uint16_t width_padded = width + padding[0] + padding[1];
 
-    for(int i = 0; i < width_padded; i++){
+    for(uint16_t i = 0; i < width_padded; i++){
         output_channel[i] = initializer;
     }
 

@@ -28,6 +28,11 @@ def main():
 
     # Load inputs
     inputs_num = len(glob.glob(os.path.join(reference_data_dir, 'input_*.pb')))
+
+    if inputs_num == 0:
+        print("ERROR: There seems to be no *.pb file in the specified directory.")
+        exit(1)
+
     for i in range(inputs_num):
         input_file = os.path.join(reference_data_dir, 'input_{}.pb'.format(i))
         tensor = onnx.TensorProto()
@@ -60,8 +65,12 @@ def main():
             print("Input data shape: {}".format(tensor_shape))
 
     # Load reference outputs
-    ref_outputs = []
     ref_outputs_num = len(glob.glob(os.path.join(reference_data_dir, 'output_*.pb')))
+
+    if ref_outputs_num == 0:
+        print("ERROR: There seems to be no *.pb file in the specified directory.")
+        exit(1)
+
     for i in range(ref_outputs_num):
         output_file = os.path.join(reference_data_dir, 'output_{}.pb'.format(i))
         tensor = onnx.TensorProto()

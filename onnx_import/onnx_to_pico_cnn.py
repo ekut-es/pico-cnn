@@ -1,16 +1,11 @@
 import argparse
-from typing import Text
 
 import onnx
 from onnx import optimizer, utils
 
-from onnx_importer import import_model
-
 from pico_cnn import *
-from ir import *
 from compute_graph import *
-from constprop import constant_propagation
-from backend import Backend, BackendRep
+from backend import Backend
 
 __author__ = "Christoph Gerum, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
 

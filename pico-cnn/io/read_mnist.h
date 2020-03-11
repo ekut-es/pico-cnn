@@ -22,7 +22,7 @@
  * @return input with changed endianess
  * TODO make it a macro
  */
-static uint32_t change_endianess(uint32_t value);
+uint32_t change_endianess(uint32_t value);
 
 /**
  * @brief reads MNIST images from a given file
@@ -39,7 +39,7 @@ static uint32_t change_endianess(uint32_t value);
  *
  * @return number of images which were read from file (0 = error)
  */
-int read_mnist_images(const char* path_to_mnist_images, fp_t*** mnist_images, uint32_t num_images, const uint8_t padding, const fp_t lower_bound, const fp_t upper_bound);
+uint32_t read_mnist_images(const char* path_to_mnist_images, fp_t*** mnist_images, uint32_t num_images, const uint8_t padding, const fp_t lower_bound, const fp_t upper_bound);
 
 /**
  * @brief reads MNIST labels from a given file
@@ -50,6 +50,6 @@ int read_mnist_images(const char* path_to_mnist_images, fp_t*** mnist_images, ui
  *
  * @return number of labels which were read from file (0 = error)
  */
-int read_mnist_labels(const char* path_to_mnist_labels, uint8_t** mnist_labels, uint32_t num_labels);
+uint32_t read_mnist_labels(const char* path_to_mnist_labels, uint8_t** mnist_labels, uint32_t num_labels);
 
 #endif // READ_MNIST_H

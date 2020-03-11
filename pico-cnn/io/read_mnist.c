@@ -1,6 +1,6 @@
 #include "read_mnist.h"
 
-static uint32_t change_endianess(uint32_t value) {
+uint32_t change_endianess(uint32_t value) {
     uint32_t result = 0;
     result |= (value & 0x000000FF) << 24;
     result |= (value & 0x0000FF00) << 8;
@@ -9,7 +9,7 @@ static uint32_t change_endianess(uint32_t value) {
     return result;
 }
 
-int read_mnist_images(const char* path_to_mnist_images, fp_t*** mnist_images, uint32_t num_images, const uint8_t padding, const fp_t lower_bound, const fp_t upper_bound) {
+uint32_t read_mnist_images(const char* path_to_mnist_images, fp_t*** mnist_images, uint32_t num_images, const uint8_t padding, const fp_t lower_bound, const fp_t upper_bound) {
 
     FILE *images;
     images = fopen(path_to_mnist_images, "r");
@@ -21,7 +21,7 @@ int read_mnist_images(const char* path_to_mnist_images, fp_t*** mnist_images, ui
         uint32_t width;
         fp_t range = fabs(lower_bound - upper_bound);
 
-        int i;
+        uint32_t i;
 
         fread(&magic_number, sizeof(magic_number), 1, images);
         magic_number = change_endianess(magic_number);
@@ -82,7 +82,7 @@ int read_mnist_images(const char* path_to_mnist_images, fp_t*** mnist_images, ui
     return 0;
 }
 
-int read_mnist_labels(const char* path_to_mnist_labels, uint8_t** mnist_labels, uint32_t num_labels) {
+uint32_t read_mnist_labels(const char* path_to_mnist_labels, uint8_t** mnist_labels, uint32_t num_labels) {
 
 	FILE *labels;
     labels = fopen(path_to_mnist_labels, "r");
@@ -91,7 +91,7 @@ int read_mnist_labels(const char* path_to_mnist_labels, uint8_t** mnist_labels, 
         uint32_t magic_number;
         uint32_t num_labels_provided;
 
-        int i;
+        uint32_t i;
 
         fread(&magic_number, sizeof(magic_number), 1, labels);
         magic_number = change_endianess(magic_number);

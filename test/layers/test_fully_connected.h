@@ -1,3 +1,9 @@
+/**
+ * @brief contains all activation functions
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef TEST_FULLY_CONNECTED_H
 #define TEST_FULLY_CONNECTED_H
 
@@ -10,6 +16,6 @@
 #include <assert.h>
 #include <math.h>
 
-int test_fully_connected();
+int32_t test_fully_connected();
 
 #endif // TEST_FULLY_CONNECTED_H

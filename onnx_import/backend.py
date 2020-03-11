@@ -1,15 +1,14 @@
 from compute_graph import *
 from constprop import constant_propagation
-from utils import reduce_mult
 from memory_manager import MemoryManager
-from ir import OperationRegistry
-from ir import CodeRegistry
-from pico_cnn import *
 from memory_allocation import *
 from generate_dummy import *
 
+from typing import Any, Text, Optional
+
 import onnx.backend.base as backend_base
 import onnx
+from onnx import ModelProto
 
 import os
 import struct
@@ -117,7 +116,7 @@ class BackendRep(backend_base.BackendRep):
                 data = node.input_tensors[input]
 
                 if node.op_type == "Gemm":
-                   data = data.transpose()
+                    data = data.transpose()
 
                 type_code = "fp_t " + buffer.name + "[]"
                 declaration = "// " + str(data.shape) + "\n"
@@ -287,6 +286,7 @@ class BackendRep(backend_base.BackendRep):
         initialization_header = "#ifndef NETWORK_INITIALIZATION_H\n"
         initialization_header += "#define NETWORK_INITIALIZATION_H\n"
         initialization_header += "#include <stdlib.h>\n"
+        initialization_header += "#include <stdint.h>\n"
         initialization_header += "#include \"pico-cnn/parameters.h\"\n\n"
         initialization_header += "void initialize_network();\n\n"
         initialization_header += "fp_t*** kernels;\n"
@@ -412,6 +412,7 @@ class BackendRep(backend_base.BackendRep):
         cleanup_header = "#ifndef NETWORK_CLEANUP_H\n"
         cleanup_header += "#define NETWORK_CLEANUP_H\n"
         cleanup_header += "#include <stdlib.h>\n"
+        cleanup_header += "#include <stdint.h>\n"
         cleanup_header += "#include \"pico-cnn/parameters.h\"\n"
         cleanup_header += "#include \"network_initialization.h\" \n\n"
         cleanup_header += "void cleanup_network(); \n\n"
@@ -441,7 +442,7 @@ class BackendRep(backend_base.BackendRep):
         """
         Function to select the first of possibly multiple implementation candidates
         for a each operation in the ComputeGraph.
-        TODO: In the future this function will be extended to select different implementations (naive/armPerfLibs/openMP)
+        TODO: In the future this func will be extended to select different implementations (naive/armPerfLibs/openMP)
         :param graph: ComputeGraph of the parsed onnx model.
         :param memory_manager: MemoryManager containing information about input and output buffers of each operation.
         :return: Dictionary containing implementations of all the nodes in the ComputeGraph
@@ -466,7 +467,8 @@ class BackendRep(backend_base.BackendRep):
         This is not a real scheduler, for now, just assume the onnx defines a valid schedule.
         The functions just enumerates all implementations and returns a list.
         :param graph: ComputeGraph of the parsed onnx model.
-        :param implementations: Dictionary containing the previously selected implementations of all operations in the ComputeGraph.
+        :param implementations: Dictionary containing the previously selected
+        implementations of all operations in the ComputeGraph.
         :return: List of named tuples ("SchedulerTask", ["time", "node", "implementation"])
         """
         SchedulerTask = namedtuple("SchedulerTask", ["time", "node", "implementation"])
@@ -566,8 +568,10 @@ class BackendRep(backend_base.BackendRep):
         schedule = self._get_schedule(graph, implementations)
         # self._print_live_ranges(schedule)
 
-        input_names = ["input_"+name.replace('.', '_').replace(':', '_').replace('/', '_') for name, type, shape in graph.inputs]
-        output_names = ["output_"+name.replace('.', '_').replace(':', '_').replace('/', '_') for name, type, shape in graph.outputs]
+        input_names = ["input_"+name.replace('.', '_').replace(':', '_').replace('/', '_')
+                       for name, type, shape in graph.inputs]
+        output_names = ["output_"+name.replace('.', '_').replace(':', '_').replace('/', '_')
+                        for name, type, shape in graph.outputs]
 
         """Currently we only allow single input (no batch processing) to the CNN, but this may be multi-channel input"""
         inputs = graph.inputs
@@ -611,7 +615,8 @@ class BackendRep(backend_base.BackendRep):
                 print("ERROR: Unknown output shape of network: {}".format(output_shape))
                 exit(1)
             elif len(output_shape) == 4:
-                print("Output is multi-dimensional.")
+                print("ERROR: Multi-dimensional output is currently not supported.")
+                exit(1)
 
         network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
 
@@ -676,18 +681,19 @@ class BackendRep(backend_base.BackendRep):
         """
         # TODO: Does this need to be more sophisticated?
         self.makefile = "CC = gcc\n"
-        self.makefile += "CFLAGS = -Wall -g\n"
+        self.makefile += "CFLAGS = -Wall -g -DINFO\n"
         self.makefile += "LDFLAGS = -L../../../pico-cnn\n"
         self.makefile += "LD_LIBS = -lpico-cnn -lm\n\n"
         self.makefile += "# list of all generated .c files.\n"
-        self.makefile += "#TODO: right now, all .c files are compiled in each make call: change for higher effiency?\n"
         self.makefile += "NETWORK_LIST = network_initialization.c network_cleanup.c network.c"
         self.makefile += "\n\ndummy_input: dummy_input.c $(NETWORK_LIST) libpico-cnn.a\n\t"
         self.makefile += "$(CC) dummy_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o dummy_input"
         self.makefile += "\n\nreference_input: reference_input.c $(NETWORK_LIST) libpico-cnn.a\n\t"
-        self.makefile += "$(CC) reference_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o reference_input"
+        self.makefile += "$(CC) reference_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) " \
+                         "$(LDFLAGS) $(LD_LIBS) -o reference_input"
         self.makefile += "\n\n{}: {}.c $(NETWORK_LIST) libpico-cnn.a\n\t".format(self.model_name, self.model_name)
-        self.makefile += "$(CC) {}.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o {}".format(self.model_name, self.model_name)
+        self.makefile += "$(CC) {}.c $(NETWORK_LIST) -I../../.. $(CFLAGS) " \
+                         "$(LDFLAGS) $(LD_LIBS) -o {}".format(self.model_name, self.model_name)
         self.makefile += "\n\nall: dummy_input reference_input {}".format(self.model_name)
         self.makefile += "\n\n.PHONY: clean\n"
         self.makefile += "clean:\n\trm -rf {} dummy_input reference_input\n".format(self.model_name)
@@ -709,7 +715,7 @@ class BackendRep(backend_base.BackendRep):
             pass
 
         with open(os.path.join(folder, "network.c"), "w") as f:
-             f.write(self.network_code)
+            f.write(self.network_code)
 
         with open(os.path.join(folder, "network.h"), "w") as f:
             f.write(self.network_header)
@@ -725,9 +731,6 @@ class BackendRep(backend_base.BackendRep):
 
         with open(os.path.join(folder, "network_cleanup.h"), "w") as f:
             f.write(self.cleanup_header)
-
-        # with open(os.path.join(folder, "network.weights"), "w") as f:
-        #     f.write(self.weights_file)
 
         with open(os.path.join(folder, "network.weights.bin"), "wb") as f:
             for packed_struct in self.packed_file:

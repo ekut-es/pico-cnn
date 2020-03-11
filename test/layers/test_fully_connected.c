@@ -1,9 +1,9 @@
 #include "test_fully_connected.h"
 
-int test_fully_connected() {
+int32_t test_fully_connected() {
 
     printf("test_fully_connected()\n");
-    int return_value = 0;
+    int32_t return_value = 0;
 
     #define input_width 6
     #define output_width 4
