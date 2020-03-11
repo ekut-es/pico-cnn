@@ -1,6 +1,6 @@
 #include "read_jpeg.h"
 
-int read_jpeg(fp_t*** image, const char* jpeg_path, const fp_t lower_bound, const fp_t upper_bound, uint16_t *height, uint16_t *width) {
+int32_t read_jpeg(fp_t*** image, const char* jpeg_path, const fp_t lower_bound, const fp_t upper_bound, uint16_t *height, uint16_t *width) {
 
   	FILE * jpeg_file;
 
@@ -15,7 +15,7 @@ int read_jpeg(fp_t*** image, const char* jpeg_path, const fp_t lower_bound, cons
 
   		JSAMPARRAY jpeg_buffer;
 		uint16_t row_stride;
-		unsigned int pos = 0;
+		uint32_t pos = 0;
 
 		cinfo.err = jpeg_std_error(&jerr);
   		jpeg_create_decompress(&cinfo);
@@ -41,7 +41,7 @@ int read_jpeg(fp_t*** image, const char* jpeg_path, const fp_t lower_bound, cons
 
 			(void) jpeg_read_scanlines(&cinfo, jpeg_buffer, 1);
 
-            int x;
+            uint16_t x;
 
 			for(x = 0; x < *width; x++) {
 				r = jpeg_buffer[0][cinfo.output_components * x];

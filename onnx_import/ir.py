@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+__author__ = "Christoph Gerum, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
+
 
 class OperationRegistry(object):
     """

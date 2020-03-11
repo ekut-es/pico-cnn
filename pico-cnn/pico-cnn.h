@@ -2,6 +2,7 @@
  * @brief provides all includes to construct a CNN
  *
  * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */
 
 #ifndef PICO_CNN_H
@@ -13,14 +14,19 @@
 #include "layers/convolution.h"
 #include "layers/pooling.h"
 #include "layers/fully_connected.h"
+#include "layers/batch_normalization.h"
+#include "layers/concatenate.h"
 
-#include "io/read_weights.h"
 #include "io/read_binary_weights.h"
-#include "io/read_binary_sample_data.h"
+#include "io/read_binary_reference_data.h"
 #include "io/read_pgm.h"
 
 #ifdef MNIST
 #include "io/read_mnist.h"
+#ifdef DEBUG
+#include "io/write_pgm.h"
+#include "io/write_float.h"
+#endif
 #endif
 
 #ifdef JPEG
@@ -34,12 +40,7 @@
 #endif
 
 #ifdef DEBUG
-#include "io/write_pgm.h"
-#include "io/write_float.h"
+#include <stdio.h>
 #endif
-
-#ifdef FIXED16
-#include "driver/fixed16.h"
-#endif 
 
 #endif // PICO_CNN_H

@@ -1,6 +1,6 @@
 {% if padding_needed %}
-const int {{input_buffer.name}}_padding[4] = { {{padding.0}}, {{padding.1}}, {{padding.2}}, {{padding.3}} };
-for (int i = 0; i < {{num_input_channels}}; i++) {
+const uint16_t {{identifier}}_padding[4] = { {{padding.0}}, {{padding.1}}, {{padding.2}}, {{padding.3}} };
+for (uint32_t i = 0; i < {{num_input_channels}}; i++) {
     average_pooling2d_naive_padded({{input_buffer.name}}[i],
                                    {{input_height}},
                                    {{input_width}},
@@ -12,11 +12,11 @@ for (int i = 0; i < {{num_input_channels}}; i++) {
                                    {% else %}
                                    0,
                                    {% endif %}
-                                   {{input_buffer.name}}_padding,
+                                   {{identifier}}_padding,
                                    {{count_include_pad}});
 }
 {% else %}
-for (int i = 0; i < {{num_input_channels}}; i++) {
+for (uint32_t i = 0; i < {{num_input_channels}}; i++) {
     average_pooling2d_naive({{input_buffer.name}}[i],
                             {{input_height}},
                             {{input_width}},

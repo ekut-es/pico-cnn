@@ -1,10 +1,12 @@
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader
 import os
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 template_dir = os.path.join(base_dir, "code_templates")
 
 template_env = Environment(loader=FileSystemLoader(template_dir))
+
+__author__ = "Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
 
 
 def generate_dummy_main(graph):
@@ -24,7 +26,7 @@ def generate_dummy_main(graph):
         print("ERROR: Multiple inputs not supported!")
         return 1
     else:
-        input_shape = inputs[0].shape
+        input_shape = graph.shape_dict[inputs[0].name]
 
         if len(input_shape) == 4:
             if input_shape[0] != 1:
@@ -59,19 +61,30 @@ def generate_dummy_main(graph):
         print("ERROR: Multiple outputs not supported!")
         return 1
     else:
-        output_shape = outputs[0].shape
+        output_shape = graph.shape_dict[outputs[0].name]
 
-        if len(output_shape) != 2:
-            print("ERROR: Unsupported output shape: {}".format(output_shape))
-            return 1
+        if len(output_shape) == 2:
+            num_output_channels = 1
+            output_channel_height = 1
+            output_channel_width = output_shape[1]
+        elif len(output_shape) == 4:
+            assert output_shape[0] == 1
+            num_output_channels = output_shape[1]
+            output_channel_height = output_shape[2]
+            output_channel_width = output_shape[3]
         else:
-            output_size = output_shape[1]
+            print("ERROR: Unsupported output shape: {}".format(output_shape))
+            exit(1)
 
     attributes["input_shape_len"] = len(input_shape)
     attributes["num_input_channels"] = num_input_channels
     attributes["input_channel_height"] = input_channel_height
     attributes["input_channel_width"] = input_channel_width
-    attributes["output_size"] = output_size
+
+    attributes["output_shape_len"] = len(output_shape)
+    attributes["num_output_channels"] = num_output_channels
+    attributes["output_channel_height"] = output_channel_height
+    attributes["output_channel_width"] = output_channel_width
 
     return template.render(**attributes)
 
@@ -126,20 +139,31 @@ def generate_reference_main(graph):
 
     if len(outputs) > 1:
         print("ERROR: Multiple outputs not supported!")
-        return 1
+        exit(1)
     else:
-        output_shape = outputs[0].shape
+        output_shape = graph.shape_dict[outputs[0].name]
 
-        if len(output_shape) != 2:
-            print("ERROR: Unsupported output shape: {}".format(output_shape))
-            return 1
+        if len(output_shape) == 2:
+            num_output_channels = 1
+            output_channel_height = 1
+            output_channel_width = output_shape[1]
+        elif len(output_shape) == 4:
+            assert output_shape[0] == 1
+            num_output_channels = output_shape[1]
+            output_channel_height = output_shape[2]
+            output_channel_width = output_shape[3]
         else:
-            output_size = output_shape[1]
+            print("ERROR: Unsupported output shape: {}".format(output_shape))
+            exit(1)
 
     attributes["input_shape_len"] = len(input_shape)
     attributes["num_input_channels"] = num_input_channels
     attributes["input_channel_height"] = input_channel_height
     attributes["input_channel_width"] = input_channel_width
-    attributes["output_size"] = output_size
+
+    attributes["output_shape_len"] = len(output_shape)
+    attributes["num_output_channels"] = num_output_channels
+    attributes["output_channel_height"] = output_channel_height
+    attributes["output_channel_width"] = output_channel_width
 
     return template.render(**attributes)

@@ -8,6 +8,8 @@ template_dir = os.path.join(base_dir, "code_templates")
 
 template_env = Environment(loader=FileSystemLoader(template_dir))
 
+__author__ = "Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
+
 
 class BaseCode(object):
     """
@@ -23,7 +25,7 @@ class BaseCode(object):
         return template.render(**self.attributes)
 
     @classmethod
-    def create(cls, buffer, pos=-1):
+    def create(cls, buffer, pos=-1, pos_kernel=-1, pos_bias=-1):
         pass
 
 
@@ -35,11 +37,16 @@ class KernelAllocationCode(BaseCode):
     template_file = "kernel_allocation.c"
 
     @classmethod
-    def create(cls, buffer, pos=-1):
+    def create(cls, buffer, pos=-1, pos_kernel=-1, pos_bias=-1):
         """
         Derive necessary information from the shapes of the inputs and pass them to the code template.
         :param buffer: Buffer object containing different information about the kernel/bias input.
-        :param pos: Position of the kernel/bias-array when moving through the CNN. Needed for reading weights from binary weights file.
+        :param pos: Position of the kernel/bias-array when moving through the CNN.
+        Needed for reading weights from binary weights file.
+        :param pos_kernel: Position of the kernel-array when moving through the CNN.
+        Needed for reading weights from binary weights file.
+        :param pos_bias: Position of the bias-array when moving through the CNN.
+        Needed for reading weights from binary weights file.
         :return: KernelAllocationCode object
         """
         operation = cls(buffer)
@@ -71,7 +78,7 @@ class KernelAllocationCode(BaseCode):
             print("ERROR: Unknown kernel shape: {}, Buffer: {}".format(str(buffer_shape), buffer.name))
             num_kernels = 0
             kernel_width = kernel_height = 0
-            return 1
+            exit(1)
 
         operation.attributes['buffer_name'] = buffer.name
         operation.attributes['num_kernels'] = num_kernels
@@ -79,6 +86,8 @@ class KernelAllocationCode(BaseCode):
         operation.attributes['kernel_width'] = kernel_width
         operation.attributes['data_type'] = buffer.dt_string
         operation.attributes['pos'] = pos
+        operation.attributes['pos_kernel'] = pos_kernel
+        operation.attributes['pos_bias'] = pos_bias
         operation.attributes['buffer_type'] = buffer_type
 
         return operation
@@ -95,11 +104,13 @@ class OutputAllocation(BaseCode):
     template_file = "output_allocation.c"
 
     @classmethod
-    def create(cls, buffer, pos=-1):
+    def create(cls, buffer, pos=-1, pos_kernel=-1, pos_bias=-1):
         """
         Derive necessary information from the shapes of the inputs and pass them to the code template.
         :param buffer: Buffer object containing different information about the output buffer.
         :param pos: Not needed for generation of output buffer allocation code.
+        :param pos_kernel: Not needed for generation of output buffer allocation code.
+        :param pos_bias: Not needed for generation of output buffer allocation code.
         :return: OutputAllocation object
         """
         operation = cls(buffer)
@@ -116,10 +127,17 @@ class OutputAllocation(BaseCode):
                 output_width = buffer_shape[2]
             else:
                 print("ERROR: Unsupported output buffer shape: {}".format(buffer_shape))
-                return None
+                exit(1)
         elif buffer.buffer_depth == 1:
             operation.attributes['one_dimensional'] = 1
-            num_outputs = buffer_shape[1]
+            if len(buffer_shape) == 2:
+                num_outputs = buffer_shape[0]*buffer_shape[1]
+            elif len(buffer_shape) == 1:
+                num_outputs = buffer_shape[0]
+            else:
+                print("ERROR: Unsupported buffer_shape {} for buffer_depth == 1".format(buffer_shape))
+                exit(1)
+
             output_width = output_height = 0
         elif buffer.buffer_depth == 3:
             num_outputs = buffer_shape[0] * buffer_shape[1]
@@ -128,7 +146,7 @@ class OutputAllocation(BaseCode):
         else:
             print("ERROR: Unknown output shape: {}, Buffer: {}".format(str(buffer_shape), buffer.name))
             num_outputs = output_width = output_height = 0
-            return 1
+            exit(1)
 
         operation.attributes['buffer_name'] = buffer.name
         operation.attributes['num_outputs'] = num_outputs
@@ -150,7 +168,7 @@ class BufferCleanup(BaseCode):
     template_file = "buffer_cleanup.c"
 
     @classmethod
-    def create(cls, buffer, pos=-1):
+    def create(cls, buffer, pos=-1, pos_kernel=-1, pos_bias=-1):
         """
         Generate code that frees the allocated memory buf the specified buffer.
         :param buffer: Buffer object for which memory has to be freed again.

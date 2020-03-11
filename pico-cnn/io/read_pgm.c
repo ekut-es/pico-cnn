@@ -1,6 +1,6 @@
 #include "read_pgm.h"
 
-int read_pgm(fp_t** image, const char* pgm_path, const uint8_t padding, const fp_t lower_bound, const fp_t upper_bound, uint16_t* height, uint16_t* width) {
+int32_t read_pgm(fp_t** image, const char* pgm_path, const uint8_t padding, const fp_t lower_bound, const fp_t upper_bound, uint16_t* height, uint16_t* width) {
 
     FILE *pgm_file;
     pgm_file = fopen(pgm_path, "r");

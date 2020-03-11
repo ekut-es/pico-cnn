@@ -16,3 +16,5 @@ onnx_import/generated_code
 *.o
 *.a
 test/tests
+util/venv
+cmake-build-debug

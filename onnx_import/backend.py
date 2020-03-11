@@ -1,19 +1,19 @@
 from compute_graph import *
 from constprop import constant_propagation
-from utils import reduce_mult
 from memory_manager import MemoryManager
-from ir import OperationRegistry
-from ir import CodeRegistry
-from pico_cnn import *
 from memory_allocation import *
 from generate_dummy import *
-# import cffi
+
+from typing import Any, Text, Optional
 
 import onnx.backend.base as backend_base
 import onnx
+from onnx import ModelProto
 
 import os
 import struct
+
+__author__ = "Christoph Gerum, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)"
 
 
 class BackendRep(backend_base.BackendRep):
@@ -35,19 +35,6 @@ class BackendRep(backend_base.BackendRep):
         self.dummy_input = ""
         self.reference_input = ""
         self._export_model()
-
-    def run(self, inputs, **kwargs):
-        ffibuilder = cffi.FFI()
-        print(self.network_def)
-        ffibuilder.cdef(self.network_def)
-
-        ffibuilder.set_source("__network", self.network_header,
-                              sources=["network.c", "network_parameters.c"],
-                              include_dirs=["/local/gerum/projects/ocean12/speech_recognition/runtime/pico-cnn"],
-                              libraries=["m", "pthread"],
-                              extra_compile_args=["-O3", "-g", "-std=c99"])
-
-        ffibuilder.compile(verbose=True)
 
     def _remove_constants(self, graph, constant_states):
         # Remove nodes with constant values
@@ -92,14 +79,21 @@ class BackendRep(backend_base.BackendRep):
 
                 if is_nop:
                     removed_input = node.inputs[0]
-                    output = node.outputs[0]
+                    removed_output = node.outputs[0]
 
                     print("Removing nop", node.name)
                     graph.nodes.remove(node)
 
+                    for num, output in enumerate(graph.outputs):
+                        if output.name == removed_output:
+                            edge_type = output.type
+                            shape = graph.shape_dict[removed_input]
+                            new_output = EdgeInfo(removed_input, edge_type, shape)
+                            graph.outputs[num] = new_output
+
                     for node in graph.nodes:
                         for num, input in enumerate(node.inputs):
-                            if input == output:
+                            if input == removed_output:
                                 print("node", node.name, "replacing input",
                                       input, "with", removed_input)
                                 node.inputs[num] = removed_input
@@ -122,7 +116,7 @@ class BackendRep(backend_base.BackendRep):
                 data = node.input_tensors[input]
 
                 if node.op_type == "Gemm":
-                   data = data.transpose()
+                    data = data.transpose()
 
                 type_code = "fp_t " + buffer.name + "[]"
                 declaration = "// " + str(data.shape) + "\n"
@@ -144,8 +138,10 @@ class BackendRep(backend_base.BackendRep):
         :param graph: ComputeGraph of the parsed onnx model.
         :return:
         """
-        # weights_file = "FE\n"
-        # weights_file += "tiny-dnn export\n"
+
+        ops_to_ignore = ['Reshape', 'Mul']
+
+        buffers_written = []
 
         packed_file = list(bytes())
 
@@ -156,19 +152,29 @@ class BackendRep(backend_base.BackendRep):
         num_layers = 0
 
         for node in graph.nodes:
-            if len(node.input_tensors) > 0 and node.op_type != "Reshape":
+            if len(node.input_tensors) > 0 and node.op_type not in ops_to_ignore:
                 num_layers += 1
 
-        # weights_file += str(num_layers) + "\n"
         packed_file.append(struct.pack('i', num_layers))
 
-        # weight_data = ""
         weights_packed = list(bytes())
 
         for node in graph.nodes:
+            if len(node.input_tensors) > 0 and node.op_type not in ops_to_ignore:
+                layer_name = bytes(node.name + "\n", "ascii")
+                weights_packed.append(struct.pack('{}s'.format(len(layer_name)), layer_name))
+                layer_type = bytes(node.op_type + "\n", "ascii")
+                weights_packed.append(struct.pack('{}s'.format(len(layer_type)), layer_type))
+            else:
+                continue
+
             for num, input in enumerate(node.input_tensors):
-                if node.op_type == "Reshape":
-                    continue
+
+                if input in buffers_written:
+                    write_buffer = False
+                else:
+                    buffers_written.append(input)
+                    write_buffer = True
 
                 data = node.input_tensors[input]
 
@@ -176,95 +182,92 @@ class BackendRep(backend_base.BackendRep):
                     data = data.transpose()
 
                 if len(data.shape) == 4:
-                    # weight_data += node.name + "\n"
 
-                    tupac = bytes(node.name+"\n", "ascii")
-                    weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
-
-                    height = data.shape[2]  # height
-                    width = data.shape[3]  # width
-                    num_data = data.shape[0] * data.shape[1]  # num_kernels
-
-                    # weight_data += str(height) + "\n"
-                    # weight_data += str(width) + "\n"
-                    # weight_data += str(num_data) + "\n"
+                    if write_buffer:
+                        height = data.shape[2]  # height
+                        width = data.shape[3]  # width
+                        num_data = data.shape[0] * data.shape[1]  # num_kernels
+                    else:
+                        height = 0  # height
+                        width = 0  # width
+                        num_data = 0  # num_kernels
 
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
                     weights_packed.append(struct.pack('i', num_data))
 
-                    for channel in data:
-                        for kernel in channel:
-                            for row in kernel:
-                                weights_packed.append(struct.pack('f'*len(row), *row))
+                    if write_buffer:
+                        for channel in data:
+                            for kernel in channel:
+                                for row in kernel:
+                                    weights_packed.append(struct.pack('f'*len(row), *row))
 
                 elif len(data.shape) == 3:
-                    tupac = bytes(node.name + "\n", "ascii")
-                    weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
-                    height = 1
-                    width = data.shape[2]
-                    num_data = data.shape[0] * data.shape[1]
-
-                    # weight_data += str(height) + "\n"
-                    # weight_data += str(width) + "\n"
-                    # weight_data += str(num_data) + "\n"
+                    if write_buffer:
+                        height = 1
+                        width = data.shape[2]
+                        num_data = data.shape[0] * data.shape[1]
+                    else:
+                        height = 0
+                        width = 0
+                        num_data = 0
 
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
                     weights_packed.append(struct.pack('i', num_data))
 
-                    for channel in data:
-                        for kernel in channel:
-                            weights_packed.append(struct.pack('f'*len(kernel), *kernel))
+                    if write_buffer:
+                        for channel in data:
+                            for kernel in channel:
+                                weights_packed.append(struct.pack('f'*len(kernel), *kernel))
 
                 elif len(data.shape) == 2:
-                    # weight_data += node.name + "\n"
 
-                    tupac = bytes(node.name + "\n", "ascii")
-                    weights_packed.append(struct.pack('{}s'.format(len(tupac)), tupac))
-
-                    height = data.shape[0]  # height
-                    width = data.shape[1]  # width
-                    num_data = 1  # num_kernels
-
-                    # weight_data += str(height) + "\n"
-                    # weight_data += str(width) + "\n"
-                    # weight_data += str(num_data) + "\n"
+                    if write_buffer:
+                        height = data.shape[0]  # height
+                        width = data.shape[1]  # width
+                        num_data = 1  # num_kernels
+                    else:
+                        height = 0  # height
+                        width = 0  # width
+                        num_data = 0  # num_kernels
 
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
                     weights_packed.append(struct.pack('i', num_data))
 
-                    for row in data:
-                        weights_packed.append(struct.pack('f'*len(row), *row))
+                    if write_buffer:
+                        for row in data:
+                            weights_packed.append(struct.pack('f'*len(row), *row))
 
                 elif len(data.shape) == 1:
-                    num_data = data.shape[0]  # num_biases
 
-                    # weight_data += str(num_data) + "\n"
+                    if write_buffer:
+                        num_data = data.shape[0]  # num_biases
+                    else:
+                        num_data = 0
 
                     weights_packed.append(struct.pack('i', num_data))
-                    weights_packed.append(struct.pack('f'*len(data), *data))
+
+                    if write_buffer:
+                        weights_packed.append(struct.pack('f'*len(data), *data))
 
                 else:
-                    print("ERROR: Unknown input tensor shape!")
+                    print("ERROR: Unknown weights/biases/etc. tensor shape!")
                     exit(1)
-                    # weight_data = ""
 
                 # This handles the case that no bias values are available in the onnx file.
                 # So we need to add num_biases = 0 into the binary file.
-                if len(node.input_tensors) == 1:
-                    print("No biases in onnx file.")
+                if len(node.input_tensors) == 1 and node.op_type != "Add":
+                    # print("No biases in onnx file.")
                     weights_packed.append(struct.pack('i', 0))
 
-                # temp = "\n".join((str(float(x).hex()) for x in data.flatten()))
-                # weight_data += temp + "\n"
-
-        # weights_file += weight_data
         packed_file += weights_packed
 
-        # self.weights_file = weights_file
+        tupac = bytes("end\n", "ascii")
+        packed_file.append(struct.pack('{}s'.format(len(tupac)), tupac))
+
         self.packed_file = packed_file
 
     def _generate_network_initialization(self, graph, memory_manager):
@@ -275,12 +278,17 @@ class BackendRep(backend_base.BackendRep):
         :param memory_manager: MemoryManager containing information about input and output buffers of each operation.
         :return:
         """
+
+        ops_to_ignore = ['Reshape', 'Mul']
+
+        buffers_allocated = []
+
         initialization_header = "#ifndef NETWORK_INITIALIZATION_H\n"
         initialization_header += "#define NETWORK_INITIALIZATION_H\n"
         initialization_header += "#include <stdlib.h>\n"
+        initialization_header += "#include <stdint.h>\n"
         initialization_header += "#include \"pico-cnn/parameters.h\"\n\n"
         initialization_header += "void initialize_network();\n\n"
-        # initialization_header += "void initialize();\n\n"
         initialization_header += "fp_t*** kernels;\n"
         initialization_header += "fp_t** biases;\n"
 
@@ -288,22 +296,38 @@ class BackendRep(backend_base.BackendRep):
         initialization_code += "void initialize_network() {\n\n"
 
         num_layers = 0
+        num_kernels = 0
+        num_biases = 0
 
         for node in graph.nodes:
             """Do not count the reshape layers as the input tensor will only define the dimensions"""
-            if len(node.input_tensors) > 0 and node.op_type != "Reshape":
+            if len(node.input_tensors) > 0 and node.op_type not in ops_to_ignore:
                 num_layers += 1
+                for num, input in enumerate(node.input_tensors):
+                    if input in buffers_allocated:
+                        continue
+                    else:
+                        tensor = node.input_tensors[input]
+                        buffers_allocated.append(input)
+                        if len(tensor.shape) == 1:
+                            num_biases += 1
+                        else:
+                            num_kernels += 1
 
         """The arrays kernels and biases will be used to pass only two variables to read_binary_weights"""
-        initialization_code += "kernels = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(num_layers)
-        initialization_code += "biases = (fp_t**) malloc({} * sizeof(fp_t*));\n\n".format(num_layers)
+        initialization_code += "kernels = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(num_kernels)
+        initialization_code += "biases = (fp_t**) malloc({} * sizeof(fp_t*));\n\n".format(num_biases)
 
         pos = -1
+        pos_kernel = -1
+        pos_bias = -1
+
+        buffers_allocated.clear()
 
         """Iterate over all nodes in the graph and generate the corresponding allocation code."""
-        for node in graph.nodes:
+        for node_id, node in enumerate(graph.nodes):
 
-            if len(node.input_tensors) > 0 and node.op_type != "Reshape":
+            if len(node.input_tensors) > 0 and node.op_type not in ops_to_ignore:
                 pos += 1
 
             initialization_header += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
@@ -314,34 +338,37 @@ class BackendRep(backend_base.BackendRep):
             initialization_code += "// Inputs\n"
             for num, input in enumerate(node.input_tensors):
 
-                if node.op_type == "Reshape":
+                if node.op_type in ops_to_ignore:
                     continue
 
-                buffer = memory_manager.get_buffer(graph, input)
-                data = node.input_tensors[input]
+                if input in buffers_allocated:
+                    continue
+                else:
+                    buffers_allocated.append(input)
 
-                # if len(data.shape) == 4:
-                #     num_kernels = data.shape[0] * data.shape[1]
-                #     kernel_size = data.shape[2] * data.shape[3]
-                # elif len(data.shape) == 1:
-                #     num_kernels = data.shape[0]
-                #     kernel_size = 1
+                    tensor = node.input_tensors[input]
+                    if len(tensor.shape) == 1:
+                        pos_bias += 1
+                    else:
+                        pos_kernel += 1
 
-                initialization_header += "// " + str(buffer.shape) + "\n"
-                data_type = "fp_t "
-                for i in range(buffer.buffer_depth):
-                    data_type += "*"
+                    buffer = memory_manager.get_buffer(graph, input)
 
-                initialization_header += data_type + buffer.name + ";\n"
+                    initialization_header += "// " + str(buffer.shape) + "\n"
+                    data_type = "fp_t "
+                    for i in range(buffer.buffer_depth):
+                        data_type += "*"
 
-                initialization_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
+                    initialization_header += data_type + buffer.name + ";\n"
 
-                functionality = CodeRegistry.get_funct("KernelAllocation")
-                impl = functionality[0].create(buffer, pos)
+                    initialization_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
 
-                if impl:
-                    initialization_code += impl.generate_code()
-                    initialization_code += "\n"
+                    functionality = CodeRegistry.get_funct("KernelAllocation")
+                    impl = functionality[0].create(buffer, pos, pos_kernel, pos_bias)
+
+                    if impl:
+                        initialization_code += impl.generate_code()
+                        initialization_code += "\n"
 
             initialization_header += "// Outputs\n"
             initialization_code += "// Outputs\n"
@@ -370,7 +397,6 @@ class BackendRep(backend_base.BackendRep):
 
         initialization_code += "}\n"
 
-        #initialization_header += initialization_code  # TODO Everything to the .h file???
         initialization_header += "#endif //NETWORK_INITIALIZATION_H\n"
 
         self.initialization_header = initialization_header
@@ -386,15 +412,13 @@ class BackendRep(backend_base.BackendRep):
         cleanup_header = "#ifndef NETWORK_CLEANUP_H\n"
         cleanup_header += "#define NETWORK_CLEANUP_H\n"
         cleanup_header += "#include <stdlib.h>\n"
+        cleanup_header += "#include <stdint.h>\n"
         cleanup_header += "#include \"pico-cnn/parameters.h\"\n"
         cleanup_header += "#include \"network_initialization.h\" \n\n"
         cleanup_header += "void cleanup_network(); \n\n"
         cleanup_header += "#endif //NETWORK_CLEANUP_H\n"
 
-        # cleanup_header += "void cleanup();\n\n"
-
         cleanup_code = "#include \"network_cleanup.h\"\n\n"
-        #cleanup_code += "#include \"network_initialization.h\"\n\n"
         cleanup_code += "void cleanup_network() {\n"
 
         for num, buffer_id in enumerate(memory_manager.buffers):
@@ -411,9 +435,6 @@ class BackendRep(backend_base.BackendRep):
 
         cleanup_code += "}\n"
 
-        #cleanup_header += cleanup_code
-
-
         self.cleanup_header = cleanup_header
         self.cleanup_code = cleanup_code
 
@@ -421,7 +442,7 @@ class BackendRep(backend_base.BackendRep):
         """
         Function to select the first of possibly multiple implementation candidates
         for a each operation in the ComputeGraph.
-        TODO: In the future this function will be extended to select different implementations (naive/armPerfLibs/openMP)
+        TODO: In the future this func will be extended to select different implementations (naive/armPerfLibs/openMP)
         :param graph: ComputeGraph of the parsed onnx model.
         :param memory_manager: MemoryManager containing information about input and output buffers of each operation.
         :return: Dictionary containing implementations of all the nodes in the ComputeGraph
@@ -446,7 +467,8 @@ class BackendRep(backend_base.BackendRep):
         This is not a real scheduler, for now, just assume the onnx defines a valid schedule.
         The functions just enumerates all implementations and returns a list.
         :param graph: ComputeGraph of the parsed onnx model.
-        :param implementations: Dictionary containing the previously selected implementations of all operations in the ComputeGraph.
+        :param implementations: Dictionary containing the previously selected
+        implementations of all operations in the ComputeGraph.
         :return: List of named tuples ("SchedulerTask", ["time", "node", "implementation"])
         """
         SchedulerTask = namedtuple("SchedulerTask", ["time", "node", "implementation"])
@@ -456,7 +478,7 @@ class BackendRep(backend_base.BackendRep):
 
         return schedule
 
-    def _allocate_memory(self, schedule):
+    def _print_live_ranges(self, schedule):
         """
         Calculate Live Ranges and print them. For debug purposes.
         :param schedule: Previously comuted pseudo-schedule.
@@ -544,10 +566,12 @@ class BackendRep(backend_base.BackendRep):
 
         implementations = self._select_implementations(graph, memory_manager)
         schedule = self._get_schedule(graph, implementations)
-        self._allocate_memory(schedule)
+        # self._print_live_ranges(schedule)
 
-        input_names = ["input_"+name.replace('.', '') for name, type, shape in graph.inputs]
-        output_names = ["output_"+name.replace('.', '') for name, type, shape in graph.outputs]
+        input_names = ["input_"+name.replace('.', '_').replace(':', '_').replace('/', '_')
+                       for name, type, shape in graph.inputs]
+        output_names = ["output_"+name.replace('.', '_').replace(':', '_').replace('/', '_')
+                        for name, type, shape in graph.outputs]
 
         """Currently we only allow single input (no batch processing) to the CNN, but this may be multi-channel input"""
         inputs = graph.inputs
@@ -555,7 +579,7 @@ class BackendRep(backend_base.BackendRep):
             print("ERROR: Multiple inputs not supported!")
             exit(1)
         else:
-            input_shape = inputs[0].shape
+            input_shape = graph.shape_dict[inputs[0].name]
             print("Input shape: {}".format(input_shape))
 
             if len(input_shape) == 4:
@@ -563,37 +587,42 @@ class BackendRep(backend_base.BackendRep):
                     print("ERROR: Inference for batch_size > 1 currently not supported!")
                     exit(1)
 
-                input_defs = ["float **"+n for n in input_names]
+                input_defs = ["fp_t **"+n for n in input_names]
 
             elif len(input_shape) == 3:
                 if input_shape[0] != 1:
                     print("ERROR: Inference for batch_size > 1 currently not supported!")
                     exit(1)
 
-                input_defs = ["float **"+n for n in input_names]
+                input_defs = ["fp_t **"+n for n in input_names]
 
             elif len(input_shape) == 2:
                 print("Input is one-dimensional (batch_size = 1 and num_input_channels = 1)")
-                input_defs = ["float *"+n for n in input_names]
+                input_defs = ["fp_t *"+n for n in input_names]
 
-        # TODO: Has to be changed as soon as be want to support multiple other data types (e.g. fixed-point)
-        output_defs = ["float *"+n for n in output_names]
+        outputs = graph.outputs
+        if len(outputs) > 1:
+            print("ERROR: Multiple outputs not supported")
+            exit(1)
+        else:
+            output_shape = graph.shape_dict[outputs[0].name]
+            print("Output shape: {}".format(output_shape))
+
+            if len(output_shape) == 2:
+                print("Output is one-dimensional (batch_size = 1 and num_input_channels = 1)")
+                output_defs = ["fp_t *" + n for n in output_names]
+            elif len(output_shape) == 3:
+                print("ERROR: Unknown output shape of network: {}".format(output_shape))
+                exit(1)
+            elif len(output_shape) == 4:
+                print("ERROR: Multi-dimensional output is currently not supported.")
+                exit(1)
+
         network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
-        # network_def = "int network(" + ", ".join(input_defs) + ")"
 
         self.network_def = network_def + ";"
 
-        # TODO: Separate definition and implementation in the future.
-        #network_header = "#ifndef NETWORK_H\n"
-        #network_header += "#define NETWORK_H\n"
-        #network_header += "#include \"pico-cnn/parameters.h\"\n\n"
-        # network_header += network_def + ";\n"
-        # network_header += "#endif //NETWORK_H\n"
-
         network_code: Text = "#include \"network.h\"\n\n"
-        #network_code = "#include \"network_initialization.h\"\n"
-        #network_code += "#include \"network_cleanup.h\"\n\n"
-        #network_code += "#include \"pico-cnn/pico-cnn.h\"\n\n"
         network_code += network_def+"{\n"
 
         implementation_code = ""
@@ -608,6 +637,11 @@ class BackendRep(backend_base.BackendRep):
             implementation_code += "    //Parameters\n"
             implementation_code += "    //Inputs: " + ",".join(node.inputs) + "\n"
             implementation_code += "    //Outputs: " + ",".join(node.outputs) + "\n"
+            implementation_code += "    //Shape:\n"
+            for i in node.inputs:
+                implementation_code += "    //    {}: {}\n".format(i, graph.get_shape(i))
+            for o in node.outputs:
+                implementation_code += "    //    {}: {}\n".format(o, graph.get_shape(o))
 
             if impl:
                 implementation_code += impl.generate_code()
@@ -616,14 +650,14 @@ class BackendRep(backend_base.BackendRep):
                 print("ERROR: Unsupported layer: {}! Aborting code generation.".format(node.op_type))
                 return 1
 
-        # TODO: What does this loop do?
-        for id, buffer in memory_manager.buffers.items():
-            if graph.is_tensor(id):
-                continue
-            if graph.is_input(id):
-                continue
-            if graph.is_output(id):
-                continue
+        # # TODO: What does this loop do?
+        # for id, buffer in memory_manager.buffers.items():
+        #     if graph.is_tensor(id):
+        #         continue
+        #     if graph.is_input(id):
+        #         continue
+        #     if graph.is_output(id):
+        #         continue
 
         network_code += implementation_code
 
@@ -647,18 +681,19 @@ class BackendRep(backend_base.BackendRep):
         """
         # TODO: Does this need to be more sophisticated?
         self.makefile = "CC = gcc\n"
-        self.makefile += "CFLAGS = -Wall -g\n"
+        self.makefile += "CFLAGS = -Wall -g -DINFO\n"
         self.makefile += "LDFLAGS = -L../../../pico-cnn\n"
         self.makefile += "LD_LIBS = -lpico-cnn -lm\n\n"
         self.makefile += "# list of all generated .c files.\n"
-        self.makefile += "#TODO: right now, all .c files are compiled in each make call: change for higher effiency?\n"
         self.makefile += "NETWORK_LIST = network_initialization.c network_cleanup.c network.c"
         self.makefile += "\n\ndummy_input: dummy_input.c $(NETWORK_LIST) libpico-cnn.a\n\t"
         self.makefile += "$(CC) dummy_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o dummy_input"
         self.makefile += "\n\nreference_input: reference_input.c $(NETWORK_LIST) libpico-cnn.a\n\t"
-        self.makefile += "$(CC) reference_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o reference_input"
+        self.makefile += "$(CC) reference_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) " \
+                         "$(LDFLAGS) $(LD_LIBS) -o reference_input"
         self.makefile += "\n\n{}: {}.c $(NETWORK_LIST) libpico-cnn.a\n\t".format(self.model_name, self.model_name)
-        self.makefile += "$(CC) {}.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o {}".format(self.model_name, self.model_name)
+        self.makefile += "$(CC) {}.c $(NETWORK_LIST) -I../../.. $(CFLAGS) " \
+                         "$(LDFLAGS) $(LD_LIBS) -o {}".format(self.model_name, self.model_name)
         self.makefile += "\n\nall: dummy_input reference_input {}".format(self.model_name)
         self.makefile += "\n\n.PHONY: clean\n"
         self.makefile += "clean:\n\trm -rf {} dummy_input reference_input\n".format(self.model_name)
@@ -680,7 +715,7 @@ class BackendRep(backend_base.BackendRep):
             pass
 
         with open(os.path.join(folder, "network.c"), "w") as f:
-             f.write(self.network_code)
+            f.write(self.network_code)
 
         with open(os.path.join(folder, "network.h"), "w") as f:
             f.write(self.network_header)
@@ -696,9 +731,6 @@ class BackendRep(backend_base.BackendRep):
 
         with open(os.path.join(folder, "network_cleanup.h"), "w") as f:
             f.write(self.cleanup_header)
-
-        # with open(os.path.join(folder, "network.weights"), "w") as f:
-        #     f.write(self.weights_file)
 
         with open(os.path.join(folder, "network.weights.bin"), "wb") as f:
             for packed_struct in self.packed_file:
@@ -729,18 +761,3 @@ class Backend(object):
 
         return rep
 
-
-def export_data(config):
-    print("Exporting_input_data")
-    train_set, dev_set, test_set = dataset.SpeechDataset.splits(config)
-    test_loader = DataLoader(test_set, batch_size=1, shuffle=True)
-
-    data, label = next(iter(test_loader))
-    data = data.numpy().flatten()
-
-    data_code = "#ifndef INPUT_DATA_H\n"
-    data_code += "#include \"pico-cnn/parameters.h\"\n\n"
-    data_code += "fp_t input[] = {" + ",".join((str(x) for x in data)) + "};\n"
-    data_code += "#endif //INPUT_DATA_H\n"
-    with open("input_data.h", "w") as f:
-        f.write(data_code)
