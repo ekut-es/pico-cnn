@@ -1,4 +1,10 @@
 # Changelog 
+## Version 1.0.1
+
+ tag `v1.0.1`
+
+ * Fixed typo in GlobalMaxPooling 
+
 ## Version 1.0
 
  tag `v1.0`

@@ -789,7 +789,7 @@ OperationRegistry.register(AveragePool1D)
 
 class GlobalMaxPool2D(BaseLayer):
     name = "PicoCNNGlobalMaxPool2D"
-    operator = "GlobalMaxPool2D"
+    operator = "GlobalMaxPool"
     template_file = "pico_cnn_global_max_pool2d.c"
 
     @classmethod
