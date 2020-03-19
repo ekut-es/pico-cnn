@@ -1277,7 +1277,7 @@ OperationRegistry.register(LocalResponseNormalization)
 
 class Squeeze(BaseLayer):
     """
-    Local response normalization function.
+    Remove single-dimensional entries from the shape of a tensor.
     """
     name = "SqueezeGeneric"
     operator = "Squeeze"
