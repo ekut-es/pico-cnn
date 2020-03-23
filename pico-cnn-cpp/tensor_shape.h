@@ -1,5 +1,5 @@
 /**
- * @brief provides global parameters for pico-cnn
+ * @brief pico_cnn::naive::TensorShape class encapsulating all shape related information of a pico_cnn::naive::Tensor
  *
  * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */
@@ -13,37 +13,46 @@
 #include "parameters.h"
 
 namespace pico_cnn {
-    class TensorShape {
-    public:
-        TensorShape();
-        TensorShape(TensorShape &other);
+    namespace naive {
+        class TensorShape {
+        public:
+            TensorShape();
 
-        explicit TensorShape(uint32_t x1);
-        TensorShape(uint32_t x1, uint32_t x2);
-        TensorShape(uint32_t x1, uint32_t x2, uint32_t x3);
-        TensorShape(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4);
+            TensorShape(const TensorShape &other);
 
-        explicit TensorShape(size_t num_dimensions);
+            TensorShape(uint32_t x1);
 
-        ~TensorShape();
+            TensorShape(uint32_t x1, uint32_t x2);
 
-        size_t num_dimensions();
-        void set_num_dimensions(size_t num_dims);
+            TensorShape(uint32_t x1, uint32_t x2, uint32_t x3);
 
-        uint32_t *shape();
-        void set_shape_idx(size_t idx, uint32_t value);
+            TensorShape(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4);
 
-        uint32_t total_size();
+            TensorShape(size_t num_dimensions);
 
-        uint32_t operator[](size_t dim) const;
-        uint32_t &operator[](size_t dim);
+            ~TensorShape();
 
-        friend std::ostream& operator<< (std::ostream &out, TensorShape const& tensor_shape);
+            size_t num_dimensions();
 
-    private:
-        size_t num_dimensions_;
-        uint32_t *shape_;
-    };
+            void set_num_dimensions(size_t num_dims);
+
+            uint32_t *shape();
+
+            void set_shape_idx(size_t idx, uint32_t value);
+
+            uint32_t total_size();
+
+            uint32_t operator[](size_t dim) const;
+
+            uint32_t &operator[](size_t dim);
+
+            friend std::ostream &operator<<(std::ostream &out, TensorShape const &tensor_shape);
+
+        private:
+            size_t num_dimensions_;
+            uint32_t *shape_;
+        };
+    }
 }
 
 #endif //PICO_CNN_TENSOR_SHAPE_H

@@ -1,14 +1,17 @@
-//
-// Created by junga on 17.03.20.
-//
-
+/**
+ * @brief pico_cnn::naive::FullyConnected class provides naive implementation of FC operation
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef PICO_CNN_FULLY_CONNECTED_H
 #define PICO_CNN_FULLY_CONNECTED_H
 
 namespace pico_cnn {
-    class FullyConnected {
+    namespace naive {
+        class FullyConnected {
 
-    };
+        };
+    }
 }
 
 #endif //PICO_CNN_FULLY_CONNECTED_H

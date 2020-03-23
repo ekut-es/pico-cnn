@@ -1,7 +1,8 @@
-//
-// Created by junga on 17.03.20.
-//
-
+/**
+ * @brief Abstract base class for all operations
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef PICO_CNN_LAYER_H
 #define PICO_CNN_LAYER_H
 
@@ -11,7 +12,6 @@
 #include "../tensor.h"
 
 namespace pico_cnn {
-
     enum class op_type {
         Conv,
         Gemm,
@@ -34,25 +34,31 @@ namespace pico_cnn {
         Flatten,
         Squeeze
     };
+}
 
+namespace pico_cnn {
+    namespace naive {
 
-    class Layer {
-    public:
-        Layer(std::string name, uint32_t id, op_type op);
+        class Layer {
+        public:
+            Layer(std::string name, uint32_t id, op_type op);
 
-        ~Layer();
+            ~Layer();
 
-        virtual pico_cnn::Tensor run(pico_cnn::Tensor data) = 0;
+            virtual Tensor run(Tensor data) = 0;
 
-        std::string name();
-        uint32_t id();
-        op_type op();
+            std::string name();
 
-    private:
-        std::string name_;
-        uint32_t id_;
-        op_type op_;
-    };
+            uint32_t id();
+
+            op_type op();
+
+        private:
+            std::string name_;
+            uint32_t id_;
+            op_type op_;
+        };
+    }
 }
 
 #endif //PICO_CNN_LAYER_H
