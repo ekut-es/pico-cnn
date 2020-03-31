@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <cstdarg>
 #include <iostream>
 
 #include "parameters.h"
@@ -15,11 +16,21 @@
 
 namespace pico_cnn {
     namespace naive {
+
+        inline int32_t product(int32_t *array, uint32_t start, uint32_t end) {
+            int32_t prod = 1;
+            for(uint32_t i = start; i < end; i++) {
+                prod *= array[i];
+            }
+            return prod;
+        }
+
         class Tensor {
         public:
             Tensor();
 
-            Tensor(const Tensor &other);
+            // TODO: Check if copy-constructor is possible
+//            Tensor(const Tensor &other);
 
             Tensor(TensorShape &shape);
 
@@ -27,7 +38,11 @@ namespace pico_cnn {
 
             TensorShape &shape();
 
-            //friend std::ostream& operator<< (std::ostream &out, Tensor const& tensor);
+            fp_t &access(uint32_t x, ...);
+
+            uint32_t size_bytes();
+
+            int32_t copy_data_into(Tensor *dest);
 
         private:
             TensorShape shape_;

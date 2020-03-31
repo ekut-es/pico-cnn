@@ -8,15 +8,34 @@ Please read the whole document carefully!
 ```bash
 sudo apt install libjpeg-dev
 ```
+If you want to use `cppunit`:
+```bash
+sudo apt install libcppunit-dev
+```
 
 ### Scientific Linux
 ```bash
 sudo yum install libjpeg-devel
 ```
+If you want to use `cppunit`:
+```bash
+git clone --branch cppunit-1.14.0 git://anongit.freedesktop.org/git/libreoffice/cppunit/
+cd cppunit
+./autogen.sh
+./configure
+make
+sudo make install
+sudo ln -s /usr/local/include/cppunit /usr/local/include/CppUnit
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+```
 
 ### macOS
 ```bash
 brew install jpeg
+```
+If you want to use `cppunit`:
+```bash
+brew install cppunit
 ```
 
 ### C-Standard
@@ -39,6 +58,18 @@ In the future you always have to activate the environment:
 ```bash
 cd onnx_import
 source venv/bin/activate
+```
+
+### Testing with `cppunit`
+```bash
+git clone --branch cppunit-1.14.0 git://anongit.freedesktop.org/git/libreoffice/cppunit/
+cd cppunit
+./autogen.sh
+./configure
+make
+sudo make install
+sudo ln -s /usr/local/include/cppunit /usr/local/include/CppUnit
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ```
 
 ### Utilities

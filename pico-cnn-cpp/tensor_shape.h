@@ -18,7 +18,8 @@ namespace pico_cnn {
         public:
             TensorShape();
 
-            TensorShape(const TensorShape &other);
+            // TODO: Check if copy-constructor is possible
+            //TensorShape(const TensorShape &other);
 
             TensorShape(uint32_t x1);
 
@@ -28,29 +29,41 @@ namespace pico_cnn {
 
             TensorShape(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4);
 
-            TensorShape(size_t num_dimensions);
-
             ~TensorShape();
 
-            size_t num_dimensions();
+            size_t num_dimensions() const;
 
             void set_num_dimensions(size_t num_dims);
 
-            uint32_t *shape();
+            uint32_t *shape() const;
 
             void set_shape_idx(size_t idx, uint32_t value);
 
-            uint32_t total_size();
+            uint32_t total_num_elements();
+
+            void freeze_shape();
 
             uint32_t operator[](size_t dim) const;
-
             uint32_t &operator[](size_t dim);
+
+            bool operator ==(const TensorShape &other) const {
+                if(this->num_dimensions_ != other.num_dimensions_) {
+                    return false;
+                } else {
+                    for(uint32_t i = 0; i < num_dimensions_; i++) {
+                        if(shape_[i] != other.shape_[i])
+                            return false;
+                    }
+                    return true;
+                }
+            }
 
             friend std::ostream &operator<<(std::ostream &out, TensorShape const &tensor_shape);
 
         private:
             size_t num_dimensions_;
             uint32_t *shape_;
+            bool modifiable;
         };
     }
 }
