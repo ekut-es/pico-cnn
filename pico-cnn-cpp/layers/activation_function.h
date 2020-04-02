@@ -18,10 +18,27 @@ namespace pico_cnn {
 
             ~ActivationFunction();
 
-            Tensor run(Tensor data);
+            virtual void run(Tensor *input, Tensor *output);
 
         protected:
-            Tensor activate(Tensor data);
+            /**
+             * Identity serving as the most basic activation function
+             * @param data
+             * @return the tensor that was given
+             */
+            virtual void activate(Tensor *input, Tensor *output);
+
+        };
+
+        class ReLU : ActivationFunction {
+        public:
+            ReLU(std::string name, uint32_t id, op_type op);
+            ~ReLU();
+
+            void run(Tensor *input, Tensor *output);
+
+        private:
+            void activate(Tensor *input, Tensor *output);
 
         };
     }

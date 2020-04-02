@@ -39,7 +39,7 @@ namespace pico_cnn {
 
             void set_shape_idx(size_t idx, uint32_t value);
 
-            uint32_t total_num_elements();
+            uint32_t total_num_elements() const;
 
             void freeze_shape();
 
@@ -62,8 +62,8 @@ namespace pico_cnn {
 
         private:
             size_t num_dimensions_;
-            uint32_t *shape_;
             bool modifiable;
+            uint32_t *shape_;
         };
     }
 }

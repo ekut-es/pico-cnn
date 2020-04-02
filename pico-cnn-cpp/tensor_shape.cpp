@@ -20,7 +20,7 @@ namespace pico_cnn {
         }
 
         TensorShape::TensorShape(uint32_t x1, uint32_t x2) : num_dimensions_(2), modifiable(true) {
-            shape_ = new uint32_t[num_dimensions_];
+            shape_ = new uint32_t[num_dimensions_]();
             shape_[0] = x1;
             shape_[1] = x2;
         }
@@ -41,7 +41,7 @@ namespace pico_cnn {
         }
 
         TensorShape::~TensorShape() {
-            delete[](shape_);
+            delete[] shape_;
         }
 
         size_t TensorShape::num_dimensions() const {
@@ -95,7 +95,7 @@ namespace pico_cnn {
             }
         }
 
-        uint32_t TensorShape::total_num_elements() {
+        uint32_t TensorShape::total_num_elements() const {
             if (num_dimensions_ == 0) {
                 return 0;
             } else {

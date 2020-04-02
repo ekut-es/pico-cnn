@@ -10,6 +10,7 @@
 #include <cstring>
 #include <cstdarg>
 #include <iostream>
+#include <zconf.h>
 
 #include "parameters.h"
 #include "tensor_shape.h"
@@ -32,20 +33,39 @@ namespace pico_cnn {
             // TODO: Check if copy-constructor is possible
 //            Tensor(const Tensor &other);
 
-            Tensor(TensorShape &shape);
+            Tensor(TensorShape *shape);
 
             ~Tensor();
 
-            TensorShape &shape();
+            TensorShape *shape() const;
 
             fp_t &access(uint32_t x, ...);
 
+            fp_t &access_blob(uint32_t x);
+
             uint32_t size_bytes();
+
+            uint32_t num_elements() const;
 
             int32_t copy_data_into(Tensor *dest);
 
+            bool operator ==(const Tensor &other) const {
+                if(*this->shape_ == *other.shape_) {
+                    uint32_t num_elements = this->shape_->total_num_elements();
+                    for(uint32_t i = 0; i < num_elements; i++) {
+                        if(this->data_[i] != other.data_[i])
+                            return false;
+                    }
+                } else {
+                    return false;
+                }
+                return true;
+            }
+
+            friend std::ostream &operator<<(std::ostream &out, Tensor const &tensor);
+
         private:
-            TensorShape shape_;
+            TensorShape *shape_;
             fp_t *data_;
             //DataType data_type_;
         };

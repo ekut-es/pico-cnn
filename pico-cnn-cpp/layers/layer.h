@@ -32,7 +32,8 @@ namespace pico_cnn {
         Concat,
         Reshape,
         Flatten,
-        Squeeze
+        Squeeze,
+        Unknown
     };
 }
 
@@ -45,7 +46,7 @@ namespace pico_cnn {
 
             ~Layer();
 
-            virtual Tensor run(Tensor data) = 0;
+            virtual void run(Tensor *input, Tensor *output) = 0;
 
             std::string name();
 
