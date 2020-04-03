@@ -57,6 +57,9 @@ namespace pico_cnn {
                     return true;
                 }
             }
+            bool operator !=(const TensorShape &other) const {
+                return !this->operator==(other);
+            }
 
             friend std::ostream &operator<<(std::ostream &out, TensorShape const &tensor_shape);
 

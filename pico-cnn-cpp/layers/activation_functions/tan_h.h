@@ -11,12 +11,14 @@
 
 #include "activation_function.h"
 
+#include <cmath>
+
 namespace pico_cnn {
     namespace naive {
         class TanH : ActivationFunction {
         public:
             TanH(std::string name, uint32_t id, op_type op);
-            ~TanH();
+            ~TanH() = default;
 
             void run(Tensor *input, Tensor *output) override;
 

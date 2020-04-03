@@ -16,7 +16,7 @@ namespace pico_cnn {
         class Sigmoid : ActivationFunction {
         public:
             Sigmoid(std::string name, uint32_t id, op_type op);
-            ~Sigmoid();
+            ~Sigmoid() = default;
 
             void run(Tensor *input, Tensor *output) override;
 

@@ -26,6 +26,32 @@ namespace pico_cnn {
             void activate(Tensor *input, Tensor *output) override;
 
         };
+
+        class LeakyReLU : ActivationFunction {
+        public:
+            LeakyReLU(std::string name, uint32_t id, op_type op, fp_t leak);
+            ~LeakyReLU() = default;
+
+            void run(Tensor *input, Tensor *output) override;
+
+        private:
+            void activate(Tensor *input, Tensor *output) override;
+
+            const fp_t leak_;
+        };
+
+        class ParameterizedReLU : ActivationFunction {
+        public:
+            ParameterizedReLU(std::string name, uint32_t id, op_type op, Tensor *slope);
+            ~ParameterizedReLU() = default;
+
+            void run(Tensor *input, Tensor *output) override;
+
+        private:
+            void activate(Tensor *input, Tensor *output) override;
+
+            Tensor *slope_;
+        };
     }
 }
 

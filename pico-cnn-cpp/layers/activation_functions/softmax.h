@@ -11,6 +11,8 @@
 
 #include "activation_function.h"
 
+#include <cmath>
+
 namespace pico_cnn {
     namespace naive {
         class Softmax : ActivationFunction {

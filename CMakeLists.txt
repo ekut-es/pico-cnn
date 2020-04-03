@@ -18,9 +18,11 @@ endif()
 set(PICO_CNN_CPP_LIBRARY_SRCS
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/tensor_shape.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/tensor.cpp
+
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/layer.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/convolution.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/pooling.cpp
+
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/activation_functions/activation_function.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/activation_functions/clip.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/activation_functions/lrn.cpp
@@ -28,6 +30,7 @@ set(PICO_CNN_CPP_LIBRARY_SRCS
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/activation_functions/sigmoid.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/activation_functions/softmax.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/activation_functions/tan_h.cpp
+
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/fully_connected.cpp
 )
 add_library(pico-cnn-cpp ${PICO_CNN_CPP_LIBRARY_SRCS})
@@ -37,8 +40,7 @@ set(UNIT_TESTS_SRCS
         ${PROJECT_SOURCE_DIR}/test/cpp/main.cpp
         ${PROJECT_SOURCE_DIR}/test/cpp/test_tensor.cpp
         ${PROJECT_SOURCE_DIR}/test/cpp/test_activation_functions.cpp
-        ${PROJECT_SOURCE_DIR}/test/cpp/test_utility.cpp
-)
+        )
 add_executable(unit_tests ${UNIT_TESTS_SRCS})
 
 target_compile_options(unit_tests PRIVATE -DDEBUG=1 -DINFO=1)

@@ -9,6 +9,7 @@
 #define PICO_CNN_H
 
 #include "parameters.h"
+#include "utils.h"
 
 #include "layers/activation_functions/activation_function.h"
 #include "layers/activation_functions/clip.h"

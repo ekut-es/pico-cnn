@@ -14,6 +14,7 @@
 
 #include "parameters.h"
 #include "tensor_shape.h"
+#include "utils.h"
 
 namespace pico_cnn {
     namespace naive {

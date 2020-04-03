@@ -8,7 +8,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 #include "../../pico-cnn-cpp/pico-cnn.h"
-#include "test_utility.h"
+#include "../../pico-cnn-cpp/utils.h"
 
 class TestActivationFunctions : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST_SUITE(TestActivationFunctions);
@@ -16,6 +16,11 @@ class TestActivationFunctions : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST(runTestClip);
     CPPUNIT_TEST(runTestLRN);
     CPPUNIT_TEST(runTestReLU);
+    CPPUNIT_TEST(runTestLeakyReLU);
+    CPPUNIT_TEST(runTestParameterizedReLU);
+    CPPUNIT_TEST(runTestSigmoid);
+    CPPUNIT_TEST(runTestSoftmax);
+    CPPUNIT_TEST(runTestTanH);
     CPPUNIT_TEST_SUITE_END();
 
 private:
