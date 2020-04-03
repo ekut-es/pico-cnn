@@ -155,7 +155,7 @@ int32_t test_local_response_normalization_naive() {
     fp_t input2[input_width*input_height] = {-1, -5, -1, 2,  1,  0};
     fp_t input3[input_width*input_height] = {-1,  1, -3, 2,  5, -4};
 
-    fp_t* input[input_width];
+    fp_t* input[input_depth];
     input[0] = input1;
     input[1] = input2;
     input[2] = input3;
