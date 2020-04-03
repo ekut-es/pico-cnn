@@ -13,6 +13,8 @@
 class TestActivationFunctions : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST_SUITE(TestActivationFunctions);
     CPPUNIT_TEST(runTestActivationFunction);
+    CPPUNIT_TEST(runTestClip);
+    CPPUNIT_TEST(runTestLRN);
     CPPUNIT_TEST(runTestReLU);
     CPPUNIT_TEST_SUITE_END();
 
@@ -23,9 +25,17 @@ private:
 
 public:
     void setUp() override;
-    void runTestActivationFunction();
-    void runTestReLU();
     void tearDown() override;
+
+    void runTestActivationFunction();
+    void runTestClip();
+    void runTestLRN();
+    void runTestReLU();
+    void runTestLeakyReLU();
+    void runTestParameterizedReLU();
+    void runTestSigmoid();
+    void runTestSoftmax();
+    void runTestTanH();
 };
 
 
