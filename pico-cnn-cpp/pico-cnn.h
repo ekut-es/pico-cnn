@@ -10,7 +10,14 @@
 
 #include "parameters.h"
 
-#include "layers/activation_function.h"
+#include "layers/activation_functions/activation_function.h"
+#include "layers/activation_functions/clip.h"
+#include "layers/activation_functions/lrn.h"
+#include "layers/activation_functions/relu.h"
+#include "layers/activation_functions/sigmoid.h"
+#include "layers/activation_functions/softmax.h"
+#include "layers/activation_functions/tan_h.h"
+
 #include "layers/convolution.h"
 #include "layers/pooling.h"
 #include "layers/fully_connected.h"

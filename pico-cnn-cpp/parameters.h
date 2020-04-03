@@ -8,7 +8,11 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
+#include <cmath>
+
 #define VERSION 1.0
+
+#define EPSILON 0.001
 
 #ifndef DEBUG
 #define DEBUG 0
@@ -34,6 +38,11 @@ extern fp_t min_float;
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 #define FLOAT_MIN -100000
+
+inline bool fp_t_eq(fp_t A, fp_t B, fp_t epsilon = EPSILON)
+{
+    return (std::fabs(A - B) < epsilon);
+}
 
 namespace pico_cnn {
     enum class DataType{

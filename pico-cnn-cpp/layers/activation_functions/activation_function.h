@@ -6,9 +6,9 @@
 #ifndef PICO_CNN_ACTIVATION_FUNCTIONS_H
 #define PICO_CNN_ACTIVATION_FUNCTIONS_H
 
-#include "../parameters.h"
-#include "../tensor.h"
-#include "layer.h"
+#include "../../parameters.h"
+#include "../../tensor.h"
+#include "../layer.h"
 
 namespace pico_cnn {
     namespace naive {
@@ -27,18 +27,6 @@ namespace pico_cnn {
              * @return the tensor that was given
              */
             virtual void activate(Tensor *input, Tensor *output);
-
-        };
-
-        class ReLU : ActivationFunction {
-        public:
-            ReLU(std::string name, uint32_t id, op_type op);
-            ~ReLU();
-
-            void run(Tensor *input, Tensor *output);
-
-        private:
-            void activate(Tensor *input, Tensor *output);
 
         };
     }

@@ -53,7 +53,7 @@ namespace pico_cnn {
                 if(*this->shape_ == *other.shape_) {
                     uint32_t num_elements = this->shape_->total_num_elements();
                     for(uint32_t i = 0; i < num_elements; i++) {
-                        if(this->data_[i] != other.data_[i])
+                        if(!fp_t_eq(this->data_[i], other.data_[i]))
                             return false;
                     }
                 } else {
