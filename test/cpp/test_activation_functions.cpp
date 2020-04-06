@@ -193,6 +193,9 @@ void TestActivationFunctions::runTestParameterizedReLU() {
 
     delete layer;
 
+    delete slope_tensor;
+    delete slope_shape;
+
     delete param_relu_input_tensor;
     delete param_relu_output_tensor;
     delete param_relu_expected_output_tensor;
