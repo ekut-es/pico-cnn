@@ -20,7 +20,7 @@
 #include "layers/activation_functions/tan_h.h"
 
 #include "layers/convolution.h"
-#include "layers/pooling.h"
+#include "pico-cnn-cpp/layers/pooling/pooling.h"
 #include "layers/fully_connected.h"
 //#include "layers/batch_normalization.h"
 //#include "layers/concatenate.h"
