@@ -33,7 +33,7 @@ void TestActivationFunctions::tearDown() {
 }
 
 void TestActivationFunctions::runTestActivationFunction() {
-    PRINT_INFO("Test ActivationFunction...")
+    //PRINT_INFO("Test ActivationFunction...")
     fp_t expected_output[10] = {9, 11, -4, -5, -9, -4, -7, 5, 0, 7};
     for(uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
         expected_output_tensor->access(0, i) = expected_output[i];
@@ -48,7 +48,7 @@ void TestActivationFunctions::runTestActivationFunction() {
 }
 
 void TestActivationFunctions::runTestClip() {
-    PRINT_INFO("Test Clip...")
+    //PRINT_INFO("Test Clip...")
     fp_t expected_output[10] = {9, 9, -4, -5, -7, -4, -7, 5, 0, 7};
     for(uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
         expected_output_tensor->access(0, i) = expected_output[i];
@@ -63,7 +63,7 @@ void TestActivationFunctions::runTestClip() {
 }
 
 void TestActivationFunctions::runTestLRN() {
-    PRINT_INFO("Test LRN...")
+    //PRINT_INFO("Test LRN...")
     auto lrn_input_shape = new pico_cnn::naive::TensorShape(3,2, 3);
     auto lrn_output_shape = new pico_cnn::naive::TensorShape(3,2, 3);
     auto lrn_expected_output_shape = new pico_cnn::naive::TensorShape(3,2, 3);
@@ -111,6 +111,7 @@ void TestActivationFunctions::runTestLRN() {
 }
 
 void TestActivationFunctions::runTestReLU() {
+    //PRINT_INFO("Test ReLU...")
     fp_t expected_output[10] = {9, 11, 0, 0, 0, 0, 0, 5, 0, 7};
     for(uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
         expected_output_tensor->access(0, i) = expected_output[i];
@@ -125,7 +126,7 @@ void TestActivationFunctions::runTestReLU() {
 }
 
 void TestActivationFunctions::runTestLeakyReLU() {
-    PRINT_INFO("Test LeakyReLU...")
+    //PRINT_INFO("Test LeakyReLU...")
     auto lrelu_input_shape = new pico_cnn::naive::TensorShape(1, 11);
     auto lrelu_output_shape = new pico_cnn::naive::TensorShape(1, 11);
     auto lrelu_expected_output_shape = new pico_cnn::naive::TensorShape(1, 11);
@@ -160,7 +161,7 @@ void TestActivationFunctions::runTestLeakyReLU() {
 }
 
 void TestActivationFunctions::runTestParameterizedReLU() {
-    PRINT_INFO("Test ParamReLU...")
+    //PRINT_INFO("Test ParamReLU...")
     auto param_relu_input_shape = new pico_cnn::naive::TensorShape(1, 10);
     auto param_relu_output_shape = new pico_cnn::naive::TensorShape(1, 10);
     auto param_relu_expected_output_shape = new pico_cnn::naive::TensorShape(1, 10);
@@ -205,7 +206,7 @@ void TestActivationFunctions::runTestParameterizedReLU() {
 }
 
 void TestActivationFunctions::runTestSigmoid() {
-    PRINT_INFO("Test Sigmoid...")
+    //PRINT_INFO("Test Sigmoid...")
     auto sigmoid_input_shape = new pico_cnn::naive::TensorShape(1, 10);
     auto sigmoid_output_shape = new pico_cnn::naive::TensorShape(1, 10);
     auto sigmoid_expected_output_shape = new pico_cnn::naive::TensorShape(1, 10);
@@ -240,7 +241,7 @@ void TestActivationFunctions::runTestSigmoid() {
 }
 
 void TestActivationFunctions::runTestSoftmax() {
-    PRINT_INFO("Test Softmax...")
+    //PRINT_INFO("Test Softmax...")
     auto softmax_input_shape = new pico_cnn::naive::TensorShape(1, 10);
     auto softmax_output_shape = new pico_cnn::naive::TensorShape(1, 10);
     auto softmax_expected_output_shape = new pico_cnn::naive::TensorShape(1, 10);
@@ -276,7 +277,7 @@ void TestActivationFunctions::runTestSoftmax() {
 }
 
 void TestActivationFunctions::runTestTanH() {
-    PRINT_INFO("Test TanH...")
+    //PRINT_INFO("Test TanH...")
     auto tanh_input_shape = new pico_cnn::naive::TensorShape(1, 10);
     auto tanh_output_shape = new pico_cnn::naive::TensorShape(1, 10);
     auto tanh_expected_output_shape = new pico_cnn::naive::TensorShape(1, 10);

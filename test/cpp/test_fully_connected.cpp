@@ -63,7 +63,7 @@ void TestFullyConnected::tearDown() {
 }
 
 void TestFullyConnected::runTestFullyConnected() {
-    PRINT_INFO("Test FullyConnected...")
+    //PRINT_INFO("Test FullyConnected...")
 
     auto *layer = new pico_cnn::naive::FullyConnected("fc", 0, pico_cnn::op_type::Gemm, kernel_tensor, bias_tensor);
     layer->run(input_tensor, output_tensor);
