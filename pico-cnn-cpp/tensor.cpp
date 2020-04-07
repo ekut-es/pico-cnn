@@ -38,12 +38,43 @@ namespace pico_cnn {
             return shape_->total_num_elements();
         }
 
+        uint32_t Tensor::num_batches() const {
+            return this->shape()->num_batches();
+        }
+
+        uint32_t Tensor::num_channels() const {
+            return this->shape()->num_channels();
+        }
+
+        uint32_t Tensor::height() const {
+            return this->shape()->height();
+        }
+
+        uint32_t Tensor::width() const {
+            return this->shape()->width();
+        }
+
         int32_t Tensor::copy_data_into(Tensor *dest) {
             if(*this->shape() == *dest->shape()) {
                 std::memcpy(dest->data_, this->data_, size_bytes());
                 return 0;
             } else {
                 return -1;
+            }
+        }
+
+        bool Tensor::add_tensor(Tensor *other) {
+            if (*(this->shape()) == *(other->shape())) {
+
+                for (uint32_t i = 0; i < this->num_elements(); i++) {
+                    this->access_blob(i) = this->access_blob(i) + other->access_blob(i);
+                }
+
+                return true;
+
+            } else {
+                PRINT_ERROR("Tensors of different shapes cannot be added.");
+                return false;
             }
         }
 

@@ -46,6 +46,11 @@ namespace pico_cnn {
             uint32_t operator[](size_t dim) const;
             uint32_t &operator[](size_t dim);
 
+            uint32_t num_batches() const;
+            uint32_t num_channels() const;
+            uint32_t height() const;
+            uint32_t width() const;
+
             bool operator ==(const TensorShape &other) const {
                 if(this->num_dimensions_ != other.num_dimensions_) {
                     return false;

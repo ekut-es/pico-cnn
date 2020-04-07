@@ -125,6 +125,58 @@ namespace pico_cnn {
                 PRINT_ERROR_AND_DIE("Dimension index out of range: %d " << dim << " >= " << num_dimensions_);
         }
 
+        uint32_t TensorShape::num_batches() const {
+            if (this->num_dimensions() == 4) {
+                return shape_[0];
+            } else if (this->num_dimensions() == 3) {
+                return shape_[0];
+            } else {
+                PRINT_ERROR_AND_DIE("Cannot call num_batches() on a TensorShape with shape: " << this);
+                return 0;
+            }
+        }
+
+        uint32_t TensorShape::num_channels() const {
+            if (this->num_dimensions() == 4) {
+                return shape_[1];
+            } else if (this->num_dimensions() == 3) {
+                return shape_[0];
+            } else if (this->num_dimensions() == 2) {
+                PRINT_WARNING("Assuming 2D data with shape: " << this);
+                PRINT_WARNING("Number of channels therefore assumed to be 1.");
+                return 1;
+            } else {
+                PRINT_ERROR_AND_DIE("Cannot call num_dimensions() on a TensorShape with shape: " << this);
+                return 0;
+            }
+        }
+
+        uint32_t TensorShape::height() const {
+            if (this->num_dimensions() == 4) {
+                return shape_[2];
+            } else if (this->num_dimensions() == 3) {
+                return shape_[1];
+            } else if (this->num_dimensions() == 2) {
+                return shape_[0];
+            } else {
+                PRINT_ERROR_AND_DIE("Cannot call height() on a TensorShape with shape: " << this);
+                return 0;
+            }
+        }
+
+        uint32_t TensorShape::width() const {
+            if (this->num_dimensions() == 4) {
+                return shape_[3];
+            } else if (this->num_dimensions() == 3) {
+                return shape_[2];
+            } else if (this->num_dimensions() == 2) {
+                return shape_[1];
+            } else {
+                PRINT_ERROR_AND_DIE("Cannot call width() on a TensorShape with shape: " << this);
+                return 0;
+            }
+        }
+
         std::ostream &operator<<(std::ostream &out, TensorShape const &tensor_shape) {
             out << "(";
             for (size_t i = 0; i < tensor_shape.num_dimensions_; i++) {

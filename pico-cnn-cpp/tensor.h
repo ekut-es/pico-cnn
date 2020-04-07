@@ -48,7 +48,14 @@ namespace pico_cnn {
 
             uint32_t num_elements() const;
 
+            uint32_t num_batches() const;
+            uint32_t num_channels() const;
+            uint32_t height() const;
+            uint32_t width() const;
+
             int32_t copy_data_into(Tensor *dest);
+
+            bool add_tensor(Tensor *other);
 
             bool operator ==(const Tensor &other) const {
                 if(*this->shape_ == *other.shape_) {
