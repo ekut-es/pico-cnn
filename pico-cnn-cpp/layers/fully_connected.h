@@ -17,7 +17,7 @@ namespace pico_cnn {
             FullyConnected(std::string name, uint32_t id, op_type op, Tensor *kernel, Tensor *bias);
             ~FullyConnected() = default;
 
-            void run(Tensor *input, Tensor *output);
+            void run(Tensor *input, Tensor *output) override;
 
         private:
             void gemm(Tensor *input, Tensor *output);
