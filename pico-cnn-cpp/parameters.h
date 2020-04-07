@@ -30,6 +30,8 @@ extern fp_t min_float;
 
 #define PRINT_ERROR_AND_DIE(x) do { std::cerr << "[ERROR] " << __FILE__ << ":" << __LINE__ << ":" << __func__ << "() " << x << std::endl; std::exit(1); } while (0);
 
+#define PRINT_WARNING(x) do { std::cerr << "[WARNING] " << __FILE__ << ":" << __LINE__ << ":" << __func__ << "() " << x << std::endl; } while (0);
+
 #define PRINT_INFO(x) do { if(INFO) { std::cout << "[INFO] " <<  x << std::endl; } } while (0);
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
