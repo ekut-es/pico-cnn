@@ -26,31 +26,19 @@ void TestTensor::setUp(){
     tensor6 = new pico_cnn::naive::Tensor(shape6);
 }
 
-void TestTensor::runTest(){
-    PRINT_INFO("Starting test_tensor...")
+void TestTensor::runTestTensorShape() {
+    //PRINT_INFO("Test TensorShapes...")
 
-//    PRINT_INFO("shape1: " << *shape1)
-//    PRINT_INFO("tensor1->shape: " << tensor1->shape())
-//    PRINT_INFO("shape2: " << *shape2)
-//    PRINT_INFO("tensor2->shape: " << tensor2->shape())
-//    PRINT_INFO("shape3: " << *shape3)
-//    PRINT_INFO("tensor3->shape: " << tensor3->shape())
-//    PRINT_INFO("shape4: " << *shape4)
-//    PRINT_INFO("tensor4->shape: " << tensor4->shape())
-//    PRINT_INFO("shape5: " << *shape5)
-//    PRINT_INFO("tensor5->shape: " << tensor5->shape())
-//    PRINT_INFO("shape6: " << *shape6)
-//    PRINT_INFO("tensor6->shape: " << tensor6->shape())
-
-
-    PRINT_INFO("Tests on TensorShapes...")
     CPPUNIT_ASSERT(*tensor1->shape() == *shape1);
     CPPUNIT_ASSERT(*tensor2->shape() == *tensor3->shape());
     CPPUNIT_ASSERT(*tensor2->shape() == *shape3);
 
     CPPUNIT_ASSERT(*tensor1->shape() == *shape1);
+}
 
-    PRINT_INFO("Tests on Tensor filled with data...")
+void TestTensor::runTestTensorAccess() {
+    //PRINT_INFO("Test Tensor access...")
+
     // tensor1
     fp_t cnt = 0.0;
     for(int channel = 0; channel < 4; channel++) {
@@ -172,6 +160,44 @@ void TestTensor::runTest(){
         CPPUNIT_ASSERT(abs(tensor6->access(col) - cnt) < 0.0001);
         cnt += 1.0;
     }
+}
+
+void TestTensor::runTestTensorAddition() {
+    //PRINT_INFO("Test Tensor addition...")
+
+    auto *input_shape1 = new pico_cnn::naive::TensorShape(3, 4);
+    auto *input_shape2 = new pico_cnn::naive::TensorShape(3, 4);
+    auto *expected_output_shape = new pico_cnn::naive::TensorShape(3, 4);
+    auto *input_tensor1 = new pico_cnn::naive::Tensor(input_shape1);
+    auto *input_tensor2 = new pico_cnn::naive::Tensor(input_shape2);
+    auto *expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+
+    fp_t input1[12] = {-6,-4, 3, -5,
+                        3, 4, 2,  8,
+                       -5, 6, 1, -4};
+    fp_t input2[12] = {1, -3, -1,  5,
+                      -7,  7,  6, -5,
+                       7, -5,  4, -6};
+    fp_t expected_output[12] = {-5, -7, 2,  0,
+                                -4, 11, 8,  3,
+                                 2,  1, 5,-10};
+
+    for (uint32_t i = 0; i < input_tensor1->num_elements(); i++) {
+        input_tensor1->access_blob(i) = input1[i];
+        input_tensor2->access_blob(i) = input2[i];
+        expected_output_tensor->access_blob(i) = expected_output[i];
+    }
+
+    input_tensor1->add_tensor(input_tensor2);
+
+    CPPUNIT_ASSERT(*input_tensor1 == *expected_output_tensor);
+
+    delete input_tensor1;
+    delete input_tensor2;
+    delete expected_output_tensor;
+    delete input_shape1;
+    delete input_shape2;
+    delete expected_output_shape;
 
 }
 

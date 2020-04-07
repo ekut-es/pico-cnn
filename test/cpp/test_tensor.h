@@ -11,7 +11,9 @@
 
 class TestTensor : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST_SUITE(TestTensor);
-    CPPUNIT_TEST(runTest);
+    CPPUNIT_TEST(runTestTensorShape);
+    CPPUNIT_TEST(runTestTensorAccess);
+    CPPUNIT_TEST(runTestTensorAddition);
     CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -20,9 +22,11 @@ private:
 
 
 public:
-    void setUp();
-    void runTest();
-    void tearDown();
+    void setUp() override;
+    void runTestTensorShape();
+    void runTestTensorAccess();
+    void runTestTensorAddition();
+    void tearDown() override;
 
 };
 
