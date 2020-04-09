@@ -11,6 +11,7 @@
 
 class TestConvolution : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST_SUITE(TestConvolution);
+    CPPUNIT_TEST(runTestConvolution_1d);
     CPPUNIT_TEST(runTestConvolution_0);
     CPPUNIT_TEST(runTestConvolution_0_no_padding);
     CPPUNIT_TEST(runTestConvolution_1);
@@ -28,6 +29,7 @@ public:
     void setUp() override;
     void tearDown() override;
 
+    void runTestConvolution_1d();
     void runTestConvolution_0();
     void runTestConvolution_0_no_padding();
     void runTestConvolution_1();
