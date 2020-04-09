@@ -25,6 +25,14 @@ namespace pico_cnn {
             uint32_t output_height = output->height();
             uint32_t output_width = output->width();
 
+            Tensor *input_tensor;
+
+            if (padding_) {
+                input_tensor = input->expand_with_padding(padding_);
+            } else {
+                input_tensor = input;
+            }
+
             auto *tmp_shape = new TensorShape(output->num_batches(), num_output_channels, output_height, output_width);
             auto *tmp_tensor = new Tensor(tmp_shape);
 
@@ -32,14 +40,14 @@ namespace pico_cnn {
             for (uint32_t g = 0; g < num_groups_; g++) {
                 for (uint32_t i = g*num_output_channels/num_groups_; i < (g+1)*num_output_channels/num_groups_; i++) {
 
-                    this->convolve(input, output, g*num_input_channels/num_groups_, i, g);
+                    this->convolve(input_tensor, output, g*num_input_channels/num_groups_, i, g);
 
                     if (num_input_channels > num_groups_) {
                         uint32_t cnt = 1;
 
                         for (uint32_t j = g*num_input_channels/num_groups_+1; j < (g+1)*(num_input_channels/num_groups_); j++) {
 
-                            this->convolve(input, tmp_tensor, j, i, g);
+                            this->convolve(input_tensor, tmp_tensor, j, i, g);
 
                             output->add_tensor(tmp_tensor);
 
@@ -47,6 +55,11 @@ namespace pico_cnn {
                         }
                     }
                 }
+            }
+
+            if (padding_) {
+                delete input_tensor->shape();
+                delete input_tensor;
             }
 
             delete tmp_tensor;
