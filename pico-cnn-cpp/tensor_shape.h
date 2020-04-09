@@ -51,6 +51,8 @@ namespace pico_cnn {
             uint32_t height() const;
             uint32_t width() const;
 
+            TensorShape *expand_with_padding(uint32_t *padding);
+
             bool operator ==(const TensorShape &other) const {
                 if(this->num_dimensions_ != other.num_dimensions_) {
                     return false;

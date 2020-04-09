@@ -26,6 +26,24 @@ void TestTensor::setUp(){
     tensor6 = new pico_cnn::naive::Tensor(shape6);
 }
 
+void TestTensor::tearDown(){
+    delete tensor1;
+    delete tensor2;
+    delete tensor3;
+    delete tensor4;
+    delete tensor5;
+    delete tensor6;
+
+    delete shape1;
+    delete shape2;
+    delete shape3;
+    delete shape4;
+    delete shape5;
+    delete shape6;
+
+    TestFixture::tearDown();
+}
+
 void TestTensor::runTestTensorShape() {
     //PRINT_INFO("Test TensorShapes...")
 
@@ -201,20 +219,131 @@ void TestTensor::runTestTensorAddition() {
 
 }
 
-void TestTensor::tearDown(){
-    delete tensor1;
-    delete tensor2;
-    delete tensor3;
-    delete tensor4;
-    delete tensor5;
-    delete tensor6;
+void TestTensor::runTestTensorGetPtr() {
+    for(int batch = 0; batch < 1; batch++) {
+        for (int channel = 0; channel < 3; channel++) {
+            fp_t tmp1, tmp2;
+            fp_t *tmp_ptr = tensor2->get_ptr_to_channel(batch, channel);
+            for (int row = 0; row < 20; row++) {
+                for (int col = 0; col < 20; col++) {
+                    tmp1 = tensor2->access(batch, channel, row, col);
+                    tmp2 = tmp_ptr[row*20+col];
+                    CPPUNIT_ASSERT(tmp1 == tmp2);
+                }
+            }
+        }
+    }
+}
 
-    delete shape1;
-    delete shape2;
-    delete shape3;
-    delete shape4;
-    delete shape5;
-    delete shape6;
+void TestTensor::runTestTensorExpandPadding() {
 
-    TestFixture::tearDown();
+    /// 4D test
+    uint32_t padding[4] = {1, 1, 1, 1};
+
+    auto *orig_shape = new pico_cnn::naive::TensorShape(1, 3, 2, 2);
+    auto *expected_extended_shape = new pico_cnn::naive::TensorShape(1, 3, 4, 4);
+    auto *extended_shape = orig_shape->expand_with_padding(padding);
+
+    CPPUNIT_ASSERT(*extended_shape == *expected_extended_shape);
+
+    auto *orig_tensor = new pico_cnn::naive::Tensor(orig_shape);
+    auto *expected_extended_tensor = new pico_cnn::naive::Tensor(expected_extended_shape);
+
+    fp_t input[12] = {1, 2,
+                      3, 4,
+
+                      5, 6,
+                      7, 8,
+
+                      9, 10,
+                      11, 12};
+
+    fp_t expected[48]= {0, 0, 0, 0,
+                        0, 1, 2, 0,
+                        0, 3, 4, 0,
+                        0, 0, 0, 0,
+
+                        0, 0, 0, 0,
+                        0, 5, 6, 0,
+                        0, 7, 8, 0,
+                        0, 0, 0, 0,
+
+                        0, 0, 0, 0,
+                        0, 9, 10, 0,
+                        0, 11, 12, 0,
+                        0, 0, 0, 0};
+
+    for (uint32_t i = 0; i < orig_tensor->num_elements(); i++) {
+        orig_tensor->access_blob(i) = input[i];
+    }
+    for (uint32_t i = 0; i < expected_extended_tensor->num_elements(); i++) {
+        expected_extended_tensor->access_blob(i) = expected[i];
+    }
+
+    auto *extended_tensor = orig_tensor->expand_with_padding(padding);
+
+    CPPUNIT_ASSERT(*extended_tensor == *expected_extended_tensor);
+
+    delete orig_tensor;
+    delete expected_extended_tensor;
+
+    delete extended_tensor->shape();
+    delete extended_tensor;
+
+    delete extended_shape;
+    delete expected_extended_shape;
+    delete orig_shape;
+
+    /// 2D test
+    uint32_t padding_2d[4] = {1, 2, 4, 0};
+
+    fp_t input_2d[35] = {4, 13,  13,  -2,   6,
+                         -7, 15, -11,  -9, -15,
+                         -8, -3,   2,   6,  -9,
+                         1, -8,  13,  -6,  -7,
+                         -6, -6,  13,  13,   8,
+                         -15, 14, -12,   8,   1,
+                         3,  6,   7, -12,   2};
+
+    fp_t expected_2d[84]= {0, 0,  0,  0,   0,    0,   0,
+                           0, 0,  4,  13,  13,  -2,   6,
+                           0, 0,  -7, 15, -11,  -9, -15,
+                           0, 0,  -8, -3,   2,   6,  -9,
+                           0, 0,   1, -8,  13,  -6,  -7,
+                           0, 0,  -6, -6,  13,  13,   8,
+                           0, 0, -15, 14, -12,   8,   1,
+                           0, 0,  3,  6,   7, -12,   2,
+                           0, 0,  0,  0,   0,   0,   0,
+                           0, 0,  0,  0,   0,   0,   0,
+                           0, 0,  0,  0,   0,   0,   0,
+                           0, 0,  0,  0,   0,   0,   0};
+
+    auto *orig_shape_2d = new pico_cnn::naive::TensorShape(7, 5);
+    auto *expected_extended_shape_2d = new pico_cnn::naive::TensorShape(12, 7);
+    auto *extended_shape_2d = orig_shape_2d->expand_with_padding(padding_2d);
+
+    CPPUNIT_ASSERT(*extended_shape_2d == *expected_extended_shape_2d);
+
+    auto *orig_tensor_2d = new pico_cnn::naive::Tensor(orig_shape_2d);
+    auto *expected_extended_tensor_2d = new pico_cnn::naive::Tensor(expected_extended_shape_2d);
+
+    for (uint32_t i = 0; i < orig_tensor_2d->num_elements(); i++) {
+        orig_tensor_2d->access_blob(i) = input_2d[i];
+    }
+    for (uint32_t i = 0; i < expected_extended_tensor_2d->num_elements(); i++) {
+        expected_extended_tensor_2d->access_blob(i) = expected_2d[i];
+    }
+
+    auto *extended_tensor_2d = orig_tensor_2d->expand_with_padding(padding_2d);
+
+    CPPUNIT_ASSERT(*extended_tensor_2d == *expected_extended_tensor_2d);
+
+    delete orig_tensor_2d;
+    delete expected_extended_tensor_2d;
+    delete extended_tensor_2d->shape();
+    delete extended_tensor_2d;
+
+    delete extended_shape_2d;
+    delete expected_extended_shape_2d;
+    delete orig_shape_2d;
 }

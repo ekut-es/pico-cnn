@@ -44,6 +44,8 @@ namespace pico_cnn {
 
             fp_t &access_blob(uint32_t x);
 
+            fp_t *get_ptr_to_channel(uint32_t x, ...);
+
             uint32_t size_bytes();
 
             uint32_t num_elements() const;
@@ -52,6 +54,8 @@ namespace pico_cnn {
             uint32_t num_channels() const;
             uint32_t height() const;
             uint32_t width() const;
+
+            Tensor *expand_with_padding(uint32_t *padding, fp_t initializer = 0.0);
 
             int32_t copy_data_into(Tensor *dest);
 

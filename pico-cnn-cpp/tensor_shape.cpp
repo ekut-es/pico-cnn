@@ -188,6 +188,35 @@ namespace pico_cnn {
             }
             return out;
         }
+
+        TensorShape *TensorShape::expand_with_padding(uint32_t *padding) {
+
+            TensorShape *expanded_shape;
+
+            uint32_t num_dims = this->num_dimensions_;
+
+            expanded_shape = new TensorShape();
+            expanded_shape->set_num_dimensions(num_dims);
+
+            if (num_dims == 4) {
+                expanded_shape->shape_[0] = this->shape_[0];
+                expanded_shape->shape_[1] = this->shape_[1];
+                expanded_shape->shape_[2] = this->shape_[2] + padding[0] + padding[2];
+                expanded_shape->shape_[3] = this->shape_[3] + padding[1] + padding[3];
+            } else if (num_dims == 3) {
+                expanded_shape->shape_[0] = this->shape_[0];
+                expanded_shape->shape_[1] = this->shape_[1] + padding[0] + padding[2];
+                expanded_shape->shape_[2] = this->shape_[2] + padding[1] + padding[3];
+            } else if (num_dims == 2) {
+                expanded_shape->shape_[0] = this->shape_[0] + padding[0] + padding[2];
+                expanded_shape->shape_[1] = this->shape_[1] + padding[1] + padding[3];
+            } else if (num_dims == 1) {
+                expanded_shape->shape_[0] = this->shape_[0] + padding[0] + padding[1];
+            } else {
+                PRINT_ERROR("Extending with padding not implemented for TensorShape with number of dimensions: " << num_dims);
+            }
+            return expanded_shape;
+        }
     }
 }
 
