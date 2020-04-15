@@ -2,7 +2,7 @@
 namespace pico_cnn {
     namespace naive {
 
-        TensorShape::TensorShape() : num_dimensions_(0), shape_(nullptr), modifiable(true) {
+        TensorShape::TensorShape() : num_dimensions_(0), modifiable(true), shape_(nullptr) {
 
         }
 
