@@ -19,3 +19,4 @@ onnx_import/aswdl
 test/tests
 util/venv
 cmake-build-debug
+test/cpp/tests
