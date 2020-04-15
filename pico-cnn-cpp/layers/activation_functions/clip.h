@@ -5,9 +5,9 @@
 #ifndef PICO_CNN_CLIP_H
 #define PICO_CNN_CLIP_H
 
-#include "pico-cnn-cpp/parameters.h"
-#include "pico-cnn-cpp/tensor.h"
-#include "pico-cnn-cpp/layers/layer.h"
+#include "../../parameters.h"
+#include "../../tensor.h"
+#include "../layer.h"
 
 #include "activation_function.h"
 

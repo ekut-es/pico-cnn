@@ -6,9 +6,9 @@
 #ifndef PICO_CNN_RE_LU_H
 #define PICO_CNN_RE_LU_H
 
-#include "pico-cnn-cpp/parameters.h"
-#include "pico-cnn-cpp/tensor.h"
-#include "pico-cnn-cpp/layers/layer.h"
+#include "../../parameters.h"
+#include "../../tensor.h"
+#include "../layer.h"
 
 #include "activation_function.h"
 
