@@ -33,7 +33,11 @@ set(PICO_CNN_CPP_LIBRARY_SRCS
 
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/fully_connected.cpp
 )
-add_library(pico-cnn-cpp ${PICO_CNN_CPP_LIBRARY_SRCS})
+set(PICO_CNN_CPP_IO_SRCS
+        ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/io/read_binary_reference_data.cpp
+        ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/io/read_binary_weights.cpp
+)
+add_library(pico-cnn-cpp ${PICO_CNN_CPP_LIBRARY_SRCS} ${PICO_CNN_CPP_IO_SRCS})
 
 # Tests
 set(UNIT_TESTS_SRCS

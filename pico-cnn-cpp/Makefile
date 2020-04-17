@@ -2,13 +2,13 @@ CC = g++
 CFLAGS = -Wall -g3 -DINFO -DDEBUG
 LDFLAGS =
 
-libpico-cnn-cpp.a: layers parameters.h utils.h
-	ar -rcs libpico-cnn-cpp.a *.o layers/*.o layers/activation_functions/*.o layers/pooling/*.o
+libpico-cnn-cpp.a: layers io parameters.h utils.h
+	ar -rcs libpico-cnn-cpp.a *.o layers/*.o layers/activation_functions/*.o layers/pooling/*.o io/*.o
 
 # remove the library directory
 .PHONY: clean
 clean:
-	rm -f libpico-cnn-cpp.a *.o layers/*.o layers/activation_functions/*.o layers/pooling/*.o
+	rm -f libpico-cnn-cpp.a *.o layers/*.o layers/activation_functions/*.o layers/pooling/*.o io/*.o
 
 #---------------------------------------------- utils -----------------------------------------------
 
@@ -18,17 +18,17 @@ clean:
 #---------------------------------------------- io ----------------------------------------------
 
 # list of all files to consider in io
-# IO_SRC = io/read_binary_reference_data.cpp \
-#          io/read_binary_weights.cpp
-#
-# IO_H = $(IO_SRC:.cpp=.h)
-# IO_OBJ = $(IO_SRC:.cpp=.o)
-#
-# # compile all .c files into .o files, write the files to lib/io
-# $(IO_OBJ) : %.o: %.cpp %.h
-# 	$(CC) $< $(CFLAGS) -c -o $@
-#
-# io : $(IO_OBJ) parameters.h
+IO_SRC = io/read_binary_reference_data.cpp \
+         io/read_binary_weights.cpp
+
+IO_H = $(IO_SRC:.cpp=.h)
+IO_OBJ = $(IO_SRC:.cpp=.o)
+
+# compile all .c files into .o files, write the files to lib/io
+$(IO_OBJ) : %.o: %.cpp %.h
+	$(CC) $< $(CFLAGS) -c -o $@
+
+io : $(IO_OBJ) parameters.h
 
 #---------------------------------------------- layers ----------------------------------------------
 

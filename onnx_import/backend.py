@@ -184,17 +184,20 @@ class BackendRep(backend_base.BackendRep):
                 if len(data.shape) == 4:
 
                     if write_buffer:
+                        num_output_channels = data.shape[0]
+                        num_input_channels = data.shape[1]
                         height = data.shape[2]  # height
                         width = data.shape[3]  # width
-                        num_data = data.shape[0] * data.shape[1]  # num_kernels
                     else:
+                        num_output_channels = 0
+                        num_input_channels = 0
                         height = 0  # height
                         width = 0  # width
-                        num_data = 0  # num_kernels
 
+                    weights_packed.append(struct.pack('i', num_output_channels))
+                    weights_packed.append(struct.pack('i', num_input_channels))
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
-                    weights_packed.append(struct.pack('i', num_data))
 
                     if write_buffer:
                         for channel in data:
@@ -205,17 +208,20 @@ class BackendRep(backend_base.BackendRep):
                 elif len(data.shape) == 3:
 
                     if write_buffer:
+                        num_output_channels = data.shape[0]
+                        num_input_channels = data.shape[1]
                         height = 1
                         width = data.shape[2]
-                        num_data = data.shape[0] * data.shape[1]
                     else:
+                        num_output_channels = 0
+                        num_input_channels = 0
                         height = 0
                         width = 0
-                        num_data = 0
 
+                    weights_packed.append(struct.pack('i', num_output_channels))
+                    weights_packed.append(struct.pack('i', num_input_channels))
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
-                    weights_packed.append(struct.pack('i', num_data))
 
                     if write_buffer:
                         for channel in data:
@@ -225,17 +231,17 @@ class BackendRep(backend_base.BackendRep):
                 elif len(data.shape) == 2:
 
                     if write_buffer:
+                        num_data = 1  # num_kernels
                         height = data.shape[0]  # height
                         width = data.shape[1]  # width
-                        num_data = 1  # num_kernels
                     else:
+                        num_data = 0  # num_kernels
                         height = 0  # height
                         width = 0  # width
-                        num_data = 0  # num_kernels
 
+                    weights_packed.append(struct.pack('i', num_data))
                     weights_packed.append(struct.pack('i', height))
                     weights_packed.append(struct.pack('i', width))
-                    weights_packed.append(struct.pack('i', num_data))
 
                     if write_buffer:
                         for row in data:

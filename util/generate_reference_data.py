@@ -99,10 +99,14 @@ def main():
         input_data = input_data.astype(np.float32)
 
         packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
+        packed_input.append(struct.pack('i', input_shape[0]))  # Number of batches
         packed_input.append(struct.pack('i', input_shape[1]))  # Number of channels
         packed_input.append(struct.pack('i', 1))  # Channel height
         packed_input.append(struct.pack('i', input_shape[2]))  # Channel width
         packed_input.append(struct.pack('f' * len(input_data), *input_data))  # Data
+
+        tupac = bytes("end\n", "ascii")
+        packed_input.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
         in_path = "{}_{}_input.data".format(os.path.splitext(input_file_name)[0],
                                             os.path.splitext(os.path.basename(onnx_model))[0])
@@ -127,6 +131,7 @@ def main():
         input_data = input_data.astype(np.float32)
 
         packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
+        packed_input.append(struct.pack('i', input_shape[0]))  # Number of batches
         packed_input.append(struct.pack('i', input_shape[1]))  # Number of channels
         packed_input.append(struct.pack('i', input_shape[2]))  # Channel height
         packed_input.append(struct.pack('i', input_shape[3]))  # Channel width
@@ -136,6 +141,9 @@ def main():
         for channel in input_data[0]:
             for row in channel:
                 packed_input.append(struct.pack('f' * len(row), *row))  # Data
+
+        tupac = bytes("end\n", "ascii")
+        packed_input.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
         in_path = "{}_{}_input.data".format(os.path.splitext(input_file_name)[0],
                                             os.path.splitext(os.path.basename(onnx_model))[0])
@@ -154,12 +162,16 @@ def main():
         input_data = input_data.astype(np.float32)
 
         packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
+        packed_input.append(struct.pack('i', input_shape[0]))  # Number of batches
         packed_input.append(struct.pack('i', input_shape[1]))  # Number of channels
         packed_input.append(struct.pack('i', input_shape[2]))  # Channel height
         packed_input.append(struct.pack('i', input_shape[3]))  # Channel width
 
         for row in input_data:
             packed_input.append(struct.pack('f' * len(row), *row))  # Data
+
+        tupac = bytes("end\n", "ascii")
+        packed_input.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
         in_path = "{}_{}_input.data".format(os.path.splitext(input_file_name)[0],
                                             os.path.splitext(os.path.basename(onnx_model))[0])
@@ -179,6 +191,7 @@ def main():
 
         if len(input_shape) == 4:
             packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
+            packed_input.append(struct.pack('i', input_shape[0]))  # Number of batches
             packed_input.append(struct.pack('i', input_shape[1]))  # Number of channels
             packed_input.append(struct.pack('i', input_shape[2]))  # Channel height
             packed_input.append(struct.pack('i', input_shape[2]))  # Channel width
@@ -187,8 +200,12 @@ def main():
                 for row in channel:
                     packed_input.append(struct.pack('f' * len(row), *row))  # Data
 
+            tupac = bytes("end\n", "ascii")
+            packed_input.append(struct.pack('{}s'.format(len(tupac)), tupac))
+
         elif len(input_shape) == 3:
             packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
+            packed_input.append(struct.pack('i', input_shape[0]))  # Number of batches
             packed_input.append(struct.pack('i', input_shape[1]))  # Number of channels
             packed_input.append(struct.pack('i', 1))  # Channel height
             packed_input.append(struct.pack('i', input_shape[2]))  # Channel width
@@ -196,13 +213,20 @@ def main():
             for channel in input_data[0]:
                 packed_input.append(struct.pack('f' * len(channel), *channel))  # Data
 
+            tupac = bytes("end\n", "ascii")
+            packed_input.append(struct.pack('{}s'.format(len(tupac)), tupac))
+
         elif len(input_shape) == 2:
             packed_input.append(struct.pack('{}s'.format(len(magic_input)), magic_input))
+            packed_input.append(struct.pack('i', input_shape[0]))  # Number of batches
             packed_input.append(struct.pack('i', 1))  # Number of channels
             packed_input.append(struct.pack('i', 1))  # Channel height
             packed_input.append(struct.pack('i', input_shape[1]))  # Channel width
 
             packed_input.append(struct.pack('f' * len(input_data[0]), *input_data[0]))  # Data
+
+            tupac = bytes("end\n", "ascii")
+            packed_input.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
         else:
             print("ERROR: Unsupported input shape length: {}".format(input_shape))
@@ -231,10 +255,14 @@ def main():
 
     # Write outputs into our custom binary format.
     packed_output.append(struct.pack('{}s'.format(len(magic_output)), magic_output))
+    packed_output.append(struct.pack('i', output_shape[0]))  # Number of batches
     packed_output.append(struct.pack('i', output_shape[1]))  # Number of outputs
 
     for output in outputs[0]:
         packed_output.append(struct.pack('f'*len(output), *output))  # Data
+
+    tupac = bytes("end\n", "ascii")
+    packed_output.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
     out_path = "{}_{}_output.data".format(os.path.splitext(input_file_name)[0],
                                           os.path.splitext(os.path.basename(onnx_model))[0])
