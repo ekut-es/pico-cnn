@@ -22,6 +22,8 @@ set(PICO_CNN_CPP_LIBRARY_SRCS
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/layer.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/convolution.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/pooling/pooling.cpp
+        ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/pooling/max_pooling.cpp
+        ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/pooling/average_pooling.cpp
 
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/activation_functions/activation_function.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/activation_functions/clip.cpp
@@ -46,6 +48,7 @@ set(UNIT_TESTS_SRCS
         ${PROJECT_SOURCE_DIR}/test/cpp/test_activation_functions.cpp
         ${PROJECT_SOURCE_DIR}/test/cpp/test_fully_connected.cpp
         ${PROJECT_SOURCE_DIR}/test/cpp/test_convolution.cpp
+        ${PROJECT_SOURCE_DIR}/test/cpp/test_pooling.cpp
         )
 add_executable(unit_tests ${UNIT_TESTS_SRCS})
 

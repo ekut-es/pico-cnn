@@ -21,6 +21,8 @@
 
 #include "layers/convolution.h"
 #include "layers/pooling/pooling.h"
+#include "layers/pooling/max_pooling.h"
+#include "layers/pooling/average_pooling.h"
 #include "layers/fully_connected.h"
 //#include "layers/batch_normalization.h"
 //#include "layers/concatenate.h"
