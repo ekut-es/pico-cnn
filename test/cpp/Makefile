@@ -7,6 +7,7 @@ TEST_SRCS = test_tensor.cpp \
             test_activation_functions.cpp \
             test_fully_connected.cpp \
             test_convolution.cpp \
+            test_pooling.cpp \
 
 tests: main.cpp $(TEST_SRCS) libpico-cnn-cpp.a
 	$(CC) main.cpp $(TEST_SRCS) $(CFLAGS) -I../../pico-cnn-cpp $(LDFLAGS) -o tests $(LD_LIBS)
