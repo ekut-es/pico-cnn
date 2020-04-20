@@ -24,6 +24,8 @@ set(PICO_CNN_CPP_LIBRARY_SRCS
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/pooling/pooling.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/pooling/max_pooling.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/pooling/average_pooling.cpp
+        ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/pooling/global_max_pooling.cpp
+        ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/pooling/global_average_pooling.cpp
 
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/activation_functions/activation_function.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/activation_functions/clip.cpp

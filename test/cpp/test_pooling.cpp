@@ -10,6 +10,87 @@ void TestPooling::tearDown() {
     TestFixture::tearDown();
 }
 
+void TestPooling::runTestMaxPooling1d() {
+    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 16);
+    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 7);
+    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 7);
+
+    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+
+    fp_t input[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+
+    fp_t expected_output[7] = {3, 5, 7, 9, 11, 13, 15};
+
+    for(uint32_t i = 0; i < input_tensor->num_elements(); i++) {
+        input_tensor->access_blob(i) = input[i];
+    }
+    for(uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
+        expected_output_tensor->access_blob(i) = expected_output[i];
+    }
+
+    uint32_t kernel_size[2] = {1, 3};
+    uint32_t stride[2] = {1, 2};
+
+    auto *layer = new pico_cnn::naive::MaxPooling("MaxPool", 0, pico_cnn::op_type::MaxPool, kernel_size, stride, nullptr);
+
+    layer->run(input_tensor, output_tensor);
+
+    CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
+
+    delete layer;
+
+    delete input_tensor;
+    delete output_tensor;
+    delete expected_output_tensor;
+
+    delete input_shape;
+    delete output_shape;
+    delete expected_output_shape;
+}
+
+void TestPooling::runTestMaxPooling1dPadding() {
+    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 16);
+    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 8);
+    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 8);
+
+    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+
+    fp_t input[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+
+    fp_t expected_output[8] = {2, 4, 6, 8, 10, 12, 14, 16};
+
+    for(uint32_t i = 0; i < input_tensor->num_elements(); i++) {
+        input_tensor->access_blob(i) = input[i];
+    }
+    for(uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
+        expected_output_tensor->access_blob(i) = expected_output[i];
+    }
+
+    uint32_t kernel_size[2] = {1, 3};
+    uint32_t stride[2] = {1, 2};
+    uint32_t padding[4] = {0, 1, 0, 1};
+
+    auto *layer = new pico_cnn::naive::MaxPooling("MaxPool", 0, pico_cnn::op_type::MaxPool, kernel_size, stride, padding);
+
+    layer->run(input_tensor, output_tensor);
+
+    CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
+
+    delete layer;
+
+    delete input_tensor;
+    delete output_tensor;
+    delete expected_output_tensor;
+
+    delete input_shape;
+    delete output_shape;
+    delete expected_output_shape;
+}
+
 void TestPooling::runTestMaxPooling2d() {
     auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 4, 4);
     auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 2, 2);
@@ -34,7 +115,10 @@ void TestPooling::runTestMaxPooling2d() {
         expected_output_tensor->access_blob(i) = expected_output[i];
     }
 
-    auto *layer = new pico_cnn::naive::MaxPooling("MaxPool", 0, pico_cnn::op_type::MaxPool,3, 1, nullptr);
+    uint32_t kernel_size[2] = {3, 3};
+    uint32_t stride[2] = {1, 1};
+
+    auto *layer = new pico_cnn::naive::MaxPooling("MaxPool", 0, pico_cnn::op_type::MaxPool, kernel_size, stride, nullptr);
 
     layer->run(input_tensor, output_tensor);
 
@@ -79,9 +163,11 @@ void TestPooling::runTestMaxPooling2dPadding() {
         expected_output_tensor->access_blob(i) = expected_output[i];
     }
 
+    uint32_t kernel_size[2] = {5, 5};
+    uint32_t stride[2] = {1, 1};
     uint32_t padding[4] = {2, 2, 2, 2};
 
-    auto *layer = new pico_cnn::naive::MaxPooling("MaxPool", 0, pico_cnn::op_type::MaxPool, 5, 1, padding);
+    auto *layer = new pico_cnn::naive::MaxPooling("MaxPool", 0, pico_cnn::op_type::MaxPool, kernel_size, stride, padding);
 
     layer->run(input_tensor, output_tensor);
 
@@ -92,6 +178,100 @@ void TestPooling::runTestMaxPooling2dPadding() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
+
+    delete input_shape;
+    delete output_shape;
+    delete expected_output_shape;
+}
+
+void TestPooling::runTestAvgPooling1d() {
+    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 10);
+    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 8);
+    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 8);
+
+    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+
+    fp_t input[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+    fp_t expected_output[8] = {2, 3, 4, 5, 6, 7, 8, 9};
+
+    for(uint32_t i = 0; i < input_tensor->num_elements(); i++) {
+        input_tensor->access_blob(i) = input[i];
+    }
+    for(uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
+        expected_output_tensor->access_blob(i) = expected_output[i];
+    }
+
+    uint32_t kernel_size[2] = {1, 3};
+    uint32_t stride[2] = {1, 1};
+
+    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, nullptr, 1);
+
+    layer->run(input_tensor, output_tensor);
+
+    CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
+
+    delete layer;
+
+    delete input_tensor;
+    delete output_tensor;
+    delete expected_output_tensor;
+
+    delete input_shape;
+    delete output_shape;
+    delete expected_output_shape;
+}
+
+void TestPooling::runTestAvgPooling1dPadding() {
+    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 10);
+    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 10);
+    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 10);
+
+    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
+    auto expected_output_tensor_count_include_pad_0 = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto expected_output_tensor_count_include_pad_1 = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+
+    fp_t input[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+    fp_t expected_output_count_include_pad_0[10] = {2, 2.5, 3, 4, 5, 6, 7, 8, 8.5, 9};
+
+    fp_t expected_output_count_include_pad_1[10] = {1.2, 2, 3, 4, 5, 6, 7, 8, 6.8, 5.4};
+
+    for(uint32_t i = 0; i < input_tensor->num_elements(); i++) {
+        input_tensor->access_blob(i) = input[i];
+    }
+    for(uint32_t i = 0; i < expected_output_tensor_count_include_pad_0->num_elements(); i++) {
+        expected_output_tensor_count_include_pad_0->access_blob(i) = expected_output_count_include_pad_0[i];
+    }
+    for(uint32_t i = 0; i < expected_output_tensor_count_include_pad_1->num_elements(); i++) {
+        expected_output_tensor_count_include_pad_1->access_blob(i) = expected_output_count_include_pad_1[i];
+    }
+
+    uint32_t kernel_size[2] = {1, 5};
+    uint32_t stride[2] = {1, 1};
+    uint32_t padding[2] = {2, 2};
+
+    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, padding, 0);
+    auto *layer2 = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, padding, 1);
+
+    layer->run(input_tensor, output_tensor);
+
+    CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor_count_include_pad_0);
+
+    layer2->run(input_tensor, output_tensor);
+
+    CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor_count_include_pad_1);
+
+    delete layer;
+    delete layer2;
+
+    delete input_tensor;
+    delete output_tensor;
+    delete expected_output_tensor_count_include_pad_0;
+    delete expected_output_tensor_count_include_pad_1;
 
     delete input_shape;
     delete output_shape;
@@ -124,7 +304,10 @@ void TestPooling::runTestAvgPooling2d() {
         expected_output_tensor->access_blob(i) = expected_output[i];
     }
 
-    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, 3, 1, 0.0, nullptr, 1);
+    uint32_t kernel_size[2] = {3, 3};
+    uint32_t stride[2] = {1, 1};
+
+    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, nullptr, 1);
 
     layer->run(input_tensor, output_tensor);
 
@@ -181,11 +364,14 @@ void TestPooling::runTestAvgPooling2dPadding() {
         expected_output_tensor->access_blob(i) = expected_output_count_include_pad_0[i];
     }
 
+    uint32_t kernel_size[2] = {5, 5};
+    uint32_t kernel_size2[2] = {3, 3};
+    uint32_t stride[2] = {1, 1};
     uint32_t padding[4] = {2, 2, 2, 2};
     uint32_t padding2[4] = {1, 1, 1, 1};
 
     /// Test 1: kernel = 5, padding = 2, count_include_pad = 0
-    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, 5, 1, 0.0, padding, 0);
+    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, padding, 0);
     layer->run(input_tensor, output_tensor);
     CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
 
@@ -196,7 +382,7 @@ void TestPooling::runTestAvgPooling2dPadding() {
         expected_output_tensor->access_blob(i) = expected_output_count_include_pad_1[i];
     }
 
-    layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, 5, 1, 0.0, padding, 1);
+    layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, padding, 1);
     layer->run(input_tensor, output_tensor);
     CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
 
@@ -207,8 +393,87 @@ void TestPooling::runTestAvgPooling2dPadding() {
         expected_output_tensor->access_blob(i) = expected_output_2_count_include_pad_0[i];
     }
 
-    layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, 3, 1, 0.0, padding2, 0);
+    layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size2, stride, 0.0, padding2, 0);
     layer->run(input_tensor, output_tensor);
+    CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
+
+    delete layer;
+
+    delete input_tensor;
+    delete output_tensor;
+    delete expected_output_tensor;
+
+    delete input_shape;
+    delete output_shape;
+    delete expected_output_shape;
+}
+
+void TestPooling::runTestGlobalAvgPool2d() {
+    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 4);
+    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 1);
+    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 1);
+
+    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+
+    fp_t input[20] = {-7, 13, -7, -8,
+                      -15, -4, -7,  4,
+                      6, -6, -6,  6};
+
+    fp_t expected_output[1] = {-2.5833333};
+
+    for(uint32_t i = 0; i < input_tensor->num_elements(); i++) {
+        input_tensor->access_blob(i) = input[i];
+    }
+    for(uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
+        expected_output_tensor->access_blob(i) = expected_output[i];
+    }
+
+    auto *layer = new pico_cnn::naive::GlobalAveragePooling("GlobAvgPool", 0, pico_cnn::op_type::GlobalAveragePool, nullptr, nullptr, nullptr);
+
+    layer->run(input_tensor, output_tensor);
+
+    CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
+
+    delete layer;
+
+    delete input_tensor;
+    delete output_tensor;
+    delete expected_output_tensor;
+
+    delete input_shape;
+    delete output_shape;
+    delete expected_output_shape;
+}
+
+void TestPooling::runTestGlobalMaxPool2d() {
+    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 4, 5);
+    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 1);
+    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 1);
+
+    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+
+    fp_t input[20] = {17,  17, -15,  8, -15,
+                      2,  13,  -2, -5,  6,
+                      9, -17,  18, 20, -5,
+                      -14,   4,  11,  7, 18};
+
+    fp_t expected_output[1] = {20};
+
+    for(uint32_t i = 0; i < input_tensor->num_elements(); i++) {
+        input_tensor->access_blob(i) = input[i];
+    }
+    for(uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
+        expected_output_tensor->access_blob(i) = expected_output[i];
+    }
+
+    auto *layer = new pico_cnn::naive::GlobalMaxPooling("GlobMaxPool", 0, pico_cnn::op_type::GlobalMaxPool, nullptr, nullptr, nullptr);
+
+    layer->run(input_tensor, output_tensor);
+
     CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
 
     delete layer;

@@ -82,30 +82,30 @@ namespace pico_cnn {
             va_list args;
             va_start(args, x);
 
-            uint32_t dims = shape_->num_dimensions();
-            uint32_t indexes[dims];
+            uint32_t num_dims = shape_->num_dimensions();
+            uint32_t indexes[num_dims];
 
             indexes[0] = x;
 
-            for(size_t i = 1; i < dims; i++) {
+            for(size_t i = 1; i < num_dims; i++) {
                 indexes[i] = va_arg(args, uint32_t);
             }
 
-            if(dims == 1) {
+            if(num_dims == 1) {
 
                 return data_[x];
 
-            } else if (dims == 2) {
+            } else if (num_dims == 2) {
 
                 uint32_t *shape = shape_->shape();
                 return data_[(indexes[0]*shape[1]) + (indexes[1])];
 
-            } else if (dims == 3) {
+            } else if (num_dims == 3) {
 
                 uint32_t *shape = shape_->shape();
                 return data_[(indexes[0]*shape[1]*shape[2]) + (indexes[1]*shape[2]) + (indexes[2])];
 
-            } else if (dims == 4) {
+            } else if (num_dims == 4) {
 
                 uint32_t *shape = shape_->shape();
                 return data_[(indexes[0]*shape[1]*shape[2]*shape[3]) + (indexes[1]*shape[2]*shape[3]) + (indexes[2]*shape[3]) + indexes[3]];
@@ -114,8 +114,8 @@ namespace pico_cnn {
 
                 uint32_t offset = 0;
                 uint32_t *shape = shape_->shape();
-                for (size_t i = 0; i < dims; i++) {
-                    offset += product(reinterpret_cast<int32_t *>(shape), i+1, dims) * indexes[i];
+                for (size_t i = 0; i < num_dims; i++) {
+                    offset += product(reinterpret_cast<int32_t *>(shape), i+1, num_dims) * indexes[i];
                 }
                 return *(data_+offset);
 
@@ -131,15 +131,15 @@ namespace pico_cnn {
             va_list args;
             va_start(args, x);
 
-            uint32_t dims = shape_->num_dimensions();
+            uint32_t num_dims = shape_->num_dimensions();
             uint32_t num_idx = 1;
-            if (dims == 4) {
+            if (num_dims == 4) {
                 num_idx = 2;
-            } else if (dims == 3) {
+            } else if (num_dims == 3) {
+                num_idx = 2;
+            } else if (num_dims == 2) {
                 num_idx = 1;
-            } else if (dims == 2) {
-                num_idx = 1;
-            } else if (dims == 1) {
+            } else if (num_dims == 1) {
                 num_idx = 1;
             }
             uint32_t indexes[num_idx];
@@ -150,26 +150,22 @@ namespace pico_cnn {
                 indexes[i] = va_arg(args, uint32_t);
             }
 
-            if(dims == 1) {
+            if(num_dims == 1) {
 
                 return data_;
 
-            } else if (dims == 2) {
+            } else if (num_dims == 2) {
 
                 //PRINT_WARNING("Assuming that we deal with 2D data.")
                 uint32_t *shape = shape_->shape();
                 return data_;
 
-            } else if (dims == 3) {
-                /* TODO: We need a solution for two cases: dims[0] is number of channels
-                 * TODO: If dims[0] is number of batches, then dims[1] is number of channels and height == 1
-                 */
-//                uint32_t *shape = shape_->shape();
-//                return data_ + (indexes[0]*shape[1]*shape[2]);
-                PRINT_ERROR_AND_DIE("Not implemented for shape: " << this->shape_);
-                return nullptr;
+            } else if (num_dims == 3) {
+                // TODO: Check if this works, assuming shape = {num_batches, num_channels, width} while height = 1
+                uint32_t *shape = shape_->shape();
+                return data_ + (indexes[0]*shape[1]*shape[2]) + (indexes[1]*shape[2]);
 
-            } else if (dims == 4) {
+            } else if (num_dims == 4) {
 
                 uint32_t *shape = shape_->shape();
                 return data_ + (indexes[0]*shape[1]*shape[2]*shape[3]) + (indexes[1]*shape[2]*shape[3]);
@@ -239,8 +235,23 @@ namespace pico_cnn {
 
                 } else if (extended_shape->num_dimensions() == 3) {
 
-                    PRINT_ERROR_AND_DIE("Not implemented for shape: " << *this->shape_);
-                    return nullptr;
+                    uint32_t num_batches = extended_shape->num_batches();
+                    uint32_t num_channels = extended_shape->num_channels();
+
+                    fp_t *channel_ptr;
+                    fp_t *extended_channel_ptr;
+
+                    for (uint32_t batch = 0; batch < num_batches; batch++) {
+                        for (uint32_t channel = 0; channel < num_channels; channel++) {
+
+                            channel_ptr = this->get_ptr_to_channel(batch, channel);
+                            extended_channel_ptr = extended_tensor->get_ptr_to_channel(batch, channel);
+
+                            for (uint32_t row = 0; row < height; row++) {
+                                std::memcpy((extended_channel_ptr + padding[0]), channel_ptr, width * sizeof(fp_t));
+                            }
+                        }
+                    }
 
                 } else if (extended_shape->num_dimensions() == 2) {
 
@@ -259,7 +270,8 @@ namespace pico_cnn {
                     }
 
                 } else if (extended_shape->num_dimensions() == 1) {
-
+                    PRINT_ERROR_AND_DIE("Not implemented for shape: " << *this->shape_);
+                    return nullptr;
                 } else {
 
                     PRINT_ERROR_AND_DIE("Not implemented for shape: " << *this->shape_);

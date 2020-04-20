@@ -140,7 +140,7 @@ namespace pico_cnn {
             if (this->num_dimensions() == 4) {
                 return shape_[1];
             } else if (this->num_dimensions() == 3) {
-                return shape_[0];
+                return shape_[1];
             } else if (this->num_dimensions() == 2) {
                 PRINT_WARNING("Assuming 2D data with shape: " << this);
                 PRINT_WARNING("Number of channels therefore assumed to be 1.");
@@ -155,7 +155,7 @@ namespace pico_cnn {
             if (this->num_dimensions() == 4) {
                 return shape_[2];
             } else if (this->num_dimensions() == 3) {
-                return shape_[1];
+                return 1;
             } else if (this->num_dimensions() == 2) {
                 return shape_[0];
             } else {
@@ -205,8 +205,8 @@ namespace pico_cnn {
                 expanded_shape->shape_[3] = this->shape_[3] + padding[1] + padding[3];
             } else if (num_dims == 3) {
                 expanded_shape->shape_[0] = this->shape_[0];
-                expanded_shape->shape_[1] = this->shape_[1] + padding[0] + padding[2];
-                expanded_shape->shape_[2] = this->shape_[2] + padding[1] + padding[3];
+                expanded_shape->shape_[1] = this->shape_[1];
+                expanded_shape->shape_[2] = this->shape_[2] + padding[0] + padding[1];
             } else if (num_dims == 2) {
                 expanded_shape->shape_[0] = this->shape_[0] + padding[0] + padding[2];
                 expanded_shape->shape_[1] = this->shape_[1] + padding[1] + padding[3];

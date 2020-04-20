@@ -15,7 +15,7 @@ namespace pico_cnn {
     namespace naive {
         class MaxPooling : public Pooling {
         public:
-            MaxPooling(std::string name, uint32_t id, op_type op, uint32_t kernel_size, uint32_t stride, uint32_t *padding);
+            MaxPooling(std::string name, uint32_t id, op_type op, uint32_t *kernel_size, uint32_t *stride, uint32_t *padding);
             ~MaxPooling() = default;
 
         private:
