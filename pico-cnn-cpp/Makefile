@@ -40,6 +40,8 @@ LAYERS_SRC = tensor_shape.cpp \
              layers/pooling/pooling.cpp \
              layers/pooling/max_pooling.cpp \
              layers/pooling/average_pooling.cpp \
+             layers/pooling/global_max_pooling.cpp \
+             layers/pooling/global_average_pooling.cpp \
              layers/activation_functions/activation_function.cpp \
              layers/activation_functions/clip.cpp \
              layers/activation_functions/lrn.cpp \
