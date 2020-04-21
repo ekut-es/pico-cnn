@@ -1,9 +1,13 @@
-{% if one_dimensional %}
-{{buffer_name}} = (fp_t*) malloc({{num_outputs}} * sizeof(fp_t));
-{% else %}
-{{buffer_name}} = (fp_t**) malloc({{num_outputs}} * sizeof(fp_t*));
-
-for(uint32_t output = 0; output < {{num_outputs}}; output++){
-    {{buffer_name}}[output] = (fp_t*) malloc({{output_height}}*{{output_width}} * sizeof(fp_t));
-}
+{% if num_dims == 4 %}
+{{buffer_name}}_shape = new pico_cnn::naive::TensorShape({{num_batches}}, {{num_channels}}, {{height}}, {{width}});
+{{buffer_name}} = new pico_cnn::naive::Tensor({{buffer_name}}_shape);
+{% elif num_dims == 3 %}
+{{buffer_name}}_shape = new pico_cnn::naive::TensorShape({{num_batches}}, {{num_channels}}, {{width}});
+{{buffer_name}} = new pico_cnn::naive::Tensor({{buffer_name}}_shape);
+{% elif num_dims == 2 %}
+{{buffer_name}}_shape = new pico_cnn::naive::TensorShape({{num_batches}}, {{num_channels}});
+{{buffer_name}} = new pico_cnn::naive::Tensor({{buffer_name}}_shape);
+{% elif num_dims == 1 %}
+{{buffer_name}}_shape = new pico_cnn::naive::TensorShape({{num_batches}});
+{{buffer_name}} = new pico_cnn::naive::Tensor({{buffer_name}}_shape);
 {% endif %}

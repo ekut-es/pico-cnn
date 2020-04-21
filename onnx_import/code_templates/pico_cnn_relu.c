@@ -1,10 +1,5 @@
-{% if num_input_channels > 1 %}
-for (uint32_t i = 0; i < {{num_input_channels}}; i++) {
-    relu_naive({{input_buffer.name}}[i],
-               {{input_height}},
-               {{input_width}},
-               {{output_buffer.name}}[i]);
-}
-{% else %}
-relu_naive({{input_buffer.name}}, {{input_height}}, {{input_width}}, {{output_buffer.name}});
-{% endif %}
+
+    auto *{{identifier}}_layer = new pico_cnn::naive::ReLU("{{name}}", 0, pico_cnn::op_type::ReLU);
+    {{identifier}}_layer->run({{input_buffer.name}}, {{output_buffer.name}});
+    delete {{identifier}}_layer;
+

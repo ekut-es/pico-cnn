@@ -1,9 +1,8 @@
 {% if bias_buffer %}
-fully_connected_naive({{input_buffer.name}}, {{input_size}},
-                      {{output_buffer.name}}, {{output_size}},
-                      {{weight_buffer.name}}, {{bias_buffer.name}});
+    auto *{{identifier}}_layer = new pico_cnn::naive::FullyConnected("{{name}}", 0, pico_cnn::op_type::Gemm, {{weight_buffer.name}}, {{bias_buffer.name}});
 {% else %}
-fully_connected_naive({{input_buffer.name}}, {{input_size}},
-                      {{output_buffer.name}}, {{output_size}},
-                      {{weight_buffer.name}}, NULL);
+    auto *{{identifier}}_layer = new pico_cnn::naive::FullyConnected("{{name}}", 0, pico_cnn::op_type::Gemm, {{weight_buffer.name}}, nullptr);
 {% endif %}
+    {{identifier}}_layer->run({{input_buffer.name}}, {{output_buffer.name}});
+    delete {{identifier}}_layer;
+

@@ -43,6 +43,18 @@ set(PICO_CNN_CPP_IO_SRCS
 )
 add_library(pico-cnn-cpp ${PICO_CNN_CPP_LIBRARY_SRCS} ${PICO_CNN_CPP_IO_SRCS})
 
+add_executable(dummy_lenet ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/dummy_input.cpp
+                           ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/network.cpp
+)
+target_compile_options(dummy_lenet PRIVATE -DDEBUG=0 -DINFO=1)
+target_link_libraries(dummy_lenet pico-cnn-cpp)
+
+add_executable(reference_lenet ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/reference_input.cpp
+                               ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/network.cpp
+)
+target_compile_options(reference_lenet PRIVATE -DDEBUG=0 -DINFO=1)
+target_link_libraries(reference_lenet pico-cnn-cpp)
+
 # Tests
 set(UNIT_TESTS_SRCS
         ${PROJECT_SOURCE_DIR}/test/cpp/main.cpp

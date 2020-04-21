@@ -24,11 +24,11 @@ class BackendRep(backend_base.BackendRep):
         self.network_header = ""
         self.parameter_code = ""
         self.parameter_header = ""
-        self.initialization_code = ""
-        self.initialization_header = ""
+        self.constructor_code = ""
+        self.buffer_declaration = ""
         self.network_def = ""
         self.cleanup_header = ""
-        self.cleanup_code = ""
+        self.destructor_code = ""
         self.weights_file = ""
         self.packed_file = list()
         self.makefile = ""
@@ -178,8 +178,8 @@ class BackendRep(backend_base.BackendRep):
 
                 data = node.input_tensors[input]
 
-                if node.op_type == "Gemm":
-                    data = data.transpose()
+                # if node.op_type == "Gemm":
+                #     data = data.transpose()
 
                 if len(data.shape) == 4:
 
@@ -289,17 +289,12 @@ class BackendRep(backend_base.BackendRep):
 
         buffers_allocated = []
 
-        initialization_header = "#ifndef NETWORK_INITIALIZATION_H\n"
-        initialization_header += "#define NETWORK_INITIALIZATION_H\n"
-        initialization_header += "#include <stdlib.h>\n"
-        initialization_header += "#include <stdint.h>\n"
-        initialization_header += "#include \"pico-cnn/parameters.h\"\n\n"
-        initialization_header += "void initialize_network();\n\n"
-        initialization_header += "fp_t*** kernels;\n"
-        initialization_header += "fp_t** biases;\n"
+        buffer_declaration = ""
+        buffer_declaration += "pico_cnn::naive::Tensor **kernels;\n"
+        buffer_declaration += "pico_cnn::naive::Tensor **biases;\n"
 
-        initialization_code = "#include \"network_initialization.h\"\n\n"
-        initialization_code += "void initialize_network() {\n\n"
+        constructor_code = ""
+        constructor_code += "Network::Network() {\n\n"
 
         num_layers = 0
         num_kernels = 0
@@ -321,8 +316,8 @@ class BackendRep(backend_base.BackendRep):
                             num_kernels += 1
 
         """The arrays kernels and biases will be used to pass only two variables to read_binary_weights"""
-        initialization_code += "kernels = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(num_kernels)
-        initialization_code += "biases = (fp_t**) malloc({} * sizeof(fp_t*));\n\n".format(num_biases)
+        constructor_code += "kernels = new pico_cnn::naive::Tensor*[{}]();\n".format(num_kernels)
+        constructor_code += "biases = new pico_cnn::naive::Tensor*[{}]();\n\n".format(num_biases)
 
         pos = -1
         pos_kernel = -1
@@ -336,12 +331,12 @@ class BackendRep(backend_base.BackendRep):
             if len(node.input_tensors) > 0 and node.op_type not in ops_to_ignore:
                 pos += 1
 
-            initialization_header += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
-            initialization_code += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
+            buffer_declaration += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
+            constructor_code += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
 
             # Allocate memory for kernels and biases
-            initialization_header += "// Inputs\n"
-            initialization_code += "// Inputs\n"
+            buffer_declaration += "// Inputs\n"
+            constructor_code += "// Inputs\n"
             for num, input in enumerate(node.input_tensors):
 
                 if node.op_type in ops_to_ignore:
@@ -360,53 +355,52 @@ class BackendRep(backend_base.BackendRep):
 
                     buffer = memory_manager.get_buffer(graph, input)
 
-                    initialization_header += "// " + str(buffer.shape) + "\n"
-                    data_type = "fp_t "
-                    for i in range(buffer.buffer_depth):
-                        data_type += "*"
+                    buffer_declaration += "// " + str(buffer.shape) + "\n"
 
-                    initialization_header += data_type + buffer.name + ";\n"
+                    pico_cnn_tensor_shape = "pico_cnn::naive::TensorShape *"
+                    pico_cnn_tensor = "pico_cnn::naive::Tensor *"
 
-                    initialization_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
+                    buffer_declaration += pico_cnn_tensor_shape + buffer.name + "_shape;\n"
+                    buffer_declaration += pico_cnn_tensor + buffer.name + ";\n"
+
+                    constructor_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
 
                     functionality = CodeRegistry.get_funct("KernelAllocation")
                     impl = functionality[0].create(buffer, pos, pos_kernel, pos_bias)
 
                     if impl:
-                        initialization_code += impl.generate_code()
-                        initialization_code += "\n"
+                        constructor_code += impl.generate_code()
+                        constructor_code += "\n"
 
-            initialization_header += "// Outputs\n"
-            initialization_code += "// Outputs\n"
+            buffer_declaration += "// Outputs\n"
+            constructor_code += "// Outputs\n"
             for num, output in enumerate(node.outputs):
                 buffer = memory_manager.get_buffer(graph, output)
 
-                initialization_header += "// " + str(buffer.shape) + "\n"
+                buffer_declaration += "// " + str(buffer.shape) + "\n"
 
-                data_type = "fp_t "
-                for i in range(buffer.buffer_depth):
-                    data_type += "*"
+                pico_cnn_tensor_shape = "pico_cnn::naive::TensorShape *"
+                pico_cnn_tensor = "pico_cnn::naive::Tensor *"
 
-                initialization_header += data_type + buffer.name + ";\n"
+                buffer_declaration += pico_cnn_tensor_shape + buffer.name + "_shape;\n"
+                buffer_declaration += pico_cnn_tensor + buffer.name + ";\n"
 
-                initialization_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
+                constructor_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
 
                 functionality = CodeRegistry.get_funct("OutputAllocation")
                 impl = functionality[0].create(buffer)
 
                 if impl:
-                    initialization_code += impl.generate_code()
-                    initialization_code += "\n"
+                    constructor_code += impl.generate_code()
+                    constructor_code += "\n"
 
-            initialization_header += "\n\n"
-            initialization_code += "\n\n"
+            buffer_declaration += "\n\n"
+            constructor_code += "\n\n"
 
-        initialization_code += "}\n"
+        constructor_code += "}\n"
 
-        initialization_header += "#endif //NETWORK_INITIALIZATION_H\n"
-
-        self.initialization_header = initialization_header
-        self.initialization_code = initialization_code
+        self.buffer_declaration = buffer_declaration
+        self.constructor_code = constructor_code
 
     def _generate_network_cleanup(self, graph, memory_manager):
         """
@@ -415,17 +409,9 @@ class BackendRep(backend_base.BackendRep):
         :param memory_manager: MemoryManager containing information about input and output buffers of each operation.
         :return:
         """
-        cleanup_header = "#ifndef NETWORK_CLEANUP_H\n"
-        cleanup_header += "#define NETWORK_CLEANUP_H\n"
-        cleanup_header += "#include <stdlib.h>\n"
-        cleanup_header += "#include <stdint.h>\n"
-        cleanup_header += "#include \"pico-cnn/parameters.h\"\n"
-        cleanup_header += "#include \"network_initialization.h\" \n\n"
-        cleanup_header += "void cleanup_network(); \n\n"
-        cleanup_header += "#endif //NETWORK_CLEANUP_H\n"
 
-        cleanup_code = "#include \"network_cleanup.h\"\n\n"
-        cleanup_code += "void cleanup_network() {\n"
+        destructor_code = ""
+        destructor_code += "Network::~Network() {\n"
 
         for num, buffer_id in enumerate(memory_manager.buffers):
             buffer = memory_manager.get_buffer(graph, buffer_id)
@@ -434,15 +420,14 @@ class BackendRep(backend_base.BackendRep):
             impl = functionality[0].create(buffer)
 
             if impl:
-                cleanup_code += impl.generate_code()
-                cleanup_code += "\n"
+                destructor_code += impl.generate_code()
+                destructor_code += "\n"
 
-        cleanup_code += "\nfree(kernels);\nfree(biases);\n"
+        destructor_code += "\ndelete[] kernels;\ndelete[] biases;\n"
 
-        cleanup_code += "}\n"
+        destructor_code += "}\n"
 
-        self.cleanup_header = cleanup_header
-        self.cleanup_code = cleanup_code
+        self.destructor_code = destructor_code
 
     def _select_implementations(self, graph, memory_manager):
         """
@@ -593,18 +578,18 @@ class BackendRep(backend_base.BackendRep):
                     print("ERROR: Inference for batch_size > 1 currently not supported!")
                     exit(1)
 
-                input_defs = ["fp_t **"+n for n in input_names]
+                input_defs = ["pico_cnn::naive::Tensor *"+n for n in input_names]
 
             elif len(input_shape) == 3:
                 if input_shape[0] != 1:
                     print("ERROR: Inference for batch_size > 1 currently not supported!")
                     exit(1)
 
-                input_defs = ["fp_t **"+n for n in input_names]
+                input_defs = ["pico_cnn::naive::Tensor *"+n for n in input_names]
 
             elif len(input_shape) == 2:
                 print("Input is one-dimensional (batch_size = 1 and num_input_channels = 1)")
-                input_defs = ["fp_t *"+n for n in input_names]
+                input_defs = ["pico_cnn::naive::Tensor *"+n for n in input_names]
 
         outputs = graph.outputs
         if len(outputs) > 1:
@@ -616,7 +601,7 @@ class BackendRep(backend_base.BackendRep):
 
             if len(output_shape) == 2:
                 print("Output is one-dimensional (batch_size = 1 and num_input_channels = 1)")
-                output_defs = ["fp_t *" + n for n in output_names]
+                output_defs = ["pico_cnn::naive::Tensor *" + n for n in output_names]
             elif len(output_shape) == 3:
                 print("ERROR: Unknown output shape of network: {}".format(output_shape))
                 exit(1)
@@ -624,11 +609,12 @@ class BackendRep(backend_base.BackendRep):
                 print("ERROR: Multi-dimensional output is currently not supported.")
                 exit(1)
 
-        network_def = "void network(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
-
-        self.network_def = network_def + ";"
+        network_def = "void Network::run(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
+        network_def_header = "void run(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
 
         network_code: Text = "#include \"network.h\"\n\n"
+        network_code += self.constructor_code + "\n"
+        network_code += self.destructor_code + "\n"
         network_code += network_def+"{\n"
 
         implementation_code = ""
@@ -671,11 +657,14 @@ class BackendRep(backend_base.BackendRep):
 
         network_header = "#ifndef NETWORK_H\n"
         network_header += "#define NETWORK_H\n\n"
-        network_header += "#include \"pico-cnn/parameters.h\"\n"
-        network_header += "#include \"network_initialization.h\"\n"
-        network_header += "#include \"network_cleanup.h\"\n"
-        network_header += "#include \"pico-cnn/pico-cnn.h\"\n\n"
-        network_header += network_def + "; \n\n"
+        network_header += "#include \"pico-cnn-cpp/pico-cnn.h\"\n\n"
+        network_header += "class Network {\n"
+        network_header += "public:\n"
+        network_header += "Network();\n"
+        network_header += "~Network();\n"
+        network_header += network_def_header + "; \n\n"
+        network_header += self.buffer_declaration
+        network_header += "};\n"
         network_header += "#endif //NETWORK_H\n"
 
         self.network_code = network_code
@@ -720,23 +709,23 @@ class BackendRep(backend_base.BackendRep):
         except FileExistsError:
             pass
 
-        with open(os.path.join(folder, "network.c"), "w") as f:
+        with open(os.path.join(folder, "network.cpp"), "w") as f:
             f.write(self.network_code)
 
         with open(os.path.join(folder, "network.h"), "w") as f:
             f.write(self.network_header)
 
-        with open(os.path.join(folder, "network_initialization.c"), "w") as f:
-            f.write(self.initialization_code)
-
-        with open(os.path.join(folder, "network_initialization.h"), "w") as f:
-            f.write(self.initialization_header)
-
-        with open(os.path.join(folder, "network_cleanup.c"), "w") as f:
-            f.write(self.cleanup_code)
-
-        with open(os.path.join(folder, "network_cleanup.h"), "w") as f:
-            f.write(self.cleanup_header)
+        # with open(os.path.join(folder, "network_initialization.cpp"), "w") as f:
+        #     f.write(self.constructor_code)
+        #
+        # with open(os.path.join(folder, "network_initialization.h"), "w") as f:
+        #     f.write(self.buffer_declaration)
+        #
+        # with open(os.path.join(folder, "network_cleanup.cpp"), "w") as f:
+        #     f.write(self.destructor_code)
+        #
+        # with open(os.path.join(folder, "network_cleanup.h"), "w") as f:
+        #     f.write(self.cleanup_header)
 
         with open(os.path.join(folder, "network.weights.bin"), "wb") as f:
             for packed_struct in self.packed_file:
@@ -745,10 +734,10 @@ class BackendRep(backend_base.BackendRep):
         with open(os.path.join(folder, "Makefile"), "w") as f:
             f.write(self.makefile)
 
-        with open(os.path.join(folder, "dummy_input.c"), "w") as f:
+        with open(os.path.join(folder, "dummy_input.cpp"), "w") as f:
             f.write(self.dummy_input)
 
-        with open(os.path.join(folder, "reference_input.c"), "w") as f:
+        with open(os.path.join(folder, "reference_input.cpp"), "w") as f:
             f.write(self.reference_input)
 
 

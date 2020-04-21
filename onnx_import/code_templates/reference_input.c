@@ -1,13 +1,10 @@
-#define EPSILON 0.001
-
-#include "network.h"
-#include "network_initialization.h"
-#include "network_cleanup.h"
+#define ALMOST 0.001
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "pico-cnn/pico-cnn.h"
+#include "pico-cnn-cpp/pico-cnn.h"
+#include "network.h"
 
 void usage() {
     printf("./reference_input PATH_TO_BINARY_WEIGHTS_FILE PATH_TO_REFERENCE_INPUT PATH_TO_REFERENCE_OUTPUT\n");
@@ -33,107 +30,97 @@ int32_t main(int32_t argc, char** argv) {
     char sample_output_path[1024];
     strcpy(sample_output_path, argv[3]);
 
-    {% if input_shape_len == 4 or input_shape_len == 3 %}
-    fp_t** input = (fp_t**) malloc({{num_input_channels}}*sizeof(fp_t*));
-
-    for(uint32_t i = 0; i < {{num_input_channels}}; i++){
-        input[i] = (fp_t*) malloc({{input_channel_height}}*{{input_channel_width}}*sizeof(fp_t));
-    }
-    {% elif input_shape_len == 2 %}
-    fp_t* input = (fp_t*) malloc({{input_channel_height}}*{{input_channel_width}}*sizeof(fp_t));
+    {% if num_input_dims == 4 %}
+    auto input_shape = new pico_cnn::naive::TensorShape({{num_input_batches}}, {{num_input_channels}}, {{input_channel_height}}, {{input_channel_width}});
+    {% elif num_input_dims == 3 %}
+    auto input_shape = new pico_cnn::naive::TensorShape({{num_input_batches}}, {{num_input_channels}}, {{input_channel_width}});
+    {% elif num_input_dims == 2 %}
+    auto input_shape = new pico_cnn::naive::TensorShape({{input_channel_height}}, {{input_channel_width}});
     {% endif %}
+    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
 
-    {% if output_shape_len == 4 or output_shape_len == 3 %}
-    fp_t** output = (fp_t**) malloc({{num_output_channels}}*sizeof(fp_t*));
-
-    for(uint32_t i = 0; i < {{num_input_channels}}; i++){
-        output[i] = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
-    }
-    {% elif output_shape_len == 2 %}
-    fp_t* output = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
+    {% if num_output_dims == 4 %}
+    auto output_shape = new pico_cnn::naive::TensorShape({{num_output_batches}}, {{num_output_channels}}, {{output_channel_height}}, {{output_channel_width}});
+    auto ref_output_shape = new pico_cnn::naive::TensorShape({{num_output_batches}}, {{num_output_channels}}, {{output_channel_height}}, {{output_channel_width}});
+    {% elif num_output_dims == 3 %}
+    //auto output_shape = new pico_cnn::naive::TensorShape({{num_output_batches}}, {{num_output_channels}}, {{output_channel_height}}, {{output_channel_width}});
+    {% elif num_output_dims == 2 %}
+    auto output_shape = new pico_cnn::naive::TensorShape({{num_output_batches}}, {{num_output_channels}});
+    auto ref_output_shape = new pico_cnn::naive::TensorShape({{num_output_batches}}, {{num_output_channels}});
     {% endif %}
+    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto ref_output_tensor = new pico_cnn::naive::Tensor(output_shape);
 
 
-    {% if output_shape_len == 4 or output_shape_len == 3 %}
-    fp_t** ref_output = (fp_t**) malloc({{num_output_channels}}*sizeof(fp_t*));
-
-    for(uint32_t i = 0; i < {{num_input_channels}}; i++){
-        ref_output[i] = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
-    }
-    {% elif output_shape_len == 2 %}
-    fp_t* ref_output = (fp_t*) malloc({{output_channel_height}}*{{output_channel_width}}*sizeof(fp_t));
-    {% endif %}
-
-    {% if input_shape_len == 4 or input_shape_len == 3 %}
-    if(read_binary_reference_input_data(sample_input_path, &input) != 0)
-        return -1;
-    {% elif input_shape_len == 2 %}
-    fp_t** input_helper = &input;
-    if(read_binary_reference_input_data(sample_input_path, &input_helper) != 0)
-        return -1;
-    {% endif %}
-    if(read_binary_reference_output_data(sample_output_path, &ref_output) != 0)
+    if(read_binary_reference_input_data(sample_input_path, input_tensor) != 0)
         return -1;
 
-    initialize_network();
+    if(read_binary_reference_output_data(sample_output_path, ref_output_tensor) != 0)
+        return -1;
 
-    INFO_MSG("Reading weights from '%s'\n", weights_path);
+    Network *net = new Network();
 
-    if(read_binary_weights(weights_path, &kernels, &biases) != 0){
-        ERROR_MSG("Could not read weights from '%s'\n", weights_path);
+    PRINT_INFO("Reading weights from: " << weights_path)
+
+    if(read_binary_weights(weights_path, &net->kernels, &net->biases) != 0){
+        PRINT_ERROR("Could not read weights from: " << weights_path)
         return 1;
     }
 
-    INFO_MSG("Starting CNN...\n");
+    PRINT_INFO("Starting CNN...")
 
-    network(input, output);
+    net->run(input_tensor, output_tensor);
 
-    INFO_MSG("After CNN\n");
+    PRINT_INFO("After CNN")
 
-    cleanup_network();
+    delete net;
 
     int32_t all_equal = 1;
 
-    {% if output_shape_len == 4 or output_shape_len == 3 %}
-    for(uint32_t channel = 0; channel < {{num_output_channels}}; channel++) {
-        for(uint32_t i = 0; i < {{output_channel_height}}*{{output_channel_width}}; i++) {
+    {% if num_output_dims == 4 or num_output_dims == 3 %}
+    for(uint32_t batch = 0; batch < output_tensor->num_batches(); batch++) {
+        for(uint32_t channel = 0; channel < output_tensor->num_channels(); channel++) {
+            for(uint32_t row = 0; row < output_tensor->height(); row++) {
+                for(uint32_t col = 0; col < output_tensor->width(); col++) {
 
-            DEBUG_MSG("Channel: %d\tPosition: %d\toutput: %f\tref_output: %f\n", channel, i, output[channel][i], ref_output[channel][i]);
+                    PRINT_DEBUG("Batch: " << batch << "\tchannel: " << channel << "\trow: " << row << "\tcol: " << col << "\toutput: " << output_tensor->access(batch, channel, row, col) << "\tref_output: " << ref_output_tensor->access(batch, channel, row, col))
 
-            if(!almost_equal(output[channel][i], ref_output[channel][i], EPSILON)) {
-                all_equal = 0;
-                ERROR_MSG("Not equal at in channel: %d at position: %d, output: %f, ref_output: %f\n", channel, i, output[channel][i], ref_output[channel][i]);
+                    if(!almost_equal(output_tensor->access(batch, channel, row, col), ref_output_tensor->access(batch, channel, row, col), ALMOST)) {
+                        all_equal = 0;
+                        PRINT_ERROR("Not equal at batch: " << batch << "\tchannel: " << channel << "\trow: " << row << "\tcol: " << col << "\toutput " << output_tensor->access(batch, channel, row, col) << "\tref_output: " << ref_output_tensor->access(batch, channel, row, col));
+                    }
+                }
             }
         }
     }
-    {% elif output_shape_len == 2 %}
-    for(uint32_t i = 0; i < {{output_channel_height}}*{{output_channel_width}}; i++) {
+    {% elif num_output_dims == 2 %}
+    for(uint32_t row = 0; row < output_tensor->height(); row++) {
+        for(uint32_t col = 0; col < output_tensor->width(); col++) {
 
-        DEBUG_MSG("Position: %d\toutput: %f\tref_output: %f\n", i, output[i], ref_output[i]);
+            PRINT_DEBUG("Row: " << row << "\tcol: " << col << "\toutput: " << output_tensor->access(row, col) << "\tref_output: " << ref_output_tensor->access(row, col))
 
-        if(!almost_equal(output[i], ref_output[i], EPSILON)) {
-            all_equal = 0;
-            ERROR_MSG("Not equal at position: %d, output: %f, ref_output: %f\n", i, output[i], ref_output[i]);
+            if(!almost_equal(output_tensor->access(row, col), ref_output_tensor->access(row, col), ALMOST)) {
+                all_equal = 0;
+                PRINT_ERROR("Not equal at row: " << row << " col: " << col << ", output: " << output_tensor->access(row, col) << ", ref_output: " << ref_output_tensor->access(row, col))
+            }
         }
     }
     {% endif %}
 
     if(all_equal) {
-        INFO_MSG("Output is almost equal (epsilon=%f) to reference output!\n", EPSILON);
+        PRINT_INFO("Output is almost equal to reference output! epsilon=" << ALMOST);
     } else {
-        ERROR_MSG("WARNING: Output is not almost equal (epsilon=%f) to reference output!\n", EPSILON);
+        PRINT_ERROR("WARNING: Output is not almost equal to reference output! epsilon=" << ALMOST);
     }
 
-    free(output);
-    free(ref_output);
+    delete input_tensor;
+    delete input_shape;
 
-    {% if input_shape_len == 4 or input_shape_len == 3 %}
-    for(uint32_t i = 0; i < {{num_input_channels}}; i++) {
-        free(input[i]);
-    }
-    {% endif %}
+    delete output_tensor;
+    delete output_shape;
 
-    free(input);
+    delete ref_output_tensor;
+    delete ref_output_shape;
 
     return 0;
 
