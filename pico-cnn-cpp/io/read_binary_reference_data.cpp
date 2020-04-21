@@ -138,7 +138,7 @@ int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_c
 
 int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_cnn::naive::Tensor *output_tensor) {
 
-    if (output_tensor->shape()->num_dimensions() != 1) {
+    if (output_tensor->shape()->num_dimensions() != 2) {
         PRINT_ERROR("Reference ouptut data can only be copied into a 1D-Tensor (num_outputs).")
         return 1;
     }

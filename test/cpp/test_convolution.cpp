@@ -36,9 +36,9 @@ void TestConvolution::tearDown() {
 }
 
 void TestConvolution::runTestConvolution_1d() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 1,11);
+    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 11);
     auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 5);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1,1, 5);
+    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 5);
     auto kernel_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 3);
 
 

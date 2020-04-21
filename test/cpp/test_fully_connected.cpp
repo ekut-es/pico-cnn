@@ -8,7 +8,8 @@ void TestFullyConnected::setUp() {
     input_shape = new pico_cnn::naive::TensorShape(1, 6);
     output_shape = new pico_cnn::naive::TensorShape(1, 4);
     expected_output_shape = new pico_cnn::naive::TensorShape(1, 4);
-    kernel_shape = new pico_cnn::naive::TensorShape(6, 4);
+    // It might seem as if the shape should be transposed but onnx uses this layout for gemm kernels as to improve memory access patterns
+    kernel_shape = new pico_cnn::naive::TensorShape(4, 6);
     bias_shape = new pico_cnn::naive::TensorShape(1, 4);
 
     input_tensor = new pico_cnn::naive::Tensor(input_shape);
@@ -18,12 +19,12 @@ void TestFullyConnected::setUp() {
     bias_tensor = new pico_cnn::naive::Tensor(bias_shape);
 
     fp_t input[6] = {-2, 4, 1, 8, -5, 0};
-    fp_t kernel[24] = {-0.5,  0.2, -0.3,  0.1,
-                       -0.1, -1.0, -0.9,  0.4,
-                        0.8,  0.5, -0.1, -0.4,
-                       -0.4, -0.9, -0.9, -0.8,
-                       -0.3,  0.5,  0.7, -0.9,
-                       -0.3,  0.4,  0.9, -0.7};
+
+    fp_t kernel[24] = {-0.5, -0.1, 0.8, -0.4, -0.3, -0.3,
+                       0.2, -1.0, 0.5, -0.9, 0.5, 0.4,
+                       -0.3, -0.9, -0.1, -0.9, 0.7, 0.9,
+                       0.1, 0.4, -0.4, -0.8, -0.9, -0.7};
+
     fp_t bias[4] = {6, -3, 0, 1};
     fp_t expected_output[4] = {5.6999, -16.6, -13.8, 0.0999};
 
@@ -36,8 +37,8 @@ void TestFullyConnected::setUp() {
         bias_tensor->access_blob(i) = bias[i];
     }
 
-    uint32_t kernel_height = kernel_tensor->shape()->operator[](0);
-    uint32_t kernel_width = kernel_tensor->shape()->operator[](1);
+    uint32_t kernel_height = kernel_tensor->height();
+    uint32_t kernel_width = kernel_tensor->width();
     for (uint32_t row = 0; row < kernel_height; row++) {
         for (uint32_t col = 0; col < kernel_width; col++) {
             kernel_tensor->access(row, col) = kernel[row * kernel_width + col];

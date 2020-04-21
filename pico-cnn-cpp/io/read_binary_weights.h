@@ -16,6 +16,6 @@
 #include "../tensor.h"
 #include "../tensor_shape.h"
 
-int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::Tensor **kernels, pico_cnn::naive::Tensor **biases);
+int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::Tensor ***kernels, pico_cnn::naive::Tensor ***biases);
 
 #endif //PICO_CNN_READ_BINARY_WEIGHTS_H

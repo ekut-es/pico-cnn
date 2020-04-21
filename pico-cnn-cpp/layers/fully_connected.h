@@ -1,5 +1,7 @@
 /**
  * @brief pico_cnn::naive::FullyConnected class provides naive implementation of FC operation
+ * This implementation assumes the following data layout:
+ * input: (1, X), kernel: (Y, X), bias: (1, Y), output: (1, Y)
  *
  * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */
@@ -14,9 +16,22 @@ namespace pico_cnn {
     namespace naive {
         class FullyConnected : Layer {
         public:
+            /**
+             *
+             * @param name
+             * @param id
+             * @param op
+             * @param kernel We use the same data layout as used in the onnx file format: kernel->shape == (Y, X)
+             * @param bias We use the same data layout as used in the onnx file format: bias->shape == (1, Y)
+             */
             FullyConnected(std::string name, uint32_t id, op_type op, Tensor *kernel, Tensor *bias);
             ~FullyConnected() = default;
 
+            /**
+             *
+             * @param input input->shape == (1, X)
+             * @param output output->shape == (1, Y)
+             */
             void run(Tensor *input, Tensor *output) override;
 
         private:

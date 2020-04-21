@@ -16,15 +16,17 @@ namespace pico_cnn {
 
         void FullyConnected::gemm(Tensor *input, Tensor *output) {
 
-            uint32_t output_width = output->shape()->operator[](1);
-            uint32_t input_width = input->shape()->operator[](1);
+            uint32_t output_width = output->width();
+            uint32_t input_width = input->width();
 
             for (uint32_t i = 0; i < output_width; i++) {
 
                 fp_t pixel = 0.0;
 
                 for (uint32_t j = 0; j < input_width; j++) {
-                    pixel += input->access(0, j) * kernel_->access(j, i);
+                    // With the kernel layout used in the onnx format we can use this memory optimized
+                    // access pattern (i, j) instead of (j, i) as the "normal" matrix multiplication is defined
+                    pixel += input->access(0, j) * kernel_->access(i, j);
                 }
 
                 if(bias_)
