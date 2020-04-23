@@ -42,6 +42,7 @@ set(PICO_CNN_CPP_IO_SRCS
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/io/read_binary_weights.cpp
 )
 add_library(pico-cnn-cpp ${PICO_CNN_CPP_LIBRARY_SRCS} ${PICO_CNN_CPP_IO_SRCS})
+target_compile_options(pico-cnn-cpp PRIVATE -Wall -DDEBUG=0 -DINFO=1)
 
 add_executable(dummy_lenet ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/dummy_input.cpp
                            ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/network.cpp
