@@ -1,7 +1,6 @@
 #define ALMOST 0.001
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "pico-cnn-cpp/pico-cnn.h"
 #include "network.h"

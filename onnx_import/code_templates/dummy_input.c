@@ -1,9 +1,8 @@
 #define LOWER_BOUND 0.0
 #define UPPER_BOUND 1.0
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cstdlib>
+#include <ctime>
 
 #include "pico-cnn-cpp/pico-cnn.h"
 #include "network.h"
@@ -12,12 +11,18 @@ void usage() {
     printf("./dummy_input PATH_TO_BINARY_WEIGHTS_FILE RUNS GENERATE_ONCE\n");
 }
 
+static inline fp_t urand(fp_t min, fp_t max) {
+    return (fp_t) ((((fp_t)std::rand()/(fp_t)(RAND_MAX)) * 1.0f) * (max - min) + min);
+}
+
 int32_t main(int32_t argc, char** argv) {
 
     if(argc != 4) {
         usage();
         return 1;
     }
+
+    std::srand(std::time(0));
 
     char weights_path[1024];
     strcpy(weights_path, argv[1]);
