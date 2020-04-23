@@ -9,14 +9,8 @@ pico_cnn::naive::Pooling::Pooling(std::string name, uint32_t id, pico_cnn::op_ty
 }
 
 void pico_cnn::naive::Pooling::run(pico_cnn::naive::Tensor *input, pico_cnn::naive::Tensor *output) {
-    if (input->shape()->num_dimensions() == 4 || input->shape()->num_dimensions() == 3) {
-        uint32_t num_input_channels = input->num_channels();
-        uint32_t input_height = input->height();
-        uint32_t input_width = input->width();
 
-        uint32_t num_output_channels = output->num_channels();
-        uint32_t output_height = output->height();
-        uint32_t output_width = output->width();
+    if (input->shape()->num_dimensions() == 4 || input->shape()->num_dimensions() == 3) {
 
         Tensor *input_tensor;
 

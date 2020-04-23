@@ -2,6 +2,10 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestActivationFunctions);
 
+static inline fp_t urand(fp_t min, fp_t max) {
+    return (fp_t) ((((fp_t)std::rand()/(fp_t)(RAND_MAX)) * 1.0f) * (max - min) + min);
+}
+
 void TestActivationFunctions::setUp() {
     TestFixture::setUp();
 
@@ -64,9 +68,9 @@ void TestActivationFunctions::runTestClip() {
 
 void TestActivationFunctions::runTestLRN() {
     //PRINT_INFO("Test LRN...")
-    auto lrn_input_shape = new pico_cnn::naive::TensorShape(3,2, 3);
-    auto lrn_output_shape = new pico_cnn::naive::TensorShape(3,2, 3);
-    auto lrn_expected_output_shape = new pico_cnn::naive::TensorShape(3,2, 3);
+    auto lrn_input_shape = new pico_cnn::naive::TensorShape(1, 3, 2, 3);
+    auto lrn_output_shape = new pico_cnn::naive::TensorShape(1, 3, 2, 3);
+    auto lrn_expected_output_shape = new pico_cnn::naive::TensorShape(1, 3, 2, 3);
 
     auto lrn_input_tensor = new pico_cnn::naive::Tensor(lrn_input_shape);
     auto lrn_output_tensor = new pico_cnn::naive::Tensor(lrn_output_shape);

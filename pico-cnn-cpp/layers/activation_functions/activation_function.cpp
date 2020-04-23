@@ -14,8 +14,7 @@ namespace pico_cnn {
         }
 
         void ActivationFunction::activate(Tensor *input, Tensor *output) {
-            if(input->copy_data_into(output) != 0)
-                PRINT_ERROR_AND_DIE("Attempted to copy Tensors of unequal shapes.");
+            input->copy_data_into(output);
         }
     }
 }

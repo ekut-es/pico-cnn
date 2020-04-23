@@ -16,40 +16,47 @@ namespace pico_cnn {
         }
 
         void LRN::run(Tensor *input, Tensor *output) {
-            if(input->shape()->num_dimensions() != 3)
-                PRINT_ERROR_AND_DIE("LRN can only be used with TensorShape: (num_channels, height, width) but got: " << input->shape())
+            if(input->shape()->num_dimensions() != 4)
+                PRINT_ERROR_AND_DIE("LRN can only be used with TensorShape: (num_batches, num_channels, height, width) but got: " << input->shape())
             else
                 this->activate(input, output);
         }
 
         void LRN::activate(Tensor *input, Tensor *output) {
-            int32_t i, depth, height, width;
-            int32_t from;
-            int32_t to;
+            if (input->shape()->num_dimensions() == 4) {
+                int32_t i, num_batches, num_channels, height, width;
+                int32_t from;
+                int32_t to;
 
-            fp_t sum;
+                fp_t sum;
 
-            depth = input->shape()->operator[](0);
-            height = input->shape()->operator[](1);
-            width = input->shape()->operator[](2);
+                num_batches = input->num_batches();
+                num_channels = input->num_channels();
+                height = input->height();
+                width = input->width();
 
-            for(int32_t channel = 0; channel < depth; channel++) {
-                from = MAX(0,channel-(n_/2));
-                to = MIN(depth-1,channel+(n_/2));
+                for (int32_t batch = 0; batch < num_batches; batch++) {
+                    for (int32_t channel = 0; channel < num_channels; channel++) {
+                        from = MAX(0, channel - (n_ / 2));
+                        to = MIN(num_channels - 1, channel + (n_ / 2));
 
-                for(int32_t row = 0; row < height; row++) {
-                    for(int32_t column = 0; column < width; column++) {
+                        for (int32_t row = 0; row < height; row++) {
+                            for (int32_t column = 0; column < width; column++) {
 
-                        sum = 0.0;
+                                sum = 0.0;
 
-                        for(i = from; i <= to; i++) {
-                            sum += powf(input->access(i, row, column), 2);
+                                for (i = from; i <= to; i++) {
+                                    sum += powf(input->access(batch, i, row, column), 2);
+                                }
+
+                                output->access(batch, channel, row, column) = input->access(batch, channel, row, column) /
+                                                                       powf((1 + (alpha_ / (fp_t) n_) * sum), beta_);
+                            }
                         }
-
-                        output->access(channel, row, column) = input->access(channel, row, column) /
-                                powf((1+(alpha_/(fp_t)n_)*sum), beta_);
                     }
                 }
+            } else {
+                PRINT_ERROR_AND_DIE("LRN not yet implemented for shape: " << *(input->shape()))
             }
         }
     }

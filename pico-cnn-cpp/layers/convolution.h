@@ -20,7 +20,7 @@ namespace pico_cnn {
 
             void run(Tensor *input, Tensor *output) override;
 
-        private:
+        //private:
             void convolve(Tensor *input, Tensor *output, uint32_t input_channel, uint32_t output_channel, uint32_t group_idx);
 
             Tensor *kernel_;

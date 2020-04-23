@@ -20,6 +20,10 @@ namespace pico_cnn {
                 PRINT_ERROR_AND_DIE("Not implemented for TensorShape: " << *input->shape());
             }
 
+            uint32_t num_batches = input->num_batches();
+            if (num_batches != 1)
+                PRINT_ERROR_AND_DIE("Number of batches != 1. Convolution not tested for this.")
+
             uint32_t num_input_channels = input->num_channels();
             uint32_t input_height = input->height();
             uint32_t input_width = input->width();
@@ -39,22 +43,26 @@ namespace pico_cnn {
             auto *tmp_shape = new TensorShape(output->num_batches(), num_output_channels, output_height, output_width);
             auto *tmp_tensor = new Tensor(tmp_shape);
 
+            for (uint32_t batch = 0; batch < num_batches; batch++) {
 
-            for (uint32_t g = 0; g < num_groups_; g++) {
-                for (uint32_t i = g*num_output_channels/num_groups_; i < (g+1)*num_output_channels/num_groups_; i++) {
+                for (uint32_t g = 0; g < num_groups_; g++) {
+                    for (uint32_t i = g * num_output_channels / num_groups_;
+                         i < (g + 1) * num_output_channels / num_groups_; i++) {
 
-                    this->convolve(input_tensor, output, g*num_input_channels/num_groups_, i, g);
+                        this->convolve(input_tensor, output, g * num_input_channels / num_groups_, i, g);
 
-                    if (num_input_channels > num_groups_) {
-                        uint32_t cnt = 1;
+                        if (num_input_channels > num_groups_) {
+                            uint32_t cnt = 1;
 
-                        for (uint32_t j = g*num_input_channels/num_groups_+1; j < (g+1)*(num_input_channels/num_groups_); j++) {
+                            for (uint32_t j = g * num_input_channels / num_groups_ + 1;
+                                 j < (g + 1) * (num_input_channels / num_groups_); j++) {
 
-                            this->convolve(input_tensor, tmp_tensor, j, i, g);
+                                this->convolve(input_tensor, tmp_tensor, j, i, g);
 
-                            output->add_tensor(tmp_tensor);
+                                output->add_tensor(tmp_tensor);
 
-                            cnt++;
+                                cnt++;
+                            }
                         }
                     }
                 }

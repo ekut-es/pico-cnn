@@ -10,7 +10,9 @@ namespace pico_cnn {
         }
 
         void FullyConnected::run(Tensor *input, Tensor *output) {
-            // TODO: Implement checks for dimensions
+            if (input->shape()->num_dimensions() != 2 || output->shape()->num_dimensions() != 2) {
+                PRINT_ERROR_AND_DIE("Fully connected operation only supports 2D input and output. But input shape is: " << *(input->shape()))
+            }
             this->gemm(input, output);
         }
 
