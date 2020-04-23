@@ -204,6 +204,12 @@ int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_
             return 1;
         }
 
+        #ifdef DEBUG
+        for(uint32_t i = 0; i < num_outputs; i++) {
+            PRINT_DEBUG(values[i])
+        }
+        #endif
+
         std::memcpy(output_tensor->get_ptr_to_channel(0), values, num_outputs*sizeof(fp_t));
 
         delete[] values;
