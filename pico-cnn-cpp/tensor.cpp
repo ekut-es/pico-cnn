@@ -54,12 +54,11 @@ namespace pico_cnn {
             return this->shape()->width();
         }
 
-        int32_t Tensor::copy_data_into(Tensor *dest) {
-            if(*this->shape() == *dest->shape()) {
+        void Tensor::copy_data_into(Tensor *dest) {
+            if(this->num_elements() == dest->num_elements()) {
                 std::memcpy(dest->data_, this->data_, size_bytes());
-                return 0;
             } else {
-                return -1;
+                PRINT_ERROR_AND_DIE("Attempted to copy Tensors of unequal number of elements.")
             }
         }
 

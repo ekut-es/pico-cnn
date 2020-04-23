@@ -57,7 +57,7 @@ namespace pico_cnn {
 
             Tensor *expand_with_padding(uint32_t *padding, fp_t initializer = 0.0);
 
-            int32_t copy_data_into(Tensor *dest);
+            void copy_data_into(Tensor *dest);
 
             bool add_tensor(Tensor *other);
 
