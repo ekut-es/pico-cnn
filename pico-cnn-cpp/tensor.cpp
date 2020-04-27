@@ -77,6 +77,28 @@ namespace pico_cnn {
             }
         }
 
+        bool Tensor::add_channel(Tensor *other, uint32_t batch, uint32_t channel) {
+            uint32_t height = this->height();
+            uint32_t width = this->width();
+            uint32_t other_height = other->height();
+            uint32_t other_width = other->width();
+
+            if (height == other_height && width == other_width) {
+
+                for (uint32_t i = 0; i < height; i++) {
+                    for (uint32_t j = 0; j < width; j++) {
+                        this->access(batch, channel, i, j) = this->access(batch, channel, i, j) + other->access(batch, channel, i, j);
+                    }
+                }
+
+                return true;
+
+            } else {
+                PRINT_ERROR("Channels of different height and width cannot be added.");
+                return false;
+            }
+        }
+
         fp_t &Tensor::access(uint32_t x, ...) {
             va_list args;
             va_start(args, x);

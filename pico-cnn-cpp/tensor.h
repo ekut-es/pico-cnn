@@ -60,6 +60,7 @@ namespace pico_cnn {
             void copy_data_into(Tensor *dest);
 
             bool add_tensor(Tensor *other);
+            bool add_channel(Tensor *other, uint32_t batch, uint32_t channel);
 
             bool operator ==(const Tensor &other) const {
                 if(*this->shape_ == *other.shape_) {
