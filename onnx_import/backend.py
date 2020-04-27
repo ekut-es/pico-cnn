@@ -675,25 +675,25 @@ class BackendRep(backend_base.BackendRep):
         The code for the network specific input has to be written manually.
         """
         # TODO: Does this need to be more sophisticated?
-        self.makefile = "CC = gcc\n"
+        self.makefile = "CC = g++\n"
         self.makefile += "CFLAGS = -Wall -g -DINFO\n"
-        self.makefile += "LDFLAGS = -L../../../pico-cnn\n"
-        self.makefile += "LD_LIBS = -lpico-cnn -lm\n\n"
-        self.makefile += "# list of all generated .c files.\n"
-        self.makefile += "NETWORK_LIST = network_initialization.c network_cleanup.c network.c"
-        self.makefile += "\n\ndummy_input: dummy_input.c $(NETWORK_LIST) libpico-cnn.a\n\t"
-        self.makefile += "$(CC) dummy_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o dummy_input"
-        self.makefile += "\n\nreference_input: reference_input.c $(NETWORK_LIST) libpico-cnn.a\n\t"
-        self.makefile += "$(CC) reference_input.c $(NETWORK_LIST) -I../../.. $(CFLAGS) " \
+        self.makefile += "LDFLAGS = -L../../../pico-cnn-cpp\n"
+        self.makefile += "LD_LIBS = -lpico-cnn-cpp -lm\n\n"
+        self.makefile += "# list of all generated .cpp files.\n"
+        self.makefile += "NETWORK_LIST = network.cpp"
+        self.makefile += "\n\ndummy_input: dummy_input.cpp $(NETWORK_LIST) libpico-cnn-cpp.a\n\t"
+        self.makefile += "$(CC) dummy_input.cpp $(NETWORK_LIST) -I../../.. $(CFLAGS) $(LDFLAGS) $(LD_LIBS) -o dummy_input"
+        self.makefile += "\n\nreference_input: reference_input.cpp $(NETWORK_LIST) libpico-cnn-cpp.a\n\t"
+        self.makefile += "$(CC) reference_input.cpp $(NETWORK_LIST) -I../../.. $(CFLAGS) " \
                          "$(LDFLAGS) $(LD_LIBS) -o reference_input"
-        self.makefile += "\n\n{}: {}.c $(NETWORK_LIST) libpico-cnn.a\n\t".format(self.model_name, self.model_name)
-        self.makefile += "$(CC) {}.c $(NETWORK_LIST) -I../../.. $(CFLAGS) " \
+        self.makefile += "\n\n{}: {}.cpp $(NETWORK_LIST) libpico-cnn-cpp.a\n\t".format(self.model_name, self.model_name)
+        self.makefile += "$(CC) {}.cpp $(NETWORK_LIST) -I../../.. $(CFLAGS) " \
                          "$(LDFLAGS) $(LD_LIBS) -o {}".format(self.model_name, self.model_name)
         self.makefile += "\n\nall: dummy_input reference_input {}".format(self.model_name)
         self.makefile += "\n\n.PHONY: clean\n"
         self.makefile += "clean:\n\trm -rf {} dummy_input reference_input\n".format(self.model_name)
-        self.makefile += "\n\n.PHONY: libpico-cnn.a\n"
-        self.makefile += "libpico-cnn.a:\n\t$(MAKE) -C ../../../pico-cnn"
+        self.makefile += "\n\n.PHONY: libpico-cnn-cpp.a\n"
+        self.makefile += "libpico-cnn-cpp.a:\n\t$(MAKE) -C ../../../pico-cnn-cpp"
 
         self.save("./generated_code/{}".format(self.model_name))
 
