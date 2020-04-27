@@ -1,8 +1,8 @@
 #include "read_binary_reference_data.h"
 
-int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_cnn::naive::Tensor *input_tensor) {
+int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_cnn::naive::Tensor **input_tensor) {
 
-    if (input_tensor->shape()->num_dimensions() != 4) {
+    if ((*input_tensor)->shape()->num_dimensions() != 4) {
         PRINT_ERROR("Reference input data can only be copied into a 4D-Tensor (num_batches, num_channels, height, width).")
         return 1;
     }
@@ -10,7 +10,7 @@ int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_c
     FILE *binary_file;
     binary_file = fopen(path_to_sample_data, "r");
 
-    if(binary_file != 0) {
+    if(binary_file != nullptr) {
 
         // Read magic number
         char magic_number[5];
@@ -51,9 +51,9 @@ int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_c
             return 1;
         } else {
             PRINT_DEBUG("Number of channels: " << num_channels)
-            if (num_channels != input_tensor->num_channels()) {
+            if (num_channels != (*input_tensor)->num_channels()) {
                 PRINT_ERROR("Number of channels in binary file: " << num_channels <<
-                            " does not match tensor shape: " << input_tensor->shape())
+                            " does not match tensor shape: " << (*input_tensor)->shape())
                 fclose(binary_file);
                 return 1;
             }
@@ -67,9 +67,9 @@ int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_c
             return 1;
         } else {
             PRINT_DEBUG("Height: " << height)
-            if (height != input_tensor->height()) {
+            if (height != (*input_tensor)->height()) {
                 PRINT_ERROR("Height in binary file: " << height <<
-                            " does not match tensor shape: " << input_tensor->shape())
+                            " does not match tensor shape: " << (*input_tensor)->shape())
                 fclose(binary_file);
                 return 1;
             }
@@ -83,9 +83,9 @@ int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_c
             return 1;
         } else {
             PRINT_DEBUG("Width: " << width)
-            if (width != input_tensor->width()) {
+            if (width != (*input_tensor)->width()) {
                 PRINT_ERROR("Width in binary file: " << width <<
-                            " does not match tensor shape: " << input_tensor->shape())
+                            " does not match tensor shape: " << (*input_tensor)->shape())
                 fclose(binary_file);
                 return 1;
             }
@@ -109,7 +109,7 @@ int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_c
                     PRINT_DEBUG(values[i])
                 }
                 #endif
-                std::memcpy(input_tensor->get_ptr_to_channel(0, channel), values, height*width*sizeof(fp_t));
+                std::memcpy((*input_tensor)->get_ptr_to_channel(0, channel), values, height*width*sizeof(fp_t));
             }
 
             delete[] values;
@@ -136,9 +136,9 @@ int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_c
     return 0;
 }
 
-int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_cnn::naive::Tensor *output_tensor) {
+int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_cnn::naive::Tensor **output_tensor) {
 
-    if (output_tensor->shape()->num_dimensions() != 2) {
+    if ((*output_tensor)->shape()->num_dimensions() != 2) {
         PRINT_ERROR("Reference ouptut data can only be copied into a 1D-Tensor (num_outputs).")
         return 1;
     }
@@ -146,7 +146,7 @@ int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_
     FILE *binary_file;
     binary_file = fopen(path_to_sample_data, "r");
 
-    if(binary_file != 0) {
+    if(binary_file != nullptr) {
 
         // Read magic number
         char magic_number[5];
@@ -187,9 +187,9 @@ int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_
             return 1;
         } else {
             PRINT_DEBUG("Number of outputs: " << num_outputs)
-            if (num_outputs != output_tensor->num_elements()) {
+            if (num_outputs != (*output_tensor)->num_elements()) {
                 PRINT_ERROR("Number of outputs in binary file: " << num_outputs << " and output tensor shape: " <<
-                            output_tensor->shape() << " do not match.")
+                                                                                                                (*output_tensor)->shape() << " do not match.")
                 fclose(binary_file);
                 return 1;
             }
@@ -210,7 +210,7 @@ int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_
         }
         #endif
 
-        std::memcpy(output_tensor->get_ptr_to_channel(0), values, num_outputs*sizeof(fp_t));
+        std::memcpy((*output_tensor)->get_ptr_to_channel(0), values, num_outputs*sizeof(fp_t));
 
         delete[] values;
 

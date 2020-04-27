@@ -95,12 +95,12 @@ int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::T
                 uint32_t kernel_width = 0;
 
                 if (fread((void *) &num_output_channels, sizeof(num_output_channels), 1, binary_file) != 1) {
-                    PRINT_ERROR("ERROR while reading number of kernels")
+                    PRINT_ERROR("ERROR while reading number of output channels")
                     fclose(binary_file);
                     return 1;
                 }
                 if (fread((void *) &num_input_channels, sizeof(num_input_channels), 1, binary_file) != 1) {
-                    PRINT_ERROR("ERROR while reading number of kernels")
+                    PRINT_ERROR("ERROR while reading number of input channels")
                     fclose(binary_file);
                     return 1;
                 }

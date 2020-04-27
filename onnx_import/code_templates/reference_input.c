@@ -51,10 +51,10 @@ int32_t main(int32_t argc, char** argv) {
     auto ref_output_tensor = new pico_cnn::naive::Tensor(output_shape);
 
 
-    if(read_binary_reference_input_data(sample_input_path, input_tensor) != 0)
+    if(read_binary_reference_input_data(sample_input_path, &input_tensor) != 0)
         return -1;
 
-    if(read_binary_reference_output_data(sample_output_path, ref_output_tensor) != 0)
+    if(read_binary_reference_output_data(sample_output_path, &ref_output_tensor) != 0)
         return -1;
 
     Network *net = new Network();

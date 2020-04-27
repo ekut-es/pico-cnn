@@ -16,8 +16,8 @@
 #include "../tensor.h"
 #include "../tensor_shape.h"
 
-int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_cnn::naive::Tensor *input_tensor);
+int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_cnn::naive::Tensor **input_tensor);
 
-int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_cnn::naive::Tensor *output_tensor);
+int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_cnn::naive::Tensor **output_tensor);
 
 #endif //PICO_CNN_READ_BINARY_REFERENCE_DATA_H
