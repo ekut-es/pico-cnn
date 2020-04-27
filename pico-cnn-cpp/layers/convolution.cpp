@@ -40,8 +40,7 @@ namespace pico_cnn {
                 input_tensor = input;
             }
 
-            auto *tmp_shape = new TensorShape(output->num_batches(), num_output_channels, output_height, output_width);
-            auto *tmp_tensor = new Tensor(tmp_shape);
+
 
             for (uint32_t batch = 0; batch < num_batches; batch++) {
 
@@ -49,7 +48,7 @@ namespace pico_cnn {
                     for (uint32_t i = g * num_output_channels / num_groups_;
                          i < (g + 1) * num_output_channels / num_groups_; i++) {
 
-                        this->convolve(input_tensor, output, g * num_input_channels / num_groups_, i, g);
+                        this->convolve(input_tensor, output, g * num_input_channels / num_groups_, i, 0);
 
                         if (num_input_channels > num_groups_) {
                             uint32_t cnt = 1;
@@ -57,14 +56,23 @@ namespace pico_cnn {
                             for (uint32_t j = g * num_input_channels / num_groups_ + 1;
                                  j < (g + 1) * (num_input_channels / num_groups_); j++) {
 
-                                this->convolve(input_tensor, tmp_tensor, j, i, g);
+                                auto *tmp_shape = new TensorShape(output->num_batches(), num_output_channels, output_height, output_width);
+                                auto *tmp_tensor = new Tensor(tmp_shape);
+
+                                this->convolve(input_tensor, tmp_tensor, j, i, cnt);
 
                                 output->add_tensor(tmp_tensor);
+                                //output->add_channel(tmp_tensor, 0, i);
 
                                 cnt++;
+
+                                delete tmp_tensor;
+                                delete tmp_shape;
                             }
                         }
+                        //printf("-----\n");
                     }
+                    //printf("\n");
                 }
             }
 
@@ -73,11 +81,10 @@ namespace pico_cnn {
                 delete input_tensor;
             }
 
-            delete tmp_tensor;
-            delete tmp_shape;
+
         }
 
-        void Convolution::convolve(Tensor *input, Tensor *output, uint32_t input_channel, uint32_t output_channel, uint32_t group_idx) {
+        void Convolution::convolve(Tensor *input, Tensor *output, uint32_t input_channel, uint32_t output_channel, uint32_t cnt) {
 
             uint32_t num_input_channels = input->num_channels();
             uint32_t input_height = input->height();
@@ -107,10 +114,9 @@ namespace pico_cnn {
 
                     for(kernel_row = 0; kernel_row < kernel_height; kernel_row++) {
                         for(kernel_col = 0; kernel_col < kernel_width; kernel_col++) {
-//                            pixel += kernel[kernel_row*kernel_width + kernel_col] *
-//                                     input_channel[input_width*(channel_row-height_crop+kernel_row) + channel_col-width_crop+kernel_col];
-                            pixel += kernel_->access(output_channel, input_channel, kernel_row, kernel_col) *
-                                    input->access(0, group_idx*num_input_channels/num_groups_,
+
+                            pixel += kernel_->access(output_channel, cnt, kernel_row, kernel_col) *
+                                    input->access(0, input_channel,
                                             channel_row-height_crop+kernel_row, channel_col-width_crop+kernel_col);
                         }
                     }
@@ -118,7 +124,6 @@ namespace pico_cnn {
                     if (bias_)
                         pixel += bias_->access(output_channel);
 
-                    //output_channel[output_channel_row*output_channel_width+output_channel_col] = pixel;
                     output->access(0, output_channel, output_channel_row, output_channel_col) = pixel;
                     output_channel_col++;
 

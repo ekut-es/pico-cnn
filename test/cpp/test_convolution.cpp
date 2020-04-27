@@ -164,7 +164,6 @@ void TestConvolution::runTestConvolution_0_no_padding() {
     auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
     auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
 
-    //uint32_t padding[4] = {0, 0, 0, 0};
     uint32_t stride[2] = {1, 1};
     uint32_t num_groups = 1;
 
@@ -527,4 +526,158 @@ void TestConvolution::runTestConvolution_5() {
     delete expected_output_shape;
     delete kernel_shape;
     delete bias_shape;
+}
+
+void TestConvolution::runTestConvolution_6() {
+    auto input_shape = new pico_cnn::naive::TensorShape(1, 3, 5, 5);
+    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
+    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
+    auto kernel_shape = new pico_cnn::naive::TensorShape(1, 3, 3, 3);
+
+
+    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
+    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+
+    uint32_t stride[2] = {1, 1};
+    uint32_t num_groups = 1;
+
+
+    fp_t kernel[27] = {0, 1, 0,
+                       0, 0, 2,
+                       0, 1, 0,
+
+                       2, 1, 0,
+                       0, 0, 0,
+                       0, 3, 0,
+
+                       1, 0, 0,
+                       1, 0, 0,
+                       0, 0, 2};
+
+    fp_t input[75] = {1, 0, 1, 0, 2,
+                      1, 1, 3, 2, 1,
+                      1, 1, 0, 1, 1,
+                      2, 3, 2, 1, 3,
+                      0, 2, 0, 1, 0,
+
+                      1, 0, 0, 1, 0,
+                      2, 0, 1, 2, 0,
+                      3, 1, 1, 3, 0,
+                      0, 3, 0, 3, 2,
+                      1, 0, 3, 2, 1,
+
+                      2, 0, 1, 2, 1,
+                      3, 3, 1, 3, 2,
+                      2, 1, 1, 1, 0,
+                      3, 1, 3, 2, 0,
+                      1, 1, 2, 1, 1};
+
+    fp_t expected_output[9] = {19, 13, 15,
+                               28, 16, 20,
+                               23, 18, 25};
+
+    for(uint32_t i = 0; i < kernel_tensor->num_elements(); i++) {
+        kernel_tensor->access_blob(i) = kernel[i];
+    }
+    for(uint32_t i = 0; i < input_tensor->num_elements(); i++) {
+        input_tensor->access_blob(i) = input[i];
+    }
+    for(uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
+        expected_output_tensor->access_blob(i) = expected_output[i];
+    }
+
+    auto *layer = new pico_cnn::naive::Convolution("conv", 0, pico_cnn::op_type::Conv,
+                                                   kernel_tensor, nullptr, nullptr, stride, num_groups);
+    layer->run(input_tensor, output_tensor);
+
+    CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
+
+    delete layer;
+
+
+    delete input_tensor;
+    delete output_tensor;
+    delete expected_output_tensor;
+    delete kernel_tensor;
+
+    delete input_shape;
+    delete output_shape;
+    delete expected_output_shape;
+    delete kernel_shape;
+}
+
+void TestConvolution::runTestConvolution_7() {
+    auto input_shape = new pico_cnn::naive::TensorShape(1, 2, 1, 6);
+    auto output_shape = new pico_cnn::naive::TensorShape(1, 4, 1, 4);
+    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 4, 1, 4);
+    auto kernel_shape = new pico_cnn::naive::TensorShape(4, 2, 1, 3);
+
+
+    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
+    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+
+    uint32_t stride[2] = {1, 1};
+    uint32_t num_groups = 1;
+
+
+    fp_t kernel[24] = {2, 0, 1,
+                       2, 0, 1,
+
+                       0, 2, 0,
+                       0, 2, 0,
+
+                       3, 1, 1,
+                       3, 1, 1,
+
+                       1, 1, 2,
+                       1, 1, 2};
+
+    fp_t input[12] = {1, 3, 3, 0, 1, 2,
+
+                     1, 3, 3, 0, 1, 2};
+
+    fp_t expected_output[16] = {10, 12, 14, 4,
+
+                                12, 12, 0, 4,
+
+                                18, 24, 20, 6,
+
+                                20, 12, 10, 10};
+
+    for(uint32_t i = 0; i < kernel_tensor->num_elements(); i++) {
+        kernel_tensor->access_blob(i) = kernel[i];
+    }
+    for(uint32_t i = 0; i < input_tensor->num_elements(); i++) {
+        input_tensor->access_blob(i) = input[i];
+    }
+    for(uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
+        expected_output_tensor->access_blob(i) = expected_output[i];
+    }
+
+    auto *layer = new pico_cnn::naive::Convolution("conv", 0, pico_cnn::op_type::Conv,
+                                                   kernel_tensor, nullptr, nullptr, stride, num_groups);
+    layer->run(input_tensor, output_tensor);
+
+//    std::cout << *output_tensor << std::endl;
+//    std::cout << *expected_output_tensor << std::endl;
+
+
+    CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
+
+    delete layer;
+
+
+    delete input_tensor;
+    delete output_tensor;
+    delete expected_output_tensor;
+    delete kernel_tensor;
+
+    delete input_shape;
+    delete output_shape;
+    delete expected_output_shape;
+    delete kernel_shape;
 }
