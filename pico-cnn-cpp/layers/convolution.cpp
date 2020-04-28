@@ -8,9 +8,23 @@ namespace pico_cnn {
 
             kernel_ = kernel;
             bias_ = bias;
-            padding_ = padding;
-            stride_ = stride;
+
+            if (padding) {
+                padding_ = new uint32_t[4]();
+                std::memcpy(padding_, padding, 4 * sizeof(uint32_t));
+            } else {
+                padding_ = padding;
+            }
+
+            stride_ = new uint32_t[2]();
+            std::memcpy(stride_, stride, 2*sizeof(uint32_t));
+
             num_groups_ = num_groups;
+        }
+
+        Convolution::~Convolution() {
+            delete [] padding_;
+            delete [] stride_;
         }
 
         void Convolution::run(Tensor *input, Tensor *output) {

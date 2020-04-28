@@ -16,7 +16,7 @@ namespace pico_cnn {
         public:
             Convolution(std::string name, uint32_t id, op_type op, Tensor *kernel, Tensor *bias,
                         uint32_t *padding, uint32_t *stride, uint32_t num_groups);
-            ~Convolution() = default;
+            ~Convolution();
 
             void run(Tensor *input, Tensor *output) override;
 

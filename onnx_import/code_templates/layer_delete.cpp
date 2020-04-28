@@ -1,0 +1,1 @@
+    delete {{identifier}}_layer;

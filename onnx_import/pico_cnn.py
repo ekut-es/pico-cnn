@@ -24,8 +24,20 @@ class BaseLayer(object):
         self.graph = graph
         self.attributes = {}
 
-    def generate_code(self):
-        template = template_env.get_template(self.template_file)
+    def generate_declaration(self):
+        template = template_env.get_template(self.template_file_declaration)
+        return template.render(**self.attributes)
+
+    def generate_allocation(self):
+        template = template_env.get_template(self.template_file_allocation)
+        return template.render(**self.attributes)
+
+    def generate_execution(self):
+        template = template_env.get_template(self.template_file_execution)
+        return template.render(**self.attributes)
+
+    def generate_deletion(self):
+        template = template_env.get_template(self.template_file_deletion)
         return template.render(**self.attributes)
 
     @classmethod
@@ -39,7 +51,10 @@ class Conv2D(BaseLayer):
     """
     name = "PicoCNNConv2D"
     operator = "Conv"
-    template_file = "pico_cnn_conv2d.c"
+    template_file_declaration = "conv/pico_cnn_conv2d_decl.cpp"
+    template_file_allocation = "conv/pico_cnn_conv2d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -189,7 +204,10 @@ class FullyConnected(BaseLayer):
     """
     name = "PicoCNNFullyConnected"
     operator = "Gemm"
-    template_file = "pico_cnn_fc.c"
+    template_file_declaration = "fc/pico_cnn_fc_decl.cpp"
+    template_file_allocation = "fc/pico_cnn_fc_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -243,7 +261,10 @@ class MaxPool2D(BaseLayer):
     """
     name = "PicoCNNMaxPool2D"
     operator = "MaxPool"
-    template_file = "pico_cnn_max_pool2d.c"
+    template_file_declaration = "max_pool/pico_cnn_max_pool2d_decl.cpp"
+    template_file_allocation = "max_pool/pico_cnn_max_pool2d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -369,7 +390,10 @@ class Relu(BaseLayer):
     """
     name = "PicoCNNRelu"
     operator = "Relu"
-    template_file = "pico_cnn_relu.c"
+    template_file_declaration = "activation/pico_cnn_relu_decl.cpp"
+    template_file_allocation = "activation/pico_cnn_relu_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -911,7 +935,10 @@ class Reshape(BaseLayer):
     """
     name = "ReshapeGeneric"
     operator = "Reshape"
-    template_file = "reshape.c"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "pico_cnn_reshape.cpp"
+    template_file_deletion = "empty.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -1075,7 +1102,10 @@ class Softmax(BaseLayer):
     """
     name = "SoftmaxGeneric"
     operator = "Softmax"
-    template_file = "pico_cnn_softmax.c"
+    template_file_declaration = "activation/pico_cnn_softmax_decl.cpp"
+    template_file_allocation = "activation/pico_cnn_softmax_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):

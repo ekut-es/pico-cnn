@@ -290,11 +290,11 @@ class BackendRep(backend_base.BackendRep):
         buffers_allocated = []
 
         buffer_declaration = ""
-        buffer_declaration += "pico_cnn::naive::Tensor **kernels;\n"
-        buffer_declaration += "pico_cnn::naive::Tensor **biases;\n"
+        buffer_declaration += "    pico_cnn::naive::Tensor **kernels;\n"
+        buffer_declaration += "    pico_cnn::naive::Tensor **biases;\n"
 
         constructor_code = ""
-        constructor_code += "Network::Network() {\n\n"
+        #constructor_code += "Network::Network() {\n\n"
 
         num_layers = 0
         num_kernels = 0
@@ -316,8 +316,8 @@ class BackendRep(backend_base.BackendRep):
                             num_kernels += 1
 
         """The arrays kernels and biases will be used to pass only two variables to read_binary_weights"""
-        constructor_code += "kernels = new pico_cnn::naive::Tensor*[{}]();\n".format(num_kernels)
-        constructor_code += "biases = new pico_cnn::naive::Tensor*[{}]();\n\n".format(num_biases)
+        constructor_code += "    kernels = new pico_cnn::naive::Tensor*[{}]();\n".format(num_kernels)
+        constructor_code += "    biases = new pico_cnn::naive::Tensor*[{}]();\n\n".format(num_biases)
 
         pos = -1
         pos_kernel = -1
@@ -331,12 +331,12 @@ class BackendRep(backend_base.BackendRep):
             if len(node.input_tensors) > 0 and node.op_type not in ops_to_ignore:
                 pos += 1
 
-            buffer_declaration += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
-            constructor_code += "// Layer: " + node.name + ", Operation: " + node.op_type + "\n"
+            buffer_declaration += "    // Layer: " + node.name + ", Operation: " + node.op_type + "\n"
+            constructor_code += "    // Layer: " + node.name + ", Operation: " + node.op_type + "\n"
 
             # Allocate memory for kernels and biases
-            buffer_declaration += "// Inputs\n"
-            constructor_code += "// Inputs\n"
+            buffer_declaration += "    // Inputs\n"
+            constructor_code += "    // Inputs\n"
             for num, input in enumerate(node.input_tensors):
 
                 if node.op_type in ops_to_ignore:
@@ -355,15 +355,15 @@ class BackendRep(backend_base.BackendRep):
 
                     buffer = memory_manager.get_buffer(graph, input)
 
-                    buffer_declaration += "// " + str(buffer.shape) + "\n"
+                    buffer_declaration += "    // " + str(buffer.shape) + "\n"
 
-                    pico_cnn_tensor_shape = "pico_cnn::naive::TensorShape *"
-                    pico_cnn_tensor = "pico_cnn::naive::Tensor *"
+                    pico_cnn_tensor_shape = "    pico_cnn::naive::TensorShape *"
+                    pico_cnn_tensor = "    pico_cnn::naive::Tensor *"
 
                     buffer_declaration += pico_cnn_tensor_shape + buffer.name + "_shape;\n"
                     buffer_declaration += pico_cnn_tensor + buffer.name + ";\n"
 
-                    constructor_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
+                    constructor_code += "    // " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
 
                     functionality = CodeRegistry.get_funct("KernelAllocation")
                     impl = functionality[0].create(buffer, pos, pos_kernel, pos_bias)
@@ -372,20 +372,20 @@ class BackendRep(backend_base.BackendRep):
                         constructor_code += impl.generate_code()
                         constructor_code += "\n"
 
-            buffer_declaration += "// Outputs\n"
-            constructor_code += "// Outputs\n"
+            buffer_declaration += "    // Outputs\n"
+            constructor_code += "    // Outputs\n"
             for num, output in enumerate(node.outputs):
                 buffer = memory_manager.get_buffer(graph, output)
 
-                buffer_declaration += "// " + str(buffer.shape) + "\n"
+                buffer_declaration += "    // " + str(buffer.shape) + "\n"
 
-                pico_cnn_tensor_shape = "pico_cnn::naive::TensorShape *"
-                pico_cnn_tensor = "pico_cnn::naive::Tensor *"
+                pico_cnn_tensor_shape = "    pico_cnn::naive::TensorShape *"
+                pico_cnn_tensor = "    pico_cnn::naive::Tensor *"
 
                 buffer_declaration += pico_cnn_tensor_shape + buffer.name + "_shape;\n"
                 buffer_declaration += pico_cnn_tensor + buffer.name + ";\n"
 
-                constructor_code += "// " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
+                constructor_code += "    // " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
 
                 functionality = CodeRegistry.get_funct("OutputAllocation")
                 impl = functionality[0].create(buffer)
@@ -397,7 +397,7 @@ class BackendRep(backend_base.BackendRep):
             buffer_declaration += "\n\n"
             constructor_code += "\n\n"
 
-        constructor_code += "}\n"
+        #constructor_code += "}\n"
 
         self.buffer_declaration = buffer_declaration
         self.constructor_code = constructor_code
@@ -411,7 +411,7 @@ class BackendRep(backend_base.BackendRep):
         """
 
         destructor_code = ""
-        destructor_code += "Network::~Network() {\n"
+        #destructor_code += "Network::~Network() {\n"
 
         for num, buffer_id in enumerate(memory_manager.buffers):
             buffer = memory_manager.get_buffer(graph, buffer_id)
@@ -423,9 +423,9 @@ class BackendRep(backend_base.BackendRep):
                 destructor_code += impl.generate_code()
                 destructor_code += "\n"
 
-        destructor_code += "\ndelete[] kernels;\ndelete[] biases;\n"
+        destructor_code += "\n    delete[] kernels;\n    delete[] biases;\n"
 
-        destructor_code += "}\n"
+        #destructor_code += "}\n"
 
         self.destructor_code = destructor_code
 
@@ -612,35 +612,46 @@ class BackendRep(backend_base.BackendRep):
         network_def = "void Network::run(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
         network_def_header = "void run(" + ", ".join(input_defs) + ", " + ", ".join(output_defs) + ")"
 
-        network_code: Text = "#include \"network.h\"\n\n"
-        network_code += self.constructor_code + "\n"
-        network_code += self.destructor_code + "\n"
-        network_code += network_def+"{\n"
-
-        implementation_code = ""
+        layer_declaration_code = ""
+        layer_allocation_code = ""
+        layer_execution_code = ""
+        layer_deletion_code = ""
 
         """Iterate over all tasks in the schedule, put some debug info in the code and the pico-cnn implementation."""
         for task in schedule:
             num, node, impl = task
-            implementation_code += "    //Layer " + str(num) + " " + node.name + " " + node.op_type + "\n"
-            implementation_code += "    //Attributes\n"
+            layer_allocation_code += "    //Layer " + str(num) + " " + node.name + " " + node.op_type + "\n"
+            layer_allocation_code += "    //Attributes\n"
             for key, val in node.attrs.items():
-                implementation_code += "    //  " + str(key) + ": " + str(val) + "\n"
-            implementation_code += "    //Parameters\n"
-            implementation_code += "    //Inputs: " + ",".join(node.inputs) + "\n"
-            implementation_code += "    //Outputs: " + ",".join(node.outputs) + "\n"
-            implementation_code += "    //Shape:\n"
+                layer_allocation_code += "    //  " + str(key) + ": " + str(val) + "\n"
+            layer_allocation_code += "    //Parameters\n"
+            layer_allocation_code += "    //Inputs: " + ",".join(node.inputs) + "\n"
+            layer_allocation_code += "    //Outputs: " + ",".join(node.outputs) + "\n"
+            layer_allocation_code += "    //Shape:\n"
             for i in node.inputs:
-                implementation_code += "    //    {}: {}\n".format(i, graph.get_shape(i))
+                layer_allocation_code += "    //    {}: {}\n".format(i, graph.get_shape(i))
             for o in node.outputs:
-                implementation_code += "    //    {}: {}\n".format(o, graph.get_shape(o))
+                layer_allocation_code += "    //    {}: {}\n".format(o, graph.get_shape(o))
 
             if impl:
-                implementation_code += impl.generate_code()
-                implementation_code += "\n"
+                layer_declaration_code += impl.generate_declaration()
+                layer_declaration_code += "\n"
+
+                layer_allocation_code += impl.generate_allocation()
+                layer_allocation_code += "\n"
+
+                layer_execution_code += impl.generate_execution()
+                layer_execution_code += "\n"
+
+                layer_deletion_code += impl.generate_deletion()
+                layer_deletion_code += "\n"
+
             else:
                 print("ERROR: Unsupported layer: {}! Aborting code generation.".format(node.op_type))
                 return 1
+
+        self.constructor_code += layer_allocation_code + "\n"
+        self.destructor_code += layer_deletion_code + "\n"
 
         # # TODO: What does this loop do?
         # for id, buffer in memory_manager.buffers.items():
@@ -651,7 +662,15 @@ class BackendRep(backend_base.BackendRep):
         #     if graph.is_output(id):
         #         continue
 
-        network_code += implementation_code
+        network_code: Text = "#include \"network.h\"\n\n"
+        network_code += "Network::Network() {\n\n"
+        network_code += self.constructor_code + "\n"
+        network_code += "}\n\n"
+        network_code += "Network::~Network() {\n"
+        network_code += self.destructor_code + "\n"
+        network_code += "}\n\n"
+        network_code += network_def+"{\n"
+        network_code += layer_execution_code
 
         network_code += "}\n\n"
 
@@ -663,7 +682,8 @@ class BackendRep(backend_base.BackendRep):
         network_header += "Network();\n"
         network_header += "~Network();\n"
         network_header += network_def_header + "; \n\n"
-        network_header += self.buffer_declaration
+        network_header += self.buffer_declaration + "\n"
+        network_header += layer_declaration_code
         network_header += "};\n"
         network_header += "#endif //NETWORK_H\n"
 

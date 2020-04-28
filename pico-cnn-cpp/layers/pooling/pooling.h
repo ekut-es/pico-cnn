@@ -15,7 +15,7 @@ namespace pico_cnn {
         class Pooling : Layer {
         public:
             Pooling(std::string name, uint32_t id, op_type op, uint32_t *kernel_size, uint32_t *stride, uint32_t *padding);
-            ~Pooling() = default;
+            ~Pooling();
 
             void run(Tensor *input, Tensor *output) override;
 
