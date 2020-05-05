@@ -1030,61 +1030,41 @@ OperationRegistry.register(Reshape)
 #
 #
 # OperationRegistry.register(Flatten)
-#
-#
-# class Add(BaseLayer):
-#     name = "AddGeneric"
-#     operator = "Add"
-#     template_file = "pico_cnn_add.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#         input_buffers = [memory_manager.get_buffer(graph, i) for i in node.inputs]
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_shapes = [b.shape for b in input_buffers]
-#         for shape in input_shapes:
-#             if shape != input_shapes[0]:
-#                 if len(input_shapes[0]) <= 2 and len(shape) <= 2:
-#                     print("Broadcasting, but it still works without doing anything...")
-#                 else:
-#                     # TODO: This needs a better solution!!!
-#                     print("Broadcasting is not supported for add operation")
-#                     return None
-#
-#         dimensionality = 0
-#
-#         if len(input_shapes[0]) == 4:
-#             dimensionality = 4
-#             num_channels = input_shapes[0][1]
-#             height = input_shapes[0][2]
-#             width = input_shapes[0][3]
-#         elif len(input_shapes[0]) == 3:
-#             dimensionality = 4
-#             num_channels = input_shapes[0][1]
-#             height = 1
-#             width = input_shapes[0][2]
-#         elif len(input_shapes[0]) == 2:
-#             dimensionality = 2
-#             num_channels = 1
-#             height = input_shapes[0][0]
-#             width = input_shapes[0][1]
-#         else:
-#             return None
-#
-#         operation = cls(node, graph)
-#         operation.attributes['dimensionality'] = dimensionality
-#         operation.attributes['input_buffers'] = input_buffers
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['num_channels'] = num_channels
-#         operation.attributes['height'] = height
-#         operation.attributes['width'] = width
-#
-#         return operation
-#
-#
-# OperationRegistry.register(Add)
+
+
+class Add(BaseLayer):
+    name = "AddGeneric"
+    operator = "Add"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "pico_cnn_add.cpp"
+    template_file_deletion = "empty.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+        input_buffers = [memory_manager.get_buffer(graph, i) for i in node.inputs]
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shapes = [b.shape for b in input_buffers]
+        for shape in input_shapes:
+            if shape != input_shapes[0]:
+                if len(input_shapes[0]) <= 2 and len(shape) <= 2:
+                    print("Broadcasting, but it still works without doing anything...")
+                else:
+                    # TODO: This needs a better solution!!!
+                    print("Broadcasting is not supported for add operation")
+                    return None
+
+        operation = cls(node, graph)
+        operation.attributes['name'] = node.name
+        operation.attributes['input_buffers'] = input_buffers
+        operation.attributes['output_buffer'] = output_buffer
+
+        return operation
+
+
+OperationRegistry.register(Add)
 
 
 # class Sum(Add):
