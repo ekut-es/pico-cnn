@@ -84,9 +84,7 @@ namespace pico_cnn {
                                 delete tmp_shape;
                             }
                         }
-                        //printf("-----\n");
                     }
-                    //printf("\n");
                 }
             }
 
@@ -135,7 +133,7 @@ namespace pico_cnn {
                         }
                     }
 
-                    if (bias_)
+                    if (input_channel == 0 && bias_)
                         pixel += bias_->access(output_channel);
 
                     output->access(0, output_channel, output_channel_row, output_channel_col) = pixel;

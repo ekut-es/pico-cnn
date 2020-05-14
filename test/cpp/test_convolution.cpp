@@ -681,3 +681,78 @@ void TestConvolution::runTestConvolution_7() {
     delete expected_output_shape;
     delete kernel_shape;
 }
+
+void TestConvolution::runTestConvolution_8() {
+    auto input_shape = new pico_cnn::naive::TensorShape(1, 2, 1, 6);
+    auto output_shape = new pico_cnn::naive::TensorShape(1, 4, 1, 4);
+    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 4, 1, 4);
+    auto kernel_shape = new pico_cnn::naive::TensorShape(4, 2, 1, 3);
+
+
+    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
+    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+
+    uint32_t stride[2] = {1, 1};
+    uint32_t num_groups = 1;
+
+
+    fp_t kernel[24] = {0.02, 0.00, 0.01,
+                       0.02, 0.00, 0.01,
+
+                       0.00, 0.02, 0.00,
+                       0.00, 0.02, 0.00,
+
+                       0.03, 0.01, 0.01,
+                       0.03, 0.01, 0.01,
+
+                       0.01, 0.01, 0.02,
+                       0.01, 0.01, 0.02};
+
+
+    fp_t input[12] = {0.01, 0.03, 0.03, 0.00, 0.01, 0.02,
+
+                      0.01, 0.03, 0.03, 0.00, 0.01, 0.02};
+
+    fp_t expected_output[16] = {0.0010, 0.0012, 0.0014, 0.0004,
+
+                                0.0012, 0.0012, 0, 0.0004,
+
+                                0.0018, 0.0024, 0.0020, 0.0006,
+
+                                0.0020, 0.0012, 0.0010, 0.0010};
+
+    for(uint32_t i = 0; i < kernel_tensor->num_elements(); i++) {
+        kernel_tensor->access_blob(i) = kernel[i];
+    }
+    for(uint32_t i = 0; i < input_tensor->num_elements(); i++) {
+        input_tensor->access_blob(i) = input[i];
+    }
+    for(uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
+        expected_output_tensor->access_blob(i) = expected_output[i];
+    }
+
+    auto *layer = new pico_cnn::naive::Convolution("conv", 0, pico_cnn::op_type::Conv,
+                                                   kernel_tensor, nullptr, nullptr, stride, num_groups);
+    layer->run(input_tensor, output_tensor);
+
+//    std::cout << *output_tensor << std::endl;
+//    std::cout << *expected_output_tensor << std::endl;
+
+
+    CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
+
+    delete layer;
+
+
+    delete input_tensor;
+    delete output_tensor;
+    delete expected_output_tensor;
+    delete kernel_tensor;
+
+    delete input_shape;
+    delete output_shape;
+    delete expected_output_shape;
+    delete kernel_shape;
+}

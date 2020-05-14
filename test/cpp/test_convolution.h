@@ -21,6 +21,7 @@ class TestConvolution : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST(runTestConvolution_5);
     CPPUNIT_TEST(runTestConvolution_6);
     CPPUNIT_TEST(runTestConvolution_7);
+    CPPUNIT_TEST(runTestConvolution_8);
     CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -41,6 +42,7 @@ public:
     void runTestConvolution_5();
     void runTestConvolution_6();
     void runTestConvolution_7();
+    void runTestConvolution_8();
 
 };
 
