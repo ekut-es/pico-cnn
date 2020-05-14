@@ -10,7 +10,7 @@ void TestFullyConnected::setUp() {
     expected_output_shape = new pico_cnn::naive::TensorShape(1, 4);
     // It might seem as if the shape should be transposed but onnx uses this layout for gemm kernels as to improve memory access patterns
     kernel_shape = new pico_cnn::naive::TensorShape(4, 6);
-    bias_shape = new pico_cnn::naive::TensorShape(1, 4);
+    bias_shape = new pico_cnn::naive::TensorShape(4);
 
     input_tensor = new pico_cnn::naive::Tensor(input_shape);
     output_tensor = new pico_cnn::naive::Tensor(output_shape);

@@ -31,8 +31,9 @@ namespace pico_cnn {
                     pixel += input->access(0, j) * kernel_->access(i, j);
                 }
 
-                if(bias_)
-                    pixel += bias_->access(0, i);
+                if(bias_) {
+                    pixel += bias_->access(i);
+                }
 
                 output->access(0, i) = pixel;
             }
