@@ -3,11 +3,19 @@
 pico_cnn::naive::Pooling::Pooling(std::string name, uint32_t id, pico_cnn::op_type op, uint32_t *kernel_size,
                                   uint32_t *stride, uint32_t *padding) : Layer(name, id, op) {
 
-    kernel_size_ = new uint32_t[2]();
-    std::memcpy(kernel_size_, kernel_size, 2*sizeof(uint32_t));
+    if (kernel_size) {
+        kernel_size_ = new uint32_t[2]();
+        std::memcpy(kernel_size_, kernel_size, 2 * sizeof(uint32_t));
+    } else {
+        kernel_size_ = kernel_size;
+    }
 
-    stride_ = new uint32_t[2]();
-    std::memcpy(stride_, stride, 2*sizeof(uint32_t));
+    if (stride) {
+        stride_ = new uint32_t[2]();
+        std::memcpy(stride_, stride, 2 * sizeof(uint32_t));
+    } else {
+        stride_ = stride;
+    }
 
     if (padding) {
         padding_ = new uint32_t[4]();
