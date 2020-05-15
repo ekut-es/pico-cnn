@@ -26,7 +26,7 @@
 #include "layers/pooling/global_max_pooling.h"
 #include "layers/pooling/global_average_pooling.h"
 #include "layers/fully_connected.h"
-//#include "layers/batch_normalization.h"
+#include "layers/batch_normalization.h"
 //#include "layers/concatenate.h"
 
 #include "io/read_binary_weights.h"
