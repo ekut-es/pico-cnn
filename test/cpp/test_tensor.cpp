@@ -392,3 +392,81 @@ void TestTensor::runTestTensorExpandPadding() {
     delete expected_extended_shape_2d;
     delete orig_shape_2d;
 }
+
+void TestTensor::runTestTensorConcatDim0() {
+    auto *input_shape1 = new pico_cnn::naive::TensorShape(1, 2, 3, 3);
+    auto *input_shape2 = new pico_cnn::naive::TensorShape(1, 3, 3, 3);
+    auto *expected_output_shape = new pico_cnn::naive::TensorShape(1, 5, 3, 3);
+    auto *output_shape = new pico_cnn::naive::TensorShape(1, 5, 3, 3);
+    auto *input_tensor1 = new pico_cnn::naive::Tensor(input_shape1);
+    auto *input_tensor2 = new pico_cnn::naive::Tensor(input_shape2);
+    auto *expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto *output_tensor = new pico_cnn::naive::Tensor(output_shape);
+
+
+    fp_t input_1[18] = {1, 2, 3,
+                        4, 5, 6,
+                        7, 8, 9,
+
+                        10, 11, 12,
+                        13, 14, 15,
+                        16, 17, 18};
+
+    fp_t input_2[27] = {19, 20, 21,
+                        22, 23, 24,
+                        25, 26, 27,
+
+                        28, 29, 30,
+                        31, 32, 33,
+                        34, 35, 36,
+
+                        37, 38, 39,
+                        40, 41, 42,
+                        43, 44, 45};
+
+    fp_t expected_output1[45] = {1, 2, 3,
+                                 4, 5, 6,
+                                 7, 8, 9,
+
+                                 10, 11, 12,
+                                 13, 14, 15,
+                                 16, 17, 18,
+
+                                 19, 20, 21,
+                                 22, 23, 24,
+                                 25, 26, 27,
+
+                                 28, 29, 30,
+                                 31, 32, 33,
+                                 34, 35, 36,
+
+                                 37, 38, 39,
+                                 40, 41, 42,
+                                 43, 44, 45};
+
+    for (uint32_t i = 0; i < input_tensor1->num_elements(); i++) {
+        input_tensor1->access_blob(i) = input_1[i];
+    }
+    for (uint32_t i = 0; i < input_tensor2->num_elements(); i++) {
+        input_tensor2->access_blob(i) = input_2[i];
+    }
+    for (uint32_t i = 0; i < expected_output_tensor->num_elements(); i++) {
+        expected_output_tensor->access_blob(i) = expected_output1[i];
+    }
+
+    pico_cnn::naive::Tensor* inputs[2] = {input_tensor1, input_tensor2};
+
+    output_tensor->concatenate_from(2, inputs, 1);
+
+    CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
+
+    delete input_tensor1;
+    delete input_tensor2;
+    delete expected_output_tensor;
+    delete output_tensor;
+
+    delete input_shape1;
+    delete input_shape2;
+    delete expected_output_shape;
+    delete output_shape;
+}

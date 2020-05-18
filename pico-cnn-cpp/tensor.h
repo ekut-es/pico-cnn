@@ -56,8 +56,11 @@ namespace pico_cnn {
             uint32_t width() const;
 
             Tensor *expand_with_padding(uint32_t *padding, fp_t initializer = 0.0);
+            Tensor *copy_with_padding_into(Tensor *dest, uint32_t *padding, fp_t initializer = 0.0);
 
             void copy_data_into(Tensor *dest);
+
+            void concatenate_from(uint32_t num_inputs, Tensor **inputs, uint32_t dimension);
 
             bool add_tensor(Tensor *other);
             bool add_channel(Tensor *other, uint32_t batch, uint32_t channel);

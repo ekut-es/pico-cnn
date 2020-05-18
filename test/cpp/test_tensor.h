@@ -16,6 +16,7 @@ class TestTensor : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST(runTestTensorAddition);
     CPPUNIT_TEST(runTestTensorGetPtr);
     CPPUNIT_TEST(runTestTensorExpandPadding);
+    CPPUNIT_TEST(runTestTensorConcatDim0);
     CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -31,6 +32,7 @@ public:
     void runTestTensorAddition();
     void runTestTensorGetPtr();
     void runTestTensorExpandPadding();
+    void runTestTensorConcatDim0();
 
 };
 

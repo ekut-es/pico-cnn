@@ -216,95 +216,134 @@ namespace pico_cnn {
 
             if(extended_shape) {
 
-
-                uint32_t height_padded = extended_shape->height();
-                uint32_t width_padded = extended_shape->width();
-                uint32_t height = this->height();
-                uint32_t width = this->width();
-
                 Tensor *extended_tensor = new Tensor(extended_shape);
 
-                if(initializer != 0.0) {
-                    for (uint32_t i = 0; i < extended_tensor->num_elements(); i++) {
-                        extended_tensor->access_blob(i) = initializer;
-                    }
-                }
-
-                if (extended_shape->num_dimensions() == 4) {
-
-                    uint32_t num_batches = extended_shape->num_batches();
-                    uint32_t num_channels = extended_shape->num_channels();
-
-                    fp_t *channel_ptr;
-                    fp_t *extended_channel_ptr;
-
-                    for (uint32_t batch = 0; batch < num_batches; batch++) {
-                        for (uint32_t channel = 0; channel < num_channels; channel++) {
-
-                            channel_ptr = this->get_ptr_to_channel(batch, channel);
-                            extended_channel_ptr = extended_tensor->get_ptr_to_channel(batch, channel);
-
-                            for (uint32_t row = 0; row < height; row++) {
-
-                                std::memcpy((extended_channel_ptr + (row + padding[0]) * width_padded + padding[1]),
-                                        channel_ptr + row * width, width * sizeof(fp_t));
-
-                            }
-
-                        }
-                    }
-
-                } else if (extended_shape->num_dimensions() == 3) {
-
-                    uint32_t num_batches = extended_shape->num_batches();
-                    uint32_t num_channels = extended_shape->num_channels();
-
-                    fp_t *channel_ptr;
-                    fp_t *extended_channel_ptr;
-
-                    for (uint32_t batch = 0; batch < num_batches; batch++) {
-                        for (uint32_t channel = 0; channel < num_channels; channel++) {
-
-                            channel_ptr = this->get_ptr_to_channel(batch, channel);
-                            extended_channel_ptr = extended_tensor->get_ptr_to_channel(batch, channel);
-
-                            for (uint32_t row = 0; row < height; row++) {
-                                std::memcpy((extended_channel_ptr + padding[0]), channel_ptr, width * sizeof(fp_t));
-                            }
-                        }
-                    }
-
-                } else if (extended_shape->num_dimensions() == 2) {
-
-                    fp_t *channel_ptr;
-                    fp_t *extended_channel_ptr;
-
-
-                    channel_ptr = this->get_ptr_to_channel(0);
-                    extended_channel_ptr = extended_tensor->get_ptr_to_channel(0);
-
-                    for (uint32_t row = 0; row < height; row++) {
-
-                        std::memcpy((extended_channel_ptr + (row + padding[0]) * width_padded + padding[1]),
-                                    channel_ptr + row * width, width * sizeof(fp_t));
-
-                    }
-
-                } else if (extended_shape->num_dimensions() == 1) {
-                    PRINT_ERROR_AND_DIE("Not implemented for shape: " << *this->shape_);
-                    return nullptr;
-                } else {
-
-                    PRINT_ERROR_AND_DIE("Not implemented for shape: " << *this->shape_);
-                    return nullptr;
-
-                }
-
-                return extended_tensor;
+                return this->copy_with_padding_into(extended_tensor, padding, initializer);
 
             } else {
                 PRINT_ERROR_AND_DIE("TensorShape expansion failed.");
                 return nullptr;
+            }
+        }
+
+        Tensor *Tensor::copy_with_padding_into(Tensor *dest, uint32_t *padding, fp_t initializer) {
+
+            uint32_t width_padded = dest->width();
+            uint32_t height = this->height();
+            uint32_t width = this->width();
+
+            TensorShape* dest_shape = dest->shape();
+
+            if(initializer != 0.0) {
+                for (uint32_t i = 0; i < dest->num_elements(); i++) {
+                    dest->access_blob(i) = initializer;
+                }
+            }
+
+            if (dest_shape->num_dimensions() == 4) {
+
+                uint32_t num_batches = dest_shape->num_batches();
+                uint32_t num_channels = dest_shape->num_channels();
+
+                fp_t *channel_ptr;
+                fp_t *extended_channel_ptr;
+
+                for (uint32_t batch = 0; batch < num_batches; batch++) {
+                    for (uint32_t channel = 0; channel < num_channels; channel++) {
+
+                        channel_ptr = this->get_ptr_to_channel(batch, channel);
+                        extended_channel_ptr = dest->get_ptr_to_channel(batch, channel);
+
+                        for (uint32_t row = 0; row < height; row++) {
+
+                            std::memcpy((extended_channel_ptr + (row + padding[0]) * width_padded + padding[1]),
+                                        channel_ptr + row * width, width * sizeof(fp_t));
+
+                        }
+
+                    }
+                }
+
+            } else if (dest_shape->num_dimensions() == 3) {
+
+                uint32_t num_batches = dest_shape->num_batches();
+                uint32_t num_channels = dest_shape->num_channels();
+
+                fp_t *channel_ptr;
+                fp_t *extended_channel_ptr;
+
+                for (uint32_t batch = 0; batch < num_batches; batch++) {
+                    for (uint32_t channel = 0; channel < num_channels; channel++) {
+
+                        channel_ptr = this->get_ptr_to_channel(batch, channel);
+                        extended_channel_ptr = dest->get_ptr_to_channel(batch, channel);
+
+                        for (uint32_t row = 0; row < height; row++) {
+                            std::memcpy((extended_channel_ptr + padding[0]), channel_ptr, width * sizeof(fp_t));
+                        }
+                    }
+                }
+
+            } else if (dest_shape->num_dimensions() == 2) {
+
+                fp_t *channel_ptr;
+                fp_t *extended_channel_ptr;
+
+
+                channel_ptr = this->get_ptr_to_channel(0);
+                extended_channel_ptr = dest->get_ptr_to_channel(0);
+
+                for (uint32_t row = 0; row < height; row++) {
+
+                    std::memcpy((extended_channel_ptr + (row + padding[0]) * width_padded + padding[1]),
+                                channel_ptr + row * width, width * sizeof(fp_t));
+
+                }
+
+            } else if (dest_shape->num_dimensions() == 1) {
+                PRINT_ERROR_AND_DIE("Not implemented for shape: " << *this->shape_);
+                return nullptr;
+            } else {
+
+                PRINT_ERROR_AND_DIE("Not implemented for shape: " << *this->shape_);
+                return nullptr;
+
+            }
+
+            return dest;
+        }
+
+        void Tensor::concatenate_from(uint32_t num_inputs, Tensor **inputs, uint32_t dimension) {
+
+            // concatenate along channels
+            if(dimension == 1) {
+                uint32_t output_channel_counter = 0;
+
+                for(uint32_t input_id = 0; input_id < num_inputs; input_id++){
+
+                    Tensor *input = inputs[input_id];
+
+                    uint32_t num_batches = input->num_batches();
+                    uint32_t num_input_channels = input->num_channels();
+                    uint32_t input_channel_size = input->height() * input->width();
+
+                    fp_t *input_channel_ptr;
+                    fp_t *output_channel_ptr;
+
+                    for (uint32_t input_channel = 0; input_channel < num_input_channels; input_channel++) {
+
+                        input_channel_ptr = input->get_ptr_to_channel(0, input_channel);
+                        output_channel_ptr = this->get_ptr_to_channel(0, output_channel_counter+input_channel);
+
+                        std::memcpy(output_channel_ptr,
+                                    input_channel_ptr,
+                                    input_channel_size * sizeof(fp_t));
+                    }
+                    output_channel_counter += num_input_channels;
+                }
+
+            } else {
+                PRINT_ERROR_AND_DIE("ERROR: Concatenation (3-dimensional) operation not supported for dimension: " << dimension);
             }
         }
 
