@@ -261,8 +261,8 @@ class MaxPool2D(BaseLayer):
     """
     name = "PicoCNNMaxPool2D"
     operator = "MaxPool"
-    template_file_declaration = "max_pool/pico_cnn_max_pool2d_decl.cpp"
-    template_file_allocation = "max_pool/pico_cnn_max_pool2d_alloc.cpp"
+    template_file_declaration = "pool/pico_cnn_max_pool2d_decl.cpp"
+    template_file_allocation = "pool/pico_cnn_max_pool2d_alloc.cpp"
     template_file_execution = "layer_exec.cpp"
     template_file_deletion = "layer_delete.cpp"
 
@@ -442,48 +442,47 @@ class Relu(BaseLayer):
 OperationRegistry.register(Relu)
 
 
-# class BatchNorm(BaseLayer):
-#     name = "PicoCNNBatchNorm"
-#     operator = "BatchNormalization"
-#     template_file = "pico_cnn_batchnorm.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         gamma_buffer = memory_manager.get_buffer(graph, node.inputs[1])
-#         bias_buffer = memory_manager.get_buffer(graph, node.inputs[2])
-#         mean_buffer = memory_manager.get_buffer(graph, node.inputs[3])
-#         variance_buffer = memory_manager.get_buffer(graph, node.inputs[4])
-#
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_shape = input_buffer.shape
-#         num_input_channels = input_shape[1]
-#         input_height = input_shape[2]
-#         input_width = 1
-#         if len(input_shape) >= 4:
-#             input_width = input_shape[3]
-#
-#         operation = cls(node, graph)
-#         operation.attributes['num_input_channels'] = num_input_channels
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['input_height'] = input_height
-#         operation.attributes['input_width'] = input_width
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['gamma_buffer'] = gamma_buffer
-#         operation.attributes['bias_buffer'] = bias_buffer
-#         operation.attributes['mean_buffer'] = mean_buffer
-#         operation.attributes['variance_buffer'] = variance_buffer
-#         operation.attributes['eps'] = attrs['epsilon']
-#
-#         return operation
-#
-#
-# OperationRegistry.register(BatchNorm)
-#
-#
+class BatchNorm(BaseLayer):
+    name = "PicoCNNBatchNorm"
+    operator = "BatchNormalization"
+    template_file_declaration = "batch_normalization/pico_cnn_batchnorm_decl.cpp"
+    template_file_allocation = "batch_normalization/pico_cnn_batchnorm_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        gamma_buffer = memory_manager.get_buffer(graph, node.inputs[1])
+        bias_buffer = memory_manager.get_buffer(graph, node.inputs[2])
+        mean_buffer = memory_manager.get_buffer(graph, node.inputs[3])
+        variance_buffer = memory_manager.get_buffer(graph, node.inputs[4])
+
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
+
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['gamma_buffer'] = gamma_buffer
+        operation.attributes['bias_buffer'] = bias_buffer
+        operation.attributes['mean_buffer'] = mean_buffer
+        operation.attributes['variance_buffer'] = variance_buffer
+        operation.attributes['eps'] = attrs['epsilon']
+
+        return operation
+
+
+OperationRegistry.register(BatchNorm)
+
+
 # class Clip(BaseLayer):
 #     name = "PicoCNNClip"
 #     operator = "Clip"
@@ -590,70 +589,68 @@ OperationRegistry.register(Relu)
 #
 #
 # OperationRegistry.register(Mul)
-#
-#
-# class AveragePool2D(BaseLayer):
-#     name = "PicoCNNAveragePool"
-#     operator = "AveragePool"
-#     template_file = "pico_cnn_average_pool2d.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#
-#         kernel_shape = attrs['kernel_shape']
-#
-#         if not len(kernel_shape) == 2:
-#             print("{} is not a 2DAvgPool".format(node.name))
-#             return None
-#
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#         bias_buffer = None
-#
-#         input_shape = input_buffer.shape
-#         kernel_size = attrs["kernel_shape"][0]
-#         kernel_stride = attrs["strides"][0]
-#
-#         num_input_channels = input_shape[1]
-#
-#         padding = attrs.get("pads", (0, 0, 0, 0))
-#         padding_needed = False
-#         for num in padding:
-#             if num != 0:
-#                 padding_needed = True
-#
-#         count_include_pad = attrs.get("count_include_pad", 0)
-#
-#         # As we have to pass the count_include_pad attribute even if we don't have padding we need to
-#         # set it manually so that the correct amount of pixels is used for the average computation
-#         if not padding_needed:
-#             count_include_pad = 1
-#
-#         operation = cls(node, graph)
-#
-#         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
-#
-#         operation.attributes['identifier'] = identifier
-#
-#         operation.attributes["num_input_channels"] = num_input_channels
-#         operation.attributes["input_buffer"] = input_buffer
-#         operation.attributes["input_height"] = input_shape[2]
-#         operation.attributes["input_width"] = input_shape[3]
-#         operation.attributes["output_buffer"] = output_buffer
-#         operation.attributes["kernel_size"] = kernel_size
-#         operation.attributes["kernel_stride"] = kernel_stride
-#         operation.attributes["bias_buffer"] = bias_buffer
-#         operation.attributes['padding_needed'] = padding_needed
-#         operation.attributes['padding'] = padding
-#         operation.attributes['count_include_pad'] = count_include_pad
-#
-#         return operation
-#
-#
-# OperationRegistry.register(AveragePool2D)
-#
-#
+
+
+class AveragePool2D(BaseLayer):
+    name = "PicoCNNAveragePool"
+    operator = "AveragePool"
+    template_file_declaration = "pool/pico_cnn_avg_pool2d_decl.cpp"
+    template_file_allocation = "pool/pico_cnn_avg_pool2d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        kernel_shape = attrs['kernel_shape']
+
+        if not len(kernel_shape) == 2:
+            print("{} is not a 2DAvgPool".format(node.name))
+            return None
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shape = input_buffer.shape
+        kernel_shape = attrs["kernel_shape"]
+        kernel_stride = attrs["strides"]
+
+        num_input_channels = input_shape[1]
+
+        padding = attrs.get("pads", (0, 0, 0, 0))
+        padding_needed = False
+        for num in padding:
+            if num != 0:
+                padding_needed = True
+
+        count_include_pad = attrs.get("count_include_pad", 0)
+
+        # As we have to pass the count_include_pad attribute even if we don't have padding we need to
+        # set it manually so that the correct amount of pixels is used for the average computation
+        if not padding_needed:
+            count_include_pad = 1
+
+        operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
+        operation.attributes["input_buffer"] = input_buffer
+        operation.attributes["output_buffer"] = output_buffer
+        operation.attributes["kernel_shape"] = kernel_shape
+        operation.attributes["stride"] = kernel_stride
+        operation.attributes['padding_needed'] = padding_needed
+        operation.attributes['padding'] = padding
+        operation.attributes['count_include_pad'] = count_include_pad
+
+        return operation
+
+
+OperationRegistry.register(AveragePool2D)
+
+
 # class AveragePool1D(BaseLayer):
 #     name = "PicoCNNAveragePool"
 #     operator = "AveragePool"
@@ -851,82 +848,76 @@ OperationRegistry.register(Relu)
 #
 #
 # OperationRegistry.register(Transpose)
-#
-#
-# class Concat(BaseLayer):
-#     """
-#     Transposes the input and writes it to the output buffer.
-#     """
-#     name = "ConcatGeneric"
-#     operator = "Concat"
-#     template_file = "pico_cnn_concat.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         """
-#         Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
-#         :param node: ComputeNode object of a CNN layer
-#         :param graph: ComputeGraph object of the CNN
-#         :param memory_manager: MemoryManager object containing information about input and output buffers.
-#         :return:
-#         """
-#         attrs = node.attrs
-#
-#         if attrs['axis'] != 1:
-#             print("ERROR: Currently only concatenation along channels is supported!")
-#             exit(1)
-#
-#         input_buffers = []
-#         for input in node.inputs:
-#             input_buffers.append(memory_manager.get_buffer(graph, input))
-#
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_shapes = [graph.get_shape(input_id) for input_id in node.inputs]
-#         num_input_shapes = len(input_shapes)
-#         output_shape = graph.get_shape(node.outputs[0])
-#
-#         for input_shape in input_shapes:
-#             assert(len(input_shape) == len(output_shape))
-#             for i, s in enumerate(input_shape):
-#                 if i != attrs['axis']:
-#                     assert (s == output_shape[i])
-#
-#         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
-#
-#         input_declaration = "fp_t*** inputs_{} = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(identifier,
-#                                                                                                   str(num_input_shapes))
-#         for idx in range(num_input_shapes):
-#             input_declaration += "    inputs_{}[{}] = {};\n".format(identifier, str(idx), input_buffers[idx].name)
-#
-#         cleanup_input = "free(inputs_{});\n".format(identifier)
-#
-#         input_shape_code = ""
-#         input_shape_code += "const uint16_t* input_shape_{}[{}];\n".format(identifier, len(input_shapes))
-#         for num, input_shape in enumerate(input_shapes):
-#             input_shape_code += "    uint16_t input_shape_{}_{}[3] = {{ {}, {}, {} }};\n".format(identifier, str(num),
-#                                                                                                  input_shape[1],
-#                                                                                                  input_shape[2],
-#                                                                                                  input_shape[3])
-#             input_shape_code += "    input_shape_{}[{}] = input_shape_{}_{};\n".format(identifier, str(num),
-#                                                                                        identifier, str(num))
-#
-#         dimension = attrs['axis'] - 1
-#
-#         operation = cls(node, graph)
-#         operation.attributes['input_declaration'] = input_declaration
-#         operation.attributes['input_shape_code'] = input_shape_code
-#         operation.attributes['inputs'] = "inputs_{}".format(identifier)
-#         operation.attributes['input_shape'] = "input_shape_{}".format(identifier)
-#         operation.attributes['dimension'] = dimension
-#         operation.attributes['num_inputs'] = len(input_buffers)
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['cleanup_input'] = cleanup_input
-#
-#         return operation
-#
-#
-# OperationRegistry.register(Concat)
+
+
+class Concat(BaseLayer):
+    """
+    Transposes the input and writes it to the output buffer.
+    """
+    name = "ConcatGeneric"
+    operator = "Concat"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_concat.cpp"
+    template_file_deletion = "empty.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
+        attrs = node.attrs
+
+        if attrs['axis'] != 1:
+            print("ERROR: Currently only concatenation along channels is supported!")
+            exit(1)
+
+        input_buffers = []
+        for input in node.inputs:
+            input_buffers.append(memory_manager.get_buffer(graph, input))
+
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shapes = [graph.get_shape(input_id) for input_id in node.inputs]
+        num_input_shapes = len(input_shapes)
+        output_shape = graph.get_shape(node.outputs[0])
+
+        for input_shape in input_shapes:
+            assert(len(input_shape) == len(output_shape))
+            for i, s in enumerate(input_shape):
+                if i != attrs['axis']:
+                    assert (s == output_shape[i])
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        input_declaration = "pico_cnn::naive::Tensor* inputs_{}[{}] = {{".format(identifier,
+                                                                                 str(num_input_shapes))
+        for idx in range(num_input_shapes):
+            input_declaration += "{}".format(input_buffers[idx].name)
+            if idx < num_input_shapes-1:
+                input_declaration += ", "
+            else:
+                input_declaration += "};"
+
+        dimension = attrs['axis']
+
+        operation = cls(node, graph)
+
+        operation.attributes['input_declaration'] = input_declaration
+
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['num_inputs'] = len(input_buffers)
+        operation.attributes['inputs'] = "inputs_{}".format(identifier)
+        operation.attributes['dimension'] = dimension
+
+        return operation
+
+
+OperationRegistry.register(Concat)
 
 
 class Reshape(BaseLayer):
@@ -937,7 +928,7 @@ class Reshape(BaseLayer):
     operator = "Reshape"
     template_file_declaration = "empty.cpp"
     template_file_allocation = "empty.cpp"
-    template_file_execution = "pico_cnn_reshape.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_reshape.cpp"
     template_file_deletion = "empty.cpp"
 
     @classmethod
@@ -1205,71 +1196,60 @@ OperationRegistry.register(Softmax)
 #
 #
 # OperationRegistry.register(Squeeze)
-#
-#
-# class Pad(BaseLayer):
-#     name = "PicoCNNPad"
-#     operator = "Pad"
-#     template_file = "pico_cnn_pad.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_shape = input_buffer.shape
-#         output_shape = output_buffer.shape
-#
-#         pads = attrs['pads']
-#         mode = attrs['mode'].decode("utf-8")
-#         value = attrs['value']
-#
-#         height = width = dimensionality = num_input_channels = 0
-#
-#         if mode != 'constant':
-#             print("ERROR: Pad layer only supported in mode constant (not: {}).").format(mode)
-#             exit(1)
-#
-#         if len(input_shape) == 4:
-#             if pads[0] != 0 or pads[1] != 0 or pads[4] != 0 or pads[5] != 0:
-#                 print("ERROR: Padding only supported for height and width dimension. pads = {}").format(pads)
-#                 exit(1)
-#             else:
-#                 num_input_channels = input_shape[1]
-#                 height = input_shape[2]
-#                 width = input_shape[3]
-#                 dimensionality = 4
-#         elif len(input_shape) == 3:
-#             num_input_channels = input_shape[1]
-#             height = 1
-#             width = input_shape[2]
-#             dimensionality = 3
-#         elif len(input_shape) == 2:
-#             num_input_channels = 1
-#             height = input_shape[0]
-#             width = input_shape[1]
-#             dimensionality = 2
-#         else:
-#             print("ERROR: Unsupported shape for pad operation: {}".format(input_shape))
-#             exit(1)
-#
-#         operation = cls(node, graph)
-#
-#         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
-#         operation.attributes['identifier'] = identifier
-#
-#         operation.attributes['num_input_channels'] = num_input_channels
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['input_height'] = height
-#         operation.attributes['input_width'] = width
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['dimensionality'] = dimensionality
-#         operation.attributes['padding'] = pads
-#         operation.attributes['initializer'] = value
-#
-#         return operation
-#
-#
-# OperationRegistry.register(Pad)
+
+
+class Pad(BaseLayer):
+    name = "PicoCNNPad"
+    operator = "Pad"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_pad.cpp"
+    template_file_deletion = "empty.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_shape = input_buffer.shape
+
+        pads = attrs['pads']
+        mode = attrs['mode'].decode("utf-8")
+        value = attrs['value']
+
+        if mode != 'constant':
+            print("ERROR: Pad layer only supported in mode constant (not: {}).").format(mode)
+            exit(1)
+
+        if len(input_shape) == 4:
+            if pads[0] != 0 or pads[1] != 0 or pads[4] != 0 or pads[5] != 0:
+                print("ERROR: Padding only supported for height and width dimension. pads = {}").format(pads)
+                exit(1)
+        elif len(input_shape) == 3:
+            if pads[0] != 0 or pads[1] != 0 or pads[3] != 0 or pads[4] != 0:
+                print("ERROR: Padding only supported for height and width dimension. pads = {}").format(pads)
+                exit(1)
+        elif len(input_shape) == 2:
+            pass
+        else:
+            print("ERROR: Unsupported shape for pad operation: {}".format(input_shape))
+            exit(1)
+
+        operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['identifier'] = identifier
+
+        operation.attributes['num_dims'] = len(input_shape)
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['padding'] = pads
+        operation.attributes['initializer'] = value
+
+        return operation
+
+
+OperationRegistry.register(Pad)
