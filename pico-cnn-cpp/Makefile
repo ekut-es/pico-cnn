@@ -49,7 +49,8 @@ LAYERS_SRC = tensor_shape.cpp \
              layers/activation_functions/sigmoid.cpp \
              layers/activation_functions/softmax.cpp \
              layers/activation_functions/tan_h.cpp \
-             layers/fully_connected.cpp
+             layers/fully_connected.cpp \
+             layers/batch_normalization.cpp
 
 LAYERS_H = $(LAYERS_SRC:.cpp=.h)
 LAYERS_OBJ = $(LAYERS_SRC:.cpp=.o)
