@@ -1,11 +1,10 @@
 #include "average_pooling.h"
 
 pico_cnn::naive::AveragePooling::AveragePooling(std::string name, uint32_t id, pico_cnn::op_type op,
-                                                uint32_t *kernel_size, uint32_t *stride, fp_t bias, uint32_t *padding,
+                                                uint32_t *kernel_size, uint32_t *stride, uint32_t *padding,
                                                 bool count_include_pad) :
                                                 Pooling(name, id, op, kernel_size, stride, padding) {
 
-    bias_ = bias;
     count_include_pad_ = count_include_pad;
 }
 
@@ -56,10 +55,10 @@ void pico_cnn::naive::AveragePooling::pool(pico_cnn::naive::Tensor *input, pico_
 
                         if (num_dims == 4) {
                             output->access(batch, channel, output_channel_row, output_channel_column) = pixel /
-                                    ((fp_t) (kernel_size_[0] * kernel_size_[1])) + bias_;
+                                    ((fp_t) (kernel_size_[0] * kernel_size_[1]));
                         } else if (num_dims == 3) {
                             output->access(batch, channel, output_channel_column) = pixel /
-                                    ((fp_t) (kernel_size_[0] * kernel_size_[1])) + bias_;
+                                    ((fp_t) (kernel_size_[0] * kernel_size_[1]));
                         }
                         output_channel_column++;
                     }
@@ -105,10 +104,10 @@ void pico_cnn::naive::AveragePooling::pool(pico_cnn::naive::Tensor *input, pico_
 
                             if (num_dims == 4) {
                                 output->access(batch, channel, output_channel_row, output_channel_column) = pixel /
-                                        ((fp_t) (kernel_size_[0] * kernel_size_[1])) + bias_;
+                                        ((fp_t) (kernel_size_[0] * kernel_size_[1]));
                             } else if (num_dims == 3) {
                                 output->access(batch, channel, output_channel_column) = pixel /
-                                        ((fp_t) (kernel_size_[0] * kernel_size_[1])) + bias_;
+                                        ((fp_t) (kernel_size_[0] * kernel_size_[1]));
                             }
 
                         // edge case
@@ -134,10 +133,10 @@ void pico_cnn::naive::AveragePooling::pool(pico_cnn::naive::Tensor *input, pico_
 
                             if (num_dims == 4) {
                                 output->access(batch, channel, output_channel_row, output_channel_column) = pixel /
-                                        ((fp_t) (divisor)) + bias_;
+                                        ((fp_t) (divisor));
                             } else if (num_dims == 3) {
                                 output->access(batch, channel, output_channel_column) = pixel /
-                                        ((fp_t) (divisor)) + bias_;
+                                        ((fp_t) (divisor));
                             }
 
                         }

@@ -207,7 +207,7 @@ void TestPooling::runTestAvgPooling1d() {
     uint32_t kernel_size[2] = {1, 3};
     uint32_t stride[2] = {1, 1};
 
-    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, nullptr, 1);
+    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, nullptr, 1);
 
     layer->run(input_tensor, output_tensor);
 
@@ -254,8 +254,8 @@ void TestPooling::runTestAvgPooling1dPadding() {
     uint32_t stride[2] = {1, 1};
     uint32_t padding[2] = {2, 2};
 
-    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, padding, 0);
-    auto *layer2 = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, padding, 1);
+    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, padding, 0);
+    auto *layer2 = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, padding, 1);
 
     layer->run(input_tensor, output_tensor);
 
@@ -307,7 +307,7 @@ void TestPooling::runTestAvgPooling2d() {
     uint32_t kernel_size[2] = {3, 3};
     uint32_t stride[2] = {1, 1};
 
-    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, nullptr, 1);
+    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, nullptr, 1);
 
     layer->run(input_tensor, output_tensor);
 
@@ -371,7 +371,7 @@ void TestPooling::runTestAvgPooling2dPadding() {
     uint32_t padding2[4] = {1, 1, 1, 1};
 
     /// Test 1: kernel = 5, padding = 2, count_include_pad = 0
-    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, padding, 0);
+    auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, padding, 0);
     layer->run(input_tensor, output_tensor);
     CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
 
@@ -382,7 +382,7 @@ void TestPooling::runTestAvgPooling2dPadding() {
         expected_output_tensor->access_blob(i) = expected_output_count_include_pad_1[i];
     }
 
-    layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, 0.0, padding, 1);
+    layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, padding, 1);
     layer->run(input_tensor, output_tensor);
     CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
 
@@ -393,7 +393,7 @@ void TestPooling::runTestAvgPooling2dPadding() {
         expected_output_tensor->access_blob(i) = expected_output_2_count_include_pad_0[i];
     }
 
-    layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size2, stride, 0.0, padding2, 0);
+    layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size2, stride, padding2, 0);
     layer->run(input_tensor, output_tensor);
     CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
 
