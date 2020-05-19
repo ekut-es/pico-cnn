@@ -30,7 +30,7 @@ namespace pico_cnn {
         void Convolution::run(Tensor *input, Tensor *output) {
             // TODO: Maybe use different methods to convolve? conv1d, conv2d?
             // TODO: Check dimensions?
-            if (input->shape()->num_dimensions() != 4) {
+            if (input->shape()->num_dimensions() != 4 && input->shape()->num_dimensions() != 3) {
                 PRINT_ERROR_AND_DIE("Not implemented for TensorShape: " << *input->shape());
             }
 

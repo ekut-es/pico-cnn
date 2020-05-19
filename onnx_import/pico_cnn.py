@@ -74,7 +74,7 @@ class Conv2D(BaseLayer):
         input_shape = input_buffers[0].shape
         num_input_channels = input_shape[1]
 
-        if not (len(input_shape) == 4 and input_shape[3] != 1):
+        if not (len(input_shape) == 4):
             print("{} is not a 2DConvolution".format(node.name))
             return None
 
@@ -781,73 +781,68 @@ OperationRegistry.register(AveragePool2D)
 #
 #
 # OperationRegistry.register(GlobalAveragePool2D)
-#
-#
-# class Transpose(BaseLayer):
-#     name = "TransposeGeneric"
-#     operator = "Transpose"
-#     template_file = "transpose.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         permutations = attrs['perm']
-#         orig_permutation = range(len(input_buffer.shape))
-#         transpose_code = ""
-#         print(input_buffer.shape)
-#         for input_dim, output_dim in enumerate(permutations):
-#             dim_size = input_buffer.shape[input_dim] if input_dim < len(input_buffer.shape) else 1
-#             transpose_code += "    " * (input_dim + 1)
-#             transpose_code += "for(uint32_t dim{} = 0; dim{} < {}; dim{}++)".format(input_dim, input_dim, dim_size,
-#                                                                                     input_dim)
-#             transpose_code += "\n"
-#
-#         transpose_code += "    " * len(permutations)
-#
-#         if len(permutations) == 4:
-#             test_code = "{}[{}][{}]".format(output_buffer.name,
-#                                             "dim"+str(permutations[1]),
-#                                             "dim"+str(permutations[2]) + "*" +
-#                                             str(input_buffer.shape[permutations[3]]
-#                                                 if permutations[3] < len(input_buffer.shape) else 1)
-#                                             + " + " +
-#                                             "dim"+str(permutations[3])) + " = " \
-#                         + "{}[{}][{}];".format(input_buffer.name,
-#                                                "dim"+str(orig_permutation[1]),
-#                                                "dim"+str(orig_permutation[2]) + "*" +
-#                                                str(input_buffer.shape[orig_permutation[3]]
-#                                                    if orig_permutation[3] < len(input_buffer.shape) else 1)
-#                                                + " + " +
-#                                                "dim"+str(orig_permutation[3]))
-#         elif len(permutations) == 2:
-#             test_code = "{}[{}]".format(output_buffer.name,
-#                                         "dim"+str(permutations[0]) + "*" +
-#                                         str(input_buffer.shape[permutations[1]]
-#                                             if permutations[1] < len(input_buffer.shape) else 1)
-#                                         + " + " +
-#                                         "dim"+str(permutations[1])) + " = " \
-#                         + "{}[{}];".format(input_buffer.name,
-#                                            "dim"+str(orig_permutation[0]) + "*" +
-#                                            str(input_buffer.shape[orig_permutation[1]]
-#                                                if orig_permutation[1] < len(input_buffer.shape) else 1)
-#                                            + " + " +
-#                                            "dim"+str(orig_permutation[1]))
-#         else:
-#             print("ERROR: Unsupported permutation in Transpose operation.")
-#             return None
-#
-#         transpose_code += "    " + test_code
-#
-#         operation = cls(node, graph)
-#         operation.attributes['transpose_code'] = transpose_code
-#
-#         return operation
-#
-#
-# OperationRegistry.register(Transpose)
+
+
+class Transpose(BaseLayer):
+    name = "TransposeGeneric"
+    operator = "Transpose"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/transpose.cpp"
+    template_file_deletion = "empty.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        permutations = attrs['perm']
+        orig_permutation = range(len(input_buffer.shape))
+        transpose_code = ""
+        print(input_buffer.shape)
+        for input_dim, output_dim in enumerate(permutations):
+            dim_size = input_buffer.shape[input_dim] if input_dim < len(input_buffer.shape) else 1
+            transpose_code += "    " * (input_dim + 1)
+            transpose_code += "for(uint32_t dim{} = 0; dim{} < {}; dim{}++)".format(input_dim, input_dim, dim_size,
+                                                                                    input_dim)
+            transpose_code += "\n"
+
+        transpose_code += "    " * len(permutations)
+
+        if len(permutations) == 4:
+            test_code = "{}->access({}, {}, {}, {})".format(output_buffer.name,
+                                                            "dim" + str(permutations[0]),
+                                                            "dim" + str(permutations[1]),
+                                                            "dim" + str(permutations[2]),
+                                                            "dim" + str(permutations[3])) \
+                        + " = " \
+                        + "{}->access({}, {}, {}, {});".format(input_buffer.name,
+                                                               "dim" + str(orig_permutation[0]),
+                                                               "dim" + str(orig_permutation[1]),
+                                                               "dim" + str(orig_permutation[2]),
+                                                               "dim" + str(orig_permutation[3]))
+        elif len(permutations) == 2:
+            test_code = "{}->access({}, {})".format(output_buffer.name,
+                                                    "dim"+str(permutations[0]),
+                                                    "dim"+str(permutations[1])) \
+                        + " = " \
+                        + "{}->access({}, {});".format(input_buffer.name,
+                                                       "dim"+str(orig_permutation[0]),
+                                                       "dim"+str(orig_permutation[1]))
+        else:
+            print("ERROR: Unsupported permutation in Transpose operation.")
+            return None
+
+        transpose_code += "    " + test_code
+
+        operation = cls(node, graph)
+        operation.attributes['transpose_code'] = transpose_code
+
+        return operation
+
+
+OperationRegistry.register(Transpose)
 
 
 class Concat(BaseLayer):
@@ -1147,55 +1142,40 @@ OperationRegistry.register(Softmax)
 #
 #
 # OperationRegistry.register(LocalResponseNormalization)
-#
-#
-# class Squeeze(BaseLayer):
-#     """
-#     Remove single-dimensional entries from the shape of a tensor.
-#     """
-#     name = "SqueezeGeneric"
-#     operator = "Squeeze"
-#     template_file = "squeeze.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         """
-#         Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
-#         :param node: ComputeNode object of a CNN layer
-#         :param graph: ComputeGraph object of the CNN
-#         :param memory_manager: MemoryManager object containing information about input and output buffers.
-#         :return:
-#         """
-#         attrs = node.attrs
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_shape = input_buffer.shape
-#         output_shape = output_buffer.shape
-#
-#         squeeze_code = ""
-#
-#         if 2 in attrs['axes'] and 3 in attrs['axes'] and len(output_shape) == 2 and input_shape[1] == output_shape[1]:
-#             for idx, dim in enumerate(output_shape):
-#                 squeeze_code += "    " * (idx + 1)
-#                 squeeze_code += "for(uint32_t dim{} = 0; dim{} < {}; dim{}++)".format(idx, idx, dim, idx)
-#                 squeeze_code += "\n"
-#
-#             squeeze_code += "    " * len(output_shape)
-#             squeeze_code += "    " + "{}[{}] = {}[{}][{}];\n".format(output_buffer.name, "dim1",
-#                                                                      input_buffer.name, "dim1", "0")
-#         else:
-#             # TODO: Implement general version of squeeze
-#             print("ERROR: Squeeze operation only for one special case implemented.")
-#             exit(1)
-#
-#         operation = cls(node, graph)
-#         operation.attributes['squeeze_code'] = squeeze_code
-#
-#         return operation
-#
-#
-# OperationRegistry.register(Squeeze)
+
+
+class Squeeze(BaseLayer):
+    """
+    Remove single-dimensional entries from the shape of a tensor.
+    """
+    name = "SqueezeGeneric"
+    operator = "Squeeze"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_squeeze.cpp"
+    template_file_deletion = "empty.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
+        attrs = node.attrs
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        operation = cls(node, graph)
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['output_buffer'] = output_buffer
+
+        return operation
+
+
+OperationRegistry.register(Squeeze)
 
 
 class Pad(BaseLayer):
