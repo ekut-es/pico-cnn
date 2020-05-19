@@ -194,7 +194,7 @@ def main():
             packed_input.append(struct.pack('i', input_shape[0]))  # Number of batches
             packed_input.append(struct.pack('i', input_shape[1]))  # Number of channels
             packed_input.append(struct.pack('i', input_shape[2]))  # Channel height
-            packed_input.append(struct.pack('i', input_shape[2]))  # Channel width
+            packed_input.append(struct.pack('i', input_shape[3]))  # Channel width
 
             for channel in input_data[0]:
                 for row in channel:
