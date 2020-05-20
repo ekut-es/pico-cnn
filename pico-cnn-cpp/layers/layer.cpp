@@ -7,7 +7,9 @@ namespace pico_cnn {
 
         }
 
-        Layer::~Layer() = default;
+        Layer::~Layer() {
+
+        }
 
         std::string Layer::name() {
             return name_;

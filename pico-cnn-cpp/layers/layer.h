@@ -48,7 +48,7 @@ namespace pico_cnn {
         public:
             Layer(std::string name, uint32_t id, op_type op);
 
-            ~Layer();
+            virtual ~Layer();
 
             virtual void run(Tensor *input, Tensor *output) = 0;
 

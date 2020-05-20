@@ -14,10 +14,6 @@ pico_cnn::naive::BatchNormalization::BatchNormalization(std::string name, uint32
     epsilon_ = epsilon;
 }
 
-pico_cnn::naive::BatchNormalization::~BatchNormalization() {
-
-}
-
 void pico_cnn::naive::BatchNormalization::run(pico_cnn::naive::Tensor *input, pico_cnn::naive::Tensor *output) {
     if (input->shape()->num_dimensions() != 4) {
         PRINT_ERROR_AND_DIE("Not implemented for TensorShape: " << *input->shape());

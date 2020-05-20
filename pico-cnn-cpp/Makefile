@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -g3 -DINFO
+CFLAGS = -Wall -O2 -DINFO
 LDFLAGS =
 
 libpico-cnn-cpp.a: layers io parameters.h utils.h

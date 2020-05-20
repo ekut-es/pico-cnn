@@ -15,7 +15,7 @@ namespace pico_cnn {
         public:
             BatchNormalization(std::string name, uint32_t id, op_type op, Tensor *gammas,
                                Tensor *betas, Tensor *means, Tensor *variances, fp_t epsilon);
-            ~BatchNormalization();
+            ~BatchNormalization() = default;
 
             void run(Tensor *input, Tensor *output) override;
 
