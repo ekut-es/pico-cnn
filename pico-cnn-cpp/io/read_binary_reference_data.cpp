@@ -53,7 +53,7 @@ int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_c
             PRINT_DEBUG("Number of channels: " << num_channels)
             if (num_channels != (*input_tensor)->num_channels()) {
                 PRINT_ERROR("Number of channels in binary file: " << num_channels <<
-                            " does not match tensor shape: " << (*input_tensor)->shape())
+                            " does not match tensor shape: " << *((*input_tensor)->shape()))
                 fclose(binary_file);
                 return 1;
             }
@@ -69,7 +69,7 @@ int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_c
             PRINT_DEBUG("Height: " << height)
             if (height != (*input_tensor)->height()) {
                 PRINT_ERROR("Height in binary file: " << height <<
-                            " does not match tensor shape: " << (*input_tensor)->shape())
+                            " does not match tensor shape: " << *((*input_tensor)->shape()))
                 fclose(binary_file);
                 return 1;
             }
@@ -85,7 +85,7 @@ int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_c
             PRINT_DEBUG("Width: " << width)
             if (width != (*input_tensor)->width()) {
                 PRINT_ERROR("Width in binary file: " << width <<
-                            " does not match tensor shape: " << (*input_tensor)->shape())
+                            " does not match tensor shape: " << *((*input_tensor)->shape()))
                 fclose(binary_file);
                 return 1;
             }
@@ -188,8 +188,7 @@ int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_
         } else {
             PRINT_DEBUG("Number of outputs: " << num_outputs)
             if (num_outputs != (*output_tensor)->num_elements()) {
-                PRINT_ERROR("Number of outputs in binary file: " << num_outputs << " and output tensor shape: " <<
-                                                                                                                (*output_tensor)->shape() << " do not match.")
+                PRINT_ERROR("Number of outputs in binary file: " << num_outputs << " and output tensor shape: " << *((*output_tensor)->shape()) << " do not match.")
                 fclose(binary_file);
                 return 1;
             }
