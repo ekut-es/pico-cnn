@@ -15,7 +15,6 @@ class TestFullyConnected : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST_SUITE_END();
 
 private:
-    pico_cnn::naive::TensorShape *input_shape, *output_shape, *expected_output_shape, *kernel_shape, *bias_shape;
     pico_cnn::naive::Tensor *input_tensor, *output_tensor, *expected_output_tensor, *kernel_tensor, *bias_tensor;
 
 public:

@@ -24,7 +24,6 @@ class TestActivationFunctions : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST_SUITE_END();
 
 private:
-    pico_cnn::naive::TensorShape *input_shape, *output_shape, *expected_output_shape;
     pico_cnn::naive::Tensor *input_tensor, *output_tensor, *expected_output_tensor;
 
 

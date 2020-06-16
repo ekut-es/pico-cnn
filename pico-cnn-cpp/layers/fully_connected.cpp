@@ -10,8 +10,8 @@ namespace pico_cnn {
         }
 
         void FullyConnected::run(Tensor *input, Tensor *output) {
-            if (input->shape()->num_dimensions() != 2 || output->shape()->num_dimensions() != 2) {
-                PRINT_ERROR_AND_DIE("Fully connected operation only supports 2D input and output. But input shape is: " << *(input->shape()))
+            if (input->num_dimensions() != 2 || output->num_dimensions() != 2) {
+                PRINT_ERROR_AND_DIE("Fully connected operation only supports 2D input and output.")
             }
             this->gemm(input, output);
         }
@@ -20,6 +20,7 @@ namespace pico_cnn {
 
             uint32_t output_width = output->width();
             uint32_t input_width = input->width();
+            uint32_t kernel_width = kernel_->width();
 
             for (uint32_t i = 0; i < output_width; i++) {
 
@@ -28,14 +29,14 @@ namespace pico_cnn {
                 for (uint32_t j = 0; j < input_width; j++) {
                     // With the kernel layout used in the onnx format we can use this memory optimized
                     // access pattern (i, j) instead of (j, i) as the "normal" matrix multiplication is defined
-                    pixel += input->access(0, j) * kernel_->access(i, j);
+                    pixel += input->access(0, j, input_width) * kernel_->access(i, j, kernel_width);
                 }
 
                 if(bias_) {
                     pixel += bias_->access(i);
                 }
 
-                output->access(0, i) = pixel;
+                output->access(0, i, output_width) = pixel;
             }
         }
     }

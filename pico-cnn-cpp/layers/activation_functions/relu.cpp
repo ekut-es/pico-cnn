@@ -44,7 +44,7 @@ namespace pico_cnn {
         }
 
         void ParameterizedReLU::run(Tensor *input, Tensor *output) {
-            if (*(input->shape()) != *(slope_->shape())){
+            if (input->num_dimensions() != slope_->num_dimensions()){
                 PRINT_ERROR_AND_DIE("Broadcasting is not supported at the moment.")
             } else {
                 this->activate(input, output);

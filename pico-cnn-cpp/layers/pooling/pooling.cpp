@@ -33,7 +33,7 @@ pico_cnn::naive::Pooling::~Pooling() {
 
 void pico_cnn::naive::Pooling::run(pico_cnn::naive::Tensor *input, pico_cnn::naive::Tensor *output) {
 
-    if (input->shape()->num_dimensions() == 4 || input->shape()->num_dimensions() == 3) {
+    if (input->num_dimensions() == 4 || input->num_dimensions() == 3) {
 
         Tensor *input_tensor;
 
@@ -46,10 +46,9 @@ void pico_cnn::naive::Pooling::run(pico_cnn::naive::Tensor *input, pico_cnn::nai
         this->pool(input_tensor, output);
 
         if (padding_) {
-            delete input_tensor->shape();
             delete input_tensor;
         }
     } else {
-        PRINT_ERROR_AND_DIE("Not implemented for TensorShape: " << *input->shape());
+        PRINT_ERROR_AND_DIE("Not implemented for Tensor with num_dims: " << input->num_dimensions());
     }
 }

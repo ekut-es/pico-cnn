@@ -11,12 +11,14 @@ pico_cnn::naive::GlobalMaxPooling::GlobalMaxPooling(std::string name, uint32_t i
 }
 
 void pico_cnn::naive::GlobalMaxPooling::pool(pico_cnn::naive::Tensor *input, pico_cnn::naive::Tensor *output) {
-    uint32_t num_dims = input->shape()->num_dimensions();
+    uint32_t num_dims = input->num_dimensions();
 
     uint32_t num_batches = input->num_batches();
     uint32_t num_channels = input->num_channels();
     uint32_t height = input->height();
     uint32_t width = input->width();
+    uint32_t output_height = output->height();
+    uint32_t output_width = output->width();
 
     fp_t global_maximum;
     fp_t candidate = 1000.0;
@@ -24,14 +26,16 @@ void pico_cnn::naive::GlobalMaxPooling::pool(pico_cnn::naive::Tensor *input, pic
     for (uint32_t batch = 0; batch < num_batches; batch++) {
         for (uint32_t channel = 0; channel < num_channels; channel++) {
 
-            global_maximum = input->access(batch, channel, 0, 0);
+            // TODO: Maybe change this for num_dims == 3
+            global_maximum = input->access(batch, channel, 0, 0,
+                                           num_channels, height, width);
 
             for (uint32_t row = 0; row < height; row++) {
                 for (uint32_t col = 1; col < width; col++) {
                     if (num_dims == 4) {
-                        candidate = input->access(batch, channel, row, col);
+                        candidate = input->access(batch, channel, row, col, num_channels, height, width);
                     } else if (num_dims == 3) {
-                        candidate = input->access(batch, channel, col);
+                        candidate = input->access(batch, channel, col, num_channels, width);
                     }
                     if (candidate > global_maximum) {
                         global_maximum = candidate;
@@ -40,9 +44,9 @@ void pico_cnn::naive::GlobalMaxPooling::pool(pico_cnn::naive::Tensor *input, pic
             }
 
             if (num_dims == 4) {
-                output->access(batch, channel, 0, 0) = global_maximum;
+                output->access(batch, channel, 0, 0, num_channels, output_height, output_width) = global_maximum;
             } else if (num_dims == 3) {
-                output->access(batch, channel, 0) = global_maximum;
+                output->access(batch, channel, 0, num_channels, output_width) = global_maximum;
             }
 
         }

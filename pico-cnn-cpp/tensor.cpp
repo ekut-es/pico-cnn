@@ -3,58 +3,106 @@
 namespace pico_cnn {
     namespace naive {
 
-        Tensor::Tensor() {
-            shape_ = nullptr;
-            data_ = nullptr;
+        Tensor::Tensor(uint32_t x0): num_dimensions_(1) {
+            shape_ = new uint32_t[num_dimensions_]();
+            shape_[0] = x0;
+            num_elements_ = x0;
+            data_ = new fp_t [num_elements_]();
         }
 
-        // TODO: Check if copy-constructor is possible
-//        Tensor::Tensor(const Tensor &other) {
-//            shape_ = TensorShape(other.shape_);
-//            data_ = new fp_t[shape_.total_num_elements()]();
-//            std::memcpy(data_, other.data_, shape_.total_num_elements() * sizeof(fp_t));
-//        }
+        Tensor::Tensor(uint32_t x0, uint32_t x1): num_dimensions_(2) {
+            shape_ = new uint32_t[num_dimensions_]();
+            shape_[0] = x0;
+            shape_[1] = x1;
+            num_elements_ = x0*x1;
+            data_ = new fp_t [num_elements_]();
+        }
 
-        Tensor::Tensor(TensorShape *shape) {
-            shape->freeze_shape();
-            shape_ = shape;
-            uint32_t tmp = shape_->total_num_elements();
-            data_ = new fp_t[shape_->total_num_elements()]();
+        Tensor::Tensor(uint32_t x0, uint32_t x1, uint32_t x2): num_dimensions_(3) {
+            shape_ = new uint32_t[num_dimensions_]();
+            shape_[0] = x0;
+            shape_[1] = x1;
+            shape_[2] = x2;
+            num_elements_ = x0*x1*x2;
+            data_ = new fp_t [num_elements_]();
+        }
+
+        Tensor::Tensor(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3): num_dimensions_(4) {
+            shape_ = new uint32_t[num_dimensions_]();
+            shape_[0] = x0;
+            shape_[1] = x1;
+            shape_[2] = x2;
+            shape_[3] = x3;
+            num_elements_ = x0*x1*x2*x3;
+            data_ = new fp_t [num_elements_]();
         }
 
         Tensor::~Tensor() {
             delete[](data_);
+            delete [] shape_;
         }
 
-        TensorShape *Tensor::shape() const {
-            return shape_;
-        }
-
-        uint32_t Tensor::size_bytes() {
-            return shape_->total_num_elements() * sizeof(fp_t);
+        uint32_t Tensor::size_bytes() const {
+            return num_elements_ * sizeof(fp_t);
         }
 
         uint32_t Tensor::num_elements() const {
-            return shape_->total_num_elements();
+            return num_elements_;
+        }
+
+        uint32_t Tensor::num_dimensions() const {
+            return num_dimensions_;
         }
 
         uint32_t Tensor::num_batches() const {
-            return this->shape()->num_batches();
+            if (num_dimensions_ == 4) {
+                return shape_[0];
+            } else if (num_dimensions_ == 3) {
+                return shape_[0];
+            } else {
+                PRINT_ERROR_AND_DIE("Cannot call num_batches() on a Tensor with num_dimensions not 3 or 4")
+            }
         }
 
         uint32_t Tensor::num_channels() const {
-            return this->shape()->num_channels();
+            if (num_dimensions_ == 4) {
+                return shape_[1];
+            } else if (num_dimensions_ == 3) {
+                return shape_[1];
+            } else if (num_dimensions_ == 2) {
+                PRINT_WARNING("Assuming 2D data with shape: " << this)
+                PRINT_WARNING("Number of channels therefore assumed to be 1.")
+                return 1;
+            } else {
+                PRINT_ERROR_AND_DIE("Cannot call num_channels() on a Tensor with num_dimensions not 4, 3 or 2" << this)
+            }
         }
 
         uint32_t Tensor::height() const {
-            return this->shape()->height();
+            if (num_dimensions_ == 4) {
+                return shape_[2];
+            } else if (num_dimensions_ == 3) {
+                return 1;
+            } else if (num_dimensions_ == 2) {
+                return shape_[0];
+            } else {
+                PRINT_ERROR_AND_DIE("Cannot call height() on a Tensor with num_dimensions not 4, 3 or 2" << this)
+            }
         }
 
         uint32_t Tensor::width() const {
-            return this->shape()->width();
+            if (num_dimensions_ == 4) {
+                return shape_[3];
+            } else if (num_dimensions_ == 3) {
+                return shape_[2];
+            } else if (num_dimensions_ == 2) {
+                return shape_[1];
+            } else {
+                PRINT_ERROR_AND_DIE("Cannot call width() on a Tensor with num_dimensions not 4, 3 or 2" << this)
+            }
         }
 
-        void Tensor::copy_data_into(Tensor *dest) {
+        void Tensor::copy_data_into(Tensor *dest) const {
             if(this->num_elements() == dest->num_elements()) {
                 std::memcpy(dest->data_, this->data_, size_bytes());
             } else {
@@ -62,143 +110,65 @@ namespace pico_cnn {
             }
         }
 
-        bool Tensor::add_tensor(Tensor *other) {
-            if (*(this->shape()) == *(other->shape())) {
+        bool Tensor::add_tensor(Tensor *other) const {
+//            if (*(this->shape()) == *(other->shape())) {
 
-                for (uint32_t i = 0; i < this->num_elements(); i++) {
-                    this->access_blob(i) = this->access_blob(i) + other->access_blob(i);
-                }
-
-                return true;
-
-            } else {
-                PRINT_ERROR("Tensors of different shapes cannot be added.");
-                return false;
+            for (uint32_t i = 0; i < this->num_elements_; i++) {
+                this->access_blob(i) = this->access_blob(i) + other->access_blob(i);
             }
+
+            return true;
+
+//            } else {
+//                PRINT_ERROR("Tensors of different shapes cannot be added.");
+//                return false;
+//            }
         }
 
-        bool Tensor::add_channel(Tensor *other, uint32_t batch, uint32_t channel) {
+        bool Tensor::add_channel(fp_t *other, uint32_t batch, uint32_t channel) {
             uint32_t height = this->height();
             uint32_t width = this->width();
-            uint32_t other_height = other->height();
-            uint32_t other_width = other->width();
 
-            if (height == other_height && width == other_width) {
+            fp_t *channel_ptr = this->get_ptr_to_channel(batch, channel);
 
-                for (uint32_t i = 0; i < height; i++) {
-                    for (uint32_t j = 0; j < width; j++) {
-                        this->access(batch, channel, i, j) = this->access(batch, channel, i, j) + other->access(batch, channel, i, j);
-                    }
-                }
-
-                return true;
-
-            } else {
-                PRINT_ERROR("Channels of different height and width cannot be added.");
-                return false;
+            for (uint32_t i = 0; i < height*width; i++) {
+                channel_ptr[i] = channel_ptr[i] + other[i];
             }
+
+            return true;
         }
 
-        fp_t &Tensor::access(uint32_t x, ...) {
-            va_list args;
-            va_start(args, x);
+        fp_t *Tensor::get_ptr_to_channel(uint32_t x0, uint32_t x1) const {
 
-            uint32_t num_dims = shape_->num_dimensions();
-            uint32_t indexes[num_dims];
 
-            indexes[0] = x;
-
-            for(size_t i = 1; i < num_dims; i++) {
-                indexes[i] = va_arg(args, uint32_t);
-            }
-
-            if(num_dims == 1) {
-
-                return data_[x];
-
-            } else if (num_dims == 2) {
-
-                uint32_t *shape = shape_->shape();
-                return data_[(indexes[0]*shape[1]) + (indexes[1])];
-
-            } else if (num_dims == 3) {
-
-                uint32_t *shape = shape_->shape();
-                return data_[(indexes[0]*shape[1]*shape[2]) + (indexes[1]*shape[2]) + (indexes[2])];
-
-            } else if (num_dims == 4) {
-
-                uint32_t *shape = shape_->shape();
-                return data_[(indexes[0]*shape[1]*shape[2]*shape[3]) + (indexes[1]*shape[2]*shape[3]) + (indexes[2]*shape[3]) + indexes[3]];
-
-            } else {
-
-                uint32_t offset = 0;
-                uint32_t *shape = shape_->shape();
-                for (size_t i = 0; i < num_dims; i++) {
-                    offset += product(reinterpret_cast<int32_t *>(shape), i+1, num_dims) * indexes[i];
-                }
-                return *(data_+offset);
-
-            }
-        }
-
-        fp_t &Tensor::access_blob(uint32_t x) {
-            return data_[x];
-        }
-
-        // TODO: Refactor get_ptr_to_channel()
-        fp_t *Tensor::get_ptr_to_channel(uint32_t x, ...) {
-            va_list args;
-            va_start(args, x);
-
-            uint32_t num_dims = shape_->num_dimensions();
-            uint32_t num_idx = 1;
-            if (num_dims == 4) {
-                num_idx = 2;
-            } else if (num_dims == 3) {
-                num_idx = 2;
-            } else if (num_dims == 2) {
-                num_idx = 1;
-            } else if (num_dims == 1) {
-                num_idx = 1;
-            }
-            uint32_t indexes[num_idx];
-
-            indexes[0] = x;
-
-            for(size_t i = 1; i < num_idx; i++) {
-                indexes[i] = va_arg(args, uint32_t);
-            }
-
-            if(num_dims == 1) {
+            if(num_dimensions_ == 1) {
 
                 return data_;
 
-            } else if (num_dims == 2) {
+            } else if (num_dimensions_ == 2) {
 
                 //PRINT_WARNING("Assuming that we deal with 2D data.")
-                uint32_t *shape = shape_->shape();
                 return data_;
 
-            } else if (num_dims == 3) {
+            } else if (num_dimensions_ == 3) {
                 // TODO: Check if this works, assuming shape = {num_batches, num_channels, width} while height = 1
-                uint32_t *shape = shape_->shape();
-                return data_ + (indexes[0]*shape[1]*shape[2]) + (indexes[1]*shape[2]);
+                return data_ + (x0*shape_[1]*shape_[2]) + (x1*shape_[2]);
 
-            } else if (num_dims == 4) {
+            } else if (num_dimensions_ == 4) {
 
-                uint32_t *shape = shape_->shape();
-                return data_ + (indexes[0]*shape[1]*shape[2]*shape[3]) + (indexes[1]*shape[2]*shape[3]);
+                return data_ + (x0*shape_[1]*shape_[2]*shape_[3]) + (x1*shape_[2]*shape_[3]);
 
             } else {
-                PRINT_ERROR_AND_DIE("Not implemented for shape: " << this->shape_);
-                return nullptr;
+                PRINT_ERROR_AND_DIE("Not implemented for num_dimensions: " << num_dimensions_)
             }
         }
 
         std::ostream &operator<<(std::ostream &out, Tensor const &tensor) {
-            out << "shape: " << *(tensor.shape()) << std::endl;
+            out << "shape: [";
+            for (uint32_t i = 0; i < tensor.num_dimensions_; i++) {
+                out << tensor.shape_[i] << " ";
+            }
+            out << "]" << std::endl;
             out << "data: [";
             for (uint32_t i = 0; i < tensor.num_elements(); i++) {
                 if (i == tensor.num_elements() - 1) {
@@ -210,29 +180,32 @@ namespace pico_cnn {
             return out;
         }
 
-        Tensor *Tensor::expand_with_padding(uint32_t *padding, fp_t initializer) {
+        Tensor *Tensor::expand_with_padding(uint32_t *padding, fp_t initializer) const {
 
-            TensorShape *extended_shape = this->shape_->expand_with_padding(padding);
+            Tensor *extended_tensor;
 
-            if(extended_shape) {
+            if (num_dimensions_ == 4) {
+                extended_tensor = new Tensor(shape_[0], shape_[1],
+                                             shape_[2] + padding[0] + padding[2], shape_[3] + padding[1] + padding[3]);
 
-                Tensor *extended_tensor = new Tensor(extended_shape);
-
-                return this->copy_with_padding_into(extended_tensor, padding, initializer);
-
+            } else if (num_dimensions_ == 3) {
+                extended_tensor = new Tensor(shape_[0], shape_[1],
+                                             shape_[2] + padding[0] + padding[1]);
+            } else if (num_dimensions_ == 2) {
+                extended_tensor = new Tensor(shape_[0] + padding[0] + padding[2], shape_[1] + padding[1] + padding[3]);
+            } else if (num_dimensions_ == 1) {
+                extended_tensor = new Tensor(shape_[0] + padding[0] + padding[1]);
             } else {
-                PRINT_ERROR_AND_DIE("TensorShape expansion failed.");
-                return nullptr;
+                PRINT_ERROR_AND_DIE("Extending with padding not implemented for Tensor with number of dimensions: " << num_dimensions_)
             }
+            return this->copy_with_padding_into(extended_tensor, padding, initializer);
         }
 
-        Tensor *Tensor::copy_with_padding_into(Tensor *dest, uint32_t *padding, fp_t initializer) {
+        Tensor *Tensor::copy_with_padding_into(Tensor *dest, uint32_t *padding, fp_t initializer) const {
 
             uint32_t width_padded = dest->width();
             uint32_t height = this->height();
             uint32_t width = this->width();
-
-            TensorShape* dest_shape = dest->shape();
 
             if(initializer != 0.0) {
                 for (uint32_t i = 0; i < dest->num_elements(); i++) {
@@ -240,10 +213,10 @@ namespace pico_cnn {
                 }
             }
 
-            if (dest_shape->num_dimensions() == 4) {
+            if (dest->num_dimensions_ == 4) {
 
-                uint32_t num_batches = dest_shape->num_batches();
-                uint32_t num_channels = dest_shape->num_channels();
+                uint32_t num_batches = dest->num_batches();
+                uint32_t num_channels = dest->num_channels();
 
                 fp_t *channel_ptr;
                 fp_t *extended_channel_ptr;
@@ -260,14 +233,13 @@ namespace pico_cnn {
                                         channel_ptr + row * width, width * sizeof(fp_t));
 
                         }
-
                     }
                 }
 
-            } else if (dest_shape->num_dimensions() == 3) {
+            } else if (dest->num_dimensions_ == 3) {
 
-                uint32_t num_batches = dest_shape->num_batches();
-                uint32_t num_channels = dest_shape->num_channels();
+                uint32_t num_batches = dest->num_batches();
+                uint32_t num_channels = dest->num_channels();
 
                 fp_t *channel_ptr;
                 fp_t *extended_channel_ptr;
@@ -284,14 +256,14 @@ namespace pico_cnn {
                     }
                 }
 
-            } else if (dest_shape->num_dimensions() == 2) {
+            } else if (dest->num_dimensions_ == 2) {
 
                 fp_t *channel_ptr;
                 fp_t *extended_channel_ptr;
 
 
-                channel_ptr = this->get_ptr_to_channel(0);
-                extended_channel_ptr = dest->get_ptr_to_channel(0);
+                channel_ptr = this->get_ptr_to_channel(0, 0);
+                extended_channel_ptr = dest->get_ptr_to_channel(0, 0);
 
                 for (uint32_t row = 0; row < height; row++) {
 
@@ -300,20 +272,16 @@ namespace pico_cnn {
 
                 }
 
-            } else if (dest_shape->num_dimensions() == 1) {
-                PRINT_ERROR_AND_DIE("Not implemented for shape: " << *this->shape_);
-                return nullptr;
+            } else if (dest->num_dimensions_ == 1) {
+                PRINT_ERROR("Extending with padding not implemented for Tensor with number of dimensions: " << num_dimensions_)
             } else {
-
-                PRINT_ERROR_AND_DIE("Not implemented for shape: " << *this->shape_);
-                return nullptr;
-
+                PRINT_ERROR("Extending with padding not implemented for Tensor with number of dimensions: " << num_dimensions_)
             }
 
             return dest;
         }
 
-        void Tensor::concatenate_from(uint32_t num_inputs, Tensor **inputs, uint32_t dimension) {
+        void Tensor::concatenate_from(uint32_t num_inputs, Tensor **inputs, uint32_t dimension) const {
 
             // concatenate along channels
             if(dimension == 1) {
@@ -343,7 +311,7 @@ namespace pico_cnn {
                 }
 
             } else {
-                PRINT_ERROR_AND_DIE("ERROR: Concatenation (3-dimensional) operation not supported for dimension: " << dimension);
+                PRINT_ERROR_AND_DIE("ERROR: Concatenation (3-dimensional) operation not supported for dimension: " << dimension)
             }
         }
 
