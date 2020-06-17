@@ -64,7 +64,9 @@ namespace pico_cnn {
                     for (uint32_t i = g * num_output_channels / num_groups_;
                          i < (g + 1) * num_output_channels / num_groups_; i++) {
 
-                        this->convolve(input_tensor, output, g * num_input_channels / num_groups_, i, 0, input_height, input_width, kernel_height, kernel_width, stride_, num_input_channels, num_output_channels, output_height, output_width);
+                        this->convolve(input_tensor, output, g * num_input_channels / num_groups_, i, 0, stride_,
+                                       num_input_channels, input_height, input_width,
+                                       num_output_channels, output_height, output_width);
 
                         if (num_input_channels > num_groups_) {
                             uint32_t cnt = 1;
@@ -72,7 +74,9 @@ namespace pico_cnn {
                             for (uint32_t j = g * num_input_channels / num_groups_ + 1;
                                  j < (g + 1) * (num_input_channels / num_groups_); j++) {
 
-                                this->convolve(input_tensor, tmp_tensor, j, i, cnt, input_height, input_width, kernel_height, kernel_width, stride_, num_input_channels, num_output_channels, output_height, output_width);
+                                this->convolve(input_tensor, tmp_tensor, j, i, cnt, stride_,
+                                               num_input_channels, input_height, input_width,
+                                               num_output_channels, output_height, output_width);
 
 //                                output->add_channel(tmp_tensor, 0, i);
                                 output->add_tensor(tmp_tensor);
@@ -100,10 +104,9 @@ namespace pico_cnn {
         }
 
         void Convolution::convolve(Tensor *input, Tensor *output, uint32_t input_channel, uint32_t output_channel,
-                                   uint32_t cnt, uint32_t input_height, uint32_t input_width,
-                                   uint32_t kernel_height, uint32_t kernel_width, uint32_t *stride_,
-                                   uint32_t num_input_channels, uint32_t num_output_channels,
-                                   uint32_t output_height, uint32_t output_width) {
+                                   uint32_t cnt, uint32_t *stride_,
+                                   uint32_t num_input_channels, uint32_t input_height, uint32_t input_width,
+                                   uint32_t num_output_channels, uint32_t output_height, uint32_t output_width) {
 
             uint32_t channel_row, channel_col;
             uint32_t kernel_row, kernel_col;
