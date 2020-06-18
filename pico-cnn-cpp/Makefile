@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -g -pg -O2 -DINFO
+CFLAGS = -Wall -O2 -DINFO
 LDFLAGS =
 
 libpico-cnn-cpp.a: layers io parameters.h utils.h
@@ -33,8 +33,7 @@ io : $(IO_OBJ) parameters.h
 #---------------------------------------------- layers ----------------------------------------------
 
 # list of all files to consider in layers
-LAYERS_SRC = tensor_shape.cpp \
-             tensor.cpp \
+LAYERS_SRC = tensor.cpp \
              layers/layer.cpp \
              layers/convolution.cpp \
              layers/pooling/pooling.cpp \

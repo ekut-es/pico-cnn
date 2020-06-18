@@ -32,22 +32,20 @@ int32_t main(int32_t argc, char** argv) {
     int32_t GENERATE_ONCE = atoi(argv[3]);
 
     {% if num_input_dims == 4 %}
-    auto input_shape = new pico_cnn::naive::TensorShape({{num_input_batches}}, {{num_input_channels}}, {{input_channel_height}}, {{input_channel_width}});
+    auto input_tensor = new pico_cnn::naive::Tensor({{num_input_batches}}, {{num_input_channels}}, {{input_channel_height}}, {{input_channel_width}});
     {% elif num_input_dims == 3 %}
-    auto input_shape = new pico_cnn::naive::TensorShape({{num_input_batches}}, {{num_input_channels}}, {{input_channel_width}});
+    auto input_tensor = new pico_cnn::naive::Tensor({{num_input_batches}}, {{num_input_channels}}, {{input_channel_width}});
     {% elif num_input_dims == 2 %}
-    auto input_shape = new pico_cnn::naive::TensorShape({{input_channel_height}}, {{input_channel_width}});
+    auto input_tensor = new pico_cnn::naive::Tensor({{input_channel_height}}, {{input_channel_width}});
     {% endif %}
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
 
     {% if num_output_dims == 4 %}
-    auto output_shape = new pico_cnn::naive::TensorShape({{num_output_batches}}, {{num_output_channels}}, {{output_channel_height}}, {{output_channel_width}});
+    auto output_tensor = new pico_cnn::naive::Tensor({{num_output_batches}}, {{num_output_channels}}, {{output_channel_height}}, {{output_channel_width}});
     {% elif num_output_dims == 3 %}
-    //auto output_shape = new pico_cnn::naive::TensorShape({{num_output_batches}}, {{num_output_channels}}, {{output_channel_height}}, {{output_channel_width}});
+    PRINT_ERROR_AND_DIE("3D output not supported.")
     {% elif num_output_dims == 2 %}
-    auto output_shape = new pico_cnn::naive::TensorShape({{num_output_batches}}, {{num_output_channels}});
+    auto output_tensor = new pico_cnn::naive::Tensor({{num_output_batches}}, {{num_output_channels}});
     {% endif %}
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
 
 
     if(GENERATE_ONCE) {
@@ -93,9 +91,7 @@ int32_t main(int32_t argc, char** argv) {
     delete net;
 
     delete input_tensor;
-    delete input_shape;
     delete output_tensor;
-    delete output_shape;
 
     return 0;
 

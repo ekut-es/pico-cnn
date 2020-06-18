@@ -1,15 +1,11 @@
 {% if num_dims == 4 %}
-    {{buffer_name}}_shape = new pico_cnn::naive::TensorShape({{num_output_channels}}, {{num_input_channels}}, {{kernel_height}}, {{kernel_width}});
-    {{buffer_name}} = new pico_cnn::naive::Tensor({{buffer_name}}_shape);
+    {{buffer_name}} = new pico_cnn::naive::Tensor({{num_output_channels}}, {{num_input_channels}}, {{kernel_height}}, {{kernel_width}});
 {% elif num_dims == 3 %}
-    {{buffer_name}}_shape = new pico_cnn::naive::TensorShape({{num_output_channels}}, {{num_input_channels}}, {{kernel_width}});
-    {{buffer_name}} = new pico_cnn::naive::Tensor({{buffer_name}}_shape);
+    {{buffer_name}} = new pico_cnn::naive::Tensor({{num_output_channels}}, {{num_input_channels}}, {{kernel_width}});
 {% elif num_dims == 2 %}
-    {{buffer_name}}_shape = new pico_cnn::naive::TensorShape({{num_output_channels}}, {{num_input_channels}});
-    {{buffer_name}} = new pico_cnn::naive::Tensor({{buffer_name}}_shape);
+    {{buffer_name}} = new pico_cnn::naive::Tensor({{num_output_channels}}, {{num_input_channels}});
 {% elif num_dims == 1 %}
-    {{buffer_name}}_shape = new pico_cnn::naive::TensorShape({{num_output_channels}});
-    {{buffer_name}} = new pico_cnn::naive::Tensor({{buffer_name}}_shape);
+    {{buffer_name}} = new pico_cnn::naive::Tensor({{num_output_channels}});
 {% endif %}
 
 {%if pos >= 0 %}

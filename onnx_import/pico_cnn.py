@@ -800,7 +800,9 @@ class Transpose(BaseLayer):
         permutations = attrs['perm']
         orig_permutation = range(len(input_buffer.shape))
         transpose_code = ""
-        print(input_buffer.shape)
+
+        input_shape = input_buffer.shape
+
         for input_dim, output_dim in enumerate(permutations):
             dim_size = input_buffer.shape[input_dim] if input_dim < len(input_buffer.shape) else 1
             transpose_code += "    " * (input_dim + 1)
@@ -811,25 +813,39 @@ class Transpose(BaseLayer):
         transpose_code += "    " * len(permutations)
 
         if len(permutations) == 4:
-            test_code = "{}->access({}, {}, {}, {})".format(output_buffer.name,
-                                                            "dim" + str(permutations[0]),
-                                                            "dim" + str(permutations[1]),
-                                                            "dim" + str(permutations[2]),
-                                                            "dim" + str(permutations[3])) \
+            num_channels = input_shape[1]
+            height = input_shape[2]
+            width = input_shape[3]
+
+            test_code = "{}->access({}, {}, {}, {}, {}, {}, {})".format(output_buffer.name,
+                                                                        "dim" + str(permutations[0]),
+                                                                        "dim" + str(permutations[1]),
+                                                                        "dim" + str(permutations[2]),
+                                                                        "dim" + str(permutations[3]),
+                                                                        num_channels,
+                                                                        height,
+                                                                        width)\
                         + " = " \
-                        + "{}->access({}, {}, {}, {});".format(input_buffer.name,
-                                                               "dim" + str(orig_permutation[0]),
-                                                               "dim" + str(orig_permutation[1]),
-                                                               "dim" + str(orig_permutation[2]),
-                                                               "dim" + str(orig_permutation[3]))
+                        + "{}->access({}, {}, {}, {}, {}, {}, {});".format(input_buffer.name,
+                                                                           "dim" + str(orig_permutation[0]),
+                                                                           "dim" + str(orig_permutation[1]),
+                                                                           "dim" + str(orig_permutation[2]),
+                                                                           "dim" + str(orig_permutation[3]),
+                                                                           num_channels,
+                                                                           height,
+                                                                           width)
         elif len(permutations) == 2:
-            test_code = "{}->access({}, {})".format(output_buffer.name,
-                                                    "dim"+str(permutations[0]),
-                                                    "dim"+str(permutations[1])) \
+            width = input_shape[3]
+
+            test_code = "{}->access({}, {}, {})".format(output_buffer.name,
+                                                        "dim"+str(permutations[0]),
+                                                        "dim"+str(permutations[1]),
+                                                        width) \
                         + " = " \
-                        + "{}->access({}, {});".format(input_buffer.name,
-                                                       "dim"+str(orig_permutation[0]),
-                                                       "dim"+str(orig_permutation[1]))
+                        + "{}->access({}, {}, {});".format(input_buffer.name,
+                                                           "dim"+str(orig_permutation[0]),
+                                                           "dim"+str(orig_permutation[1]),
+                                                           width)
         else:
             print("ERROR: Unsupported permutation in Transpose operation.")
             return None
