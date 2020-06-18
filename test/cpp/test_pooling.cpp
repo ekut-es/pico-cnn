@@ -11,13 +11,10 @@ void TestPooling::tearDown() {
 }
 
 void TestPooling::runTestMaxPooling1d() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 16);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 7);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 7);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 16);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 7);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 7);
 
     fp_t input[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
 
@@ -44,20 +41,13 @@ void TestPooling::runTestMaxPooling1d() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
 }
 
 void TestPooling::runTestMaxPooling1dPadding() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 16);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 8);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 8);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 16);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 8);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 8);
 
     fp_t input[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
 
@@ -85,20 +75,13 @@ void TestPooling::runTestMaxPooling1dPadding() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
 }
 
 void TestPooling::runTestMaxPooling2d() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 4, 4);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 2, 2);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 2, 2);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 4, 4);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 2, 2);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 2, 2);
 
     fp_t input[16] = {1, 2, 3, 4,
                       5, 6, 7, 8,
@@ -129,20 +112,13 @@ void TestPooling::runTestMaxPooling2d() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
 }
 
 void TestPooling::runTestMaxPooling2dPadding() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 5);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 5);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 5);
 
     fp_t input[25] = {1, 2, 3, 4, 5,
                       6, 7, 8, 9, 10,
@@ -178,20 +154,13 @@ void TestPooling::runTestMaxPooling2dPadding() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
 }
 
 void TestPooling::runTestAvgPooling1d() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 10);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 8);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 8);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 10);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 8);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 8);
 
     fp_t input[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
@@ -218,21 +187,14 @@ void TestPooling::runTestAvgPooling1d() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
 }
 
 void TestPooling::runTestAvgPooling1dPadding() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 10);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 10);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 10);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto expected_output_tensor_count_include_pad_0 = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto expected_output_tensor_count_include_pad_1 = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 10);
+    auto expected_output_tensor_count_include_pad_0 = new pico_cnn::naive::Tensor(1, 1, 10);
+    auto expected_output_tensor_count_include_pad_1 = new pico_cnn::naive::Tensor(1, 1, 10);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 10);
 
     fp_t input[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
@@ -272,20 +234,13 @@ void TestPooling::runTestAvgPooling1dPadding() {
     delete output_tensor;
     delete expected_output_tensor_count_include_pad_0;
     delete expected_output_tensor_count_include_pad_1;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
 }
 
 void TestPooling::runTestAvgPooling2d() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 5);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
 
     fp_t input[25] = { 1,  2,  3,  4,  5,
                        6,  7,  8,  9, 10,
@@ -318,20 +273,13 @@ void TestPooling::runTestAvgPooling2d() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
 }
 
 void TestPooling::runTestAvgPooling2dPadding() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 5);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 5);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 5);
 
     fp_t input[25] = {1, 2, 3, 4, 5,
                       6, 7, 8, 9, 10,
@@ -402,20 +350,13 @@ void TestPooling::runTestAvgPooling2dPadding() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
 }
 
 void TestPooling::runTestGlobalAvgPool2d() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 4);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 1);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 1);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 4);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 1);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 1);
 
     fp_t input[20] = {-7, 13, -7, -8,
                       -15, -4, -7,  4,
@@ -441,20 +382,13 @@ void TestPooling::runTestGlobalAvgPool2d() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
 }
 
 void TestPooling::runTestGlobalMaxPool2d() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 4, 5);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 1);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 1);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 4, 5);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 1);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 1);
 
     fp_t input[20] = {17,  17, -15,  8, -15,
                       2,  13,  -2, -5,  6,
@@ -481,8 +415,4 @@ void TestPooling::runTestGlobalMaxPool2d() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
 }
