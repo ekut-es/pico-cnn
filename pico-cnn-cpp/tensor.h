@@ -44,11 +44,13 @@ namespace pico_cnn {
 
             fp_t &access_blob(uint32_t x);
 
-            fp_t *get_ptr_to_channel(uint32_t x, ...);
+            fp_t *get_ptr_to_channel(uint32_t x, ...) const;
 
             uint32_t size_bytes();
 
             uint32_t num_elements() const;
+
+            uint32_t num_dimensions() const;
 
             uint32_t num_batches() const;
             uint32_t num_channels() const;

@@ -38,6 +38,10 @@ namespace pico_cnn {
             return shape_->total_num_elements();
         }
 
+        uint32_t Tensor::num_dimensions() const {
+            return shape_->num_dimensions();
+        }
+
         uint32_t Tensor::num_batches() const {
             return this->shape()->num_batches();
         }
@@ -148,7 +152,7 @@ namespace pico_cnn {
         }
 
         // TODO: Refactor get_ptr_to_channel()
-        fp_t *Tensor::get_ptr_to_channel(uint32_t x, ...) {
+        fp_t *Tensor::get_ptr_to_channel(uint32_t x, ...) const {
             va_list args;
             va_start(args, x);
 
@@ -199,12 +203,97 @@ namespace pico_cnn {
 
         std::ostream &operator<<(std::ostream &out, Tensor const &tensor) {
             out << "shape: " << *(tensor.shape()) << std::endl;
-            out << "data: [";
-            for (uint32_t i = 0; i < tensor.num_elements(); i++) {
-                if (i == tensor.num_elements() - 1) {
-                    out << tensor.data_[i] << "]";
-                } else {
-                    out << tensor.data_[i] << ", ";
+            out << "data:" << std::endl;
+            if (tensor.num_dimensions() == 4 || tensor.num_dimensions() == 3 ) {
+
+                uint32_t num_batches = tensor.num_batches();
+                uint32_t num_channels = tensor.num_channels();
+                uint32_t height = tensor.height();
+                uint32_t width = tensor.width();
+
+                fp_t *channel_ptr;
+
+                for (uint32_t batch = 0; batch < num_batches; batch++) {
+                    out << "[";
+                    for (uint32_t channel = 0; channel < num_channels; channel++) {
+                        if (channel > 0) {
+                            out << std::string(1, ' ' ) << "[";
+                        } else {
+                            out << "[";
+                        }
+
+                        channel_ptr = tensor.get_ptr_to_channel(batch, channel);
+                        for (uint32_t row = 0; row < height; row++) {
+
+                            if (row > 0) {
+                                out << std::string(2, ' ') << "[";
+                            } else {
+                                out << "[";
+                            }
+                            for (uint32_t col = 0; col < width; col++) {
+
+                                out << channel_ptr[row*width + col];
+                                if (col != width-1)
+                                    out << ", ";
+                            }
+
+                            if (row == height-1)
+                                out << "]";
+                            else
+                                out << "]" << std::endl;
+                        }
+
+                        if (channel == num_channels-1)
+                            out << "]" ;
+                        else
+                            out << "]" << std::endl;
+                    }
+                    if (batch == num_batches-1)
+                        out << "]" ;
+                    else
+                        out << "]" << std::endl;
+                }
+
+            } else if (tensor.num_dimensions() == 2) {
+
+                uint32_t height = tensor.height();
+                uint32_t width = tensor.width();
+
+                fp_t *channel_ptr;
+
+                out << "[";
+
+                channel_ptr = tensor.get_ptr_to_channel(0, 0);
+                for (uint32_t row = 0; row < height; row++) {
+
+                    if (row > 0) {
+                        out << std::string(1, ' ') << "[";
+                    } else {
+                        out << "[";
+                    }
+                    for (uint32_t col = 0; col < width; col++) {
+
+                        out << channel_ptr[row*width + col];
+                        if (col != width-1)
+                            out << ", ";
+                    }
+
+                    if (row == height-1)
+                        out << "]";
+                    else
+                        out << "]" << std::endl;
+                }
+
+                out << "]";
+
+            } else {
+                out << "[";
+                for (uint32_t i = 0; i < tensor.num_elements(); i++) {
+                    if (i == tensor.num_elements() - 1) {
+                        out << tensor.data_[i] << "]";
+                    } else {
+                        out << tensor.data_[i] << ", ";
+                    }
                 }
             }
             return out;
