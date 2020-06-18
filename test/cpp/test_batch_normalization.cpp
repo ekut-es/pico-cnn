@@ -54,6 +54,11 @@ void TestBatchNormalization::runTestBatchNormalization_1() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
+
+    delete gamma_tensor;
+    delete beta_tensor;
+    delete mean_tensor;
+    delete variance_tensor;
 }
 
 void TestBatchNormalization::runTestBatchNormalization_2() {
@@ -104,5 +109,9 @@ void TestBatchNormalization::runTestBatchNormalization_2() {
     delete input_tensor;
     delete output_tensor;
     delete expected_output_tensor;
-    delete expected_output_tensor;
+
+    delete gamma_tensor;
+    delete beta_tensor;
+    delete mean_tensor;
+    delete variance_tensor;
 }
