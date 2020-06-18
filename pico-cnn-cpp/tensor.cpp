@@ -123,14 +123,15 @@ namespace pico_cnn {
 //            }
         }
 
-        bool Tensor::add_channel(fp_t *other, uint32_t batch, uint32_t channel) {
+        bool Tensor::add_channel(Tensor *other, uint32_t batch, uint32_t channel) {
             uint32_t height = this->height();
             uint32_t width = this->width();
 
             fp_t *channel_ptr = this->get_ptr_to_channel(batch, channel);
+            fp_t *other_ptr = other->get_ptr_to_channel(batch, channel);
 
             for (uint32_t i = 0; i < height*width; i++) {
-                channel_ptr[i] = channel_ptr[i] + other[i];
+                channel_ptr[i] = channel_ptr[i] + other_ptr[i];
             }
 
             return true;
