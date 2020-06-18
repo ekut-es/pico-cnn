@@ -40,14 +40,6 @@ namespace pico_cnn {
             if (num_batches != 1)
                 PRINT_ERROR_AND_DIE("Number of batches != 1. Convolution not tested for this.")
 
-            uint32_t num_input_channels = input->num_channels();
-            uint32_t input_height = input->height();
-            uint32_t input_width = input->width();
-
-            uint32_t num_output_channels = output->num_channels();
-            uint32_t output_height = output->height();
-            uint32_t output_width = output->width();
-
             Tensor *input_tensor;
 
             if (padding_) {
@@ -55,6 +47,14 @@ namespace pico_cnn {
             } else {
                 input_tensor = input;
             }
+
+            uint32_t num_input_channels = input_tensor->num_channels();
+            uint32_t input_height = input_tensor->height();
+            uint32_t input_width = input_tensor->width();
+
+            uint32_t num_output_channels = output->num_channels();
+            uint32_t output_height = output->height();
+            uint32_t output_width = output->width();
 
             auto *tmp_tensor = new Tensor(num_batches, num_output_channels, output_height, output_width);
 
@@ -64,7 +64,7 @@ namespace pico_cnn {
                     for (uint32_t i = g * num_output_channels / num_groups_;
                          i < (g + 1) * num_output_channels / num_groups_; i++) {
 
-                        this->convolve(input_tensor, output, g * num_input_channels / num_groups_, i, 0, stride_,
+                        this->convolve(input_tensor, output, g * num_input_channels / num_groups_, i, 0,
                                        num_input_channels, input_height, input_width,
                                        num_output_channels, output_height, output_width);
 
@@ -74,12 +74,11 @@ namespace pico_cnn {
                             for (uint32_t j = g * num_input_channels / num_groups_ + 1;
                                  j < (g + 1) * (num_input_channels / num_groups_); j++) {
 
-                                this->convolve(input_tensor, tmp_tensor, j, i, cnt, stride_,
+                                this->convolve(input_tensor, tmp_tensor, j, i, cnt,
                                                num_input_channels, input_height, input_width,
                                                num_output_channels, output_height, output_width);
 
-//                                output->add_channel(tmp_tensor, 0, i);
-                                output->add_tensor(tmp_tensor);
+                                output->add_channel(tmp_tensor, 0, i);
 //                                for (uint32_t tmp = 0; tmp < output_height; tmp++){
 //                                    for (uint32_t tmp2 = 0; tmp2 < output_width; tmp2++) {
 //                                        output->data_[(0*num_output_channels*output_height*output_width) + (i*output_height*output_width) + (tmp*output_width) + tmp2] +=
@@ -104,7 +103,7 @@ namespace pico_cnn {
         }
 
         void Convolution::convolve(Tensor *input, Tensor *output, uint32_t input_channel, uint32_t output_channel,
-                                   uint32_t cnt, uint32_t *stride_,
+                                   uint32_t cnt,
                                    uint32_t num_input_channels, uint32_t input_height, uint32_t input_width,
                                    uint32_t num_output_channels, uint32_t output_height, uint32_t output_width) {
 
@@ -155,9 +154,5 @@ namespace pico_cnn {
 
             }
         }
-
-//        void Convolution::run(Tensor *input, Tensor *output) {
-//            printf("Why here?\n");
-//        }
     }
 }

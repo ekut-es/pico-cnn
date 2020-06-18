@@ -22,7 +22,7 @@ namespace pico_cnn {
 
         private:
             void convolve(Tensor *input, Tensor *output, uint32_t input_channel, uint32_t output_channel,
-                          uint32_t cnt, uint32_t *stride_,
+                          uint32_t cnt,
                           uint32_t num_input_channels, uint32_t input_height, uint32_t input_width,
                           uint32_t num_output_channels, uint32_t output_height, uint32_t output_width);
 

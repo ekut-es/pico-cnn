@@ -93,8 +93,6 @@ void TestConvolution::runTestConvolution_0() {
             kernel_tensor, nullptr, padding, stride, num_groups);
     layer->run(input_tensor, output_tensor);
 
-    std::cout << *output_tensor << std::endl;
-
     CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
 
     delete layer;
@@ -408,9 +406,6 @@ void TestConvolution::runTestConvolution_5() {
                                                    kernel_tensor, bias_tensor, padding, stride, num_groups);
     layer->run(input_tensor, output_tensor);
 
-    std::cout << *output_tensor << std::endl;
-    std::cout << *expected_output_tensor << std::endl;
-
     CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
 
     delete layer;
@@ -602,10 +597,6 @@ void TestConvolution::runTestConvolution_8() {
     auto *layer = new pico_cnn::naive::Convolution("conv", 0, pico_cnn::op_type::Conv,
                                                    kernel_tensor, nullptr, nullptr, stride, num_groups);
     layer->run(input_tensor, output_tensor);
-
-//    std::cout << *output_tensor << std::endl;
-//    std::cout << *expected_output_tensor << std::endl;
-
 
     CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
 
