@@ -33,8 +33,7 @@ io : $(IO_OBJ) parameters.h
 #---------------------------------------------- layers ----------------------------------------------
 
 # list of all files to consider in layers
-LAYERS_SRC = tensor_shape.cpp \
-             tensor.cpp \
+LAYERS_SRC = tensor.cpp \
              layers/layer.cpp \
              layers/convolution.cpp \
              layers/pooling/pooling.cpp \

@@ -357,10 +357,8 @@ class BackendRep(backend_base.BackendRep):
 
                     buffer_declaration += "    // " + str(buffer.shape) + "\n"
 
-                    pico_cnn_tensor_shape = "    pico_cnn::naive::TensorShape *"
                     pico_cnn_tensor = "    pico_cnn::naive::Tensor *"
 
-                    buffer_declaration += pico_cnn_tensor_shape + buffer.name + "_shape;\n"
                     buffer_declaration += pico_cnn_tensor + buffer.name + ";\n"
 
                     constructor_code += "    // " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
@@ -379,10 +377,8 @@ class BackendRep(backend_base.BackendRep):
 
                 buffer_declaration += "    // " + str(buffer.shape) + "\n"
 
-                pico_cnn_tensor_shape = "    pico_cnn::naive::TensorShape *"
                 pico_cnn_tensor = "    pico_cnn::naive::Tensor *"
 
-                buffer_declaration += pico_cnn_tensor_shape + buffer.name + "_shape;\n"
                 buffer_declaration += pico_cnn_tensor + buffer.name + ";\n"
 
                 constructor_code += "    // " + str(buffer.shape) + ""  # TODO maybe we sometimes need \n
@@ -696,7 +692,7 @@ class BackendRep(backend_base.BackendRep):
         """
         # TODO: Does this need to be more sophisticated?
         self.makefile = "CC = g++\n"
-        self.makefile += "CFLAGS = -Wall -g -DINFO\n"
+        self.makefile += "CFLAGS = -Wall -O2 -DINFO\n"
         self.makefile += "LDFLAGS = -L../../../pico-cnn-cpp\n"
         self.makefile += "LD_LIBS = -lpico-cnn-cpp -lm\n\n"
         self.makefile += "# list of all generated .cpp files.\n"

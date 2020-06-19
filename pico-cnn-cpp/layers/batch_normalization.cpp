@@ -15,8 +15,8 @@ pico_cnn::naive::BatchNormalization::BatchNormalization(std::string name, uint32
 }
 
 void pico_cnn::naive::BatchNormalization::run(pico_cnn::naive::Tensor *input, pico_cnn::naive::Tensor *output) {
-    if (input->shape()->num_dimensions() != 4) {
-        PRINT_ERROR_AND_DIE("Not implemented for TensorShape: " << *input->shape());
+    if (input->num_dimensions() != 4) {
+        PRINT_ERROR_AND_DIE("Not implemented for Tensor with num_dims: " << input->num_dimensions());
     }
 
     uint32_t num_batches = input->num_batches();
@@ -33,6 +33,7 @@ void pico_cnn::naive::BatchNormalization::run(pico_cnn::naive::Tensor *input, pi
 
 void pico_cnn::naive::BatchNormalization::normalize(pico_cnn::naive::Tensor *input, pico_cnn::naive::Tensor *output, uint32_t channel) {
 
+    uint32_t num_channels = input->num_channels();
     uint32_t input_height = input->height();
     uint32_t input_width = input->width();
 
@@ -43,8 +44,9 @@ void pico_cnn::naive::BatchNormalization::normalize(pico_cnn::naive::Tensor *inp
 
     for (uint32_t row = 0; row < input_height; row++) {
         for (uint32_t col = 0; col < input_width; col++) {
-            output->access(0, channel, row, col) = gamma * (input->access(0, channel, row, col) - mean) /
-                                                      sqrtf(variance + epsilon_) + beta;
+            output->access(0, channel, row, col, num_channels, input_height, input_width) =
+                    gamma * (input->access(0, channel, row, col, num_channels, input_height, input_width) - mean) /
+                    sqrtf(variance + epsilon_) + beta;
         }
     }
 }

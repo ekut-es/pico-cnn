@@ -16,14 +16,11 @@ namespace pico_cnn {
         }
 
         void LRN::run(Tensor *input, Tensor *output) {
-            if(input->shape()->num_dimensions() != 4)
-                PRINT_ERROR_AND_DIE("LRN can only be used with TensorShape: (num_batches, num_channels, height, width) but got: " << input->shape())
-            else
-                this->activate(input, output);
+            this->activate(input, output);
         }
 
         void LRN::activate(Tensor *input, Tensor *output) {
-            if (input->shape()->num_dimensions() == 4) {
+            if (input->num_dimensions() == 4) {
                 int32_t i, num_batches, num_channels, height, width;
                 int32_t from;
                 int32_t to;
@@ -46,17 +43,18 @@ namespace pico_cnn {
                                 sum = 0.0;
 
                                 for (i = from; i <= to; i++) {
-                                    sum += powf(input->access(batch, i, row, column), 2);
+                                    sum += powf(input->access(batch, i, row, column, num_channels, height, width), 2);
                                 }
 
-                                output->access(batch, channel, row, column) = input->access(batch, channel, row, column) /
-                                                                       powf((1 + (alpha_ / (fp_t) n_) * sum), beta_);
+                                output->access(batch, channel, row, column, num_channels, height, width) =
+                                        input->access(batch, channel, row, column, num_channels, height, width) /
+                                        powf((1 + (alpha_ / (fp_t) n_) * sum), beta_);
                             }
                         }
                     }
                 }
             } else {
-                PRINT_ERROR_AND_DIE("LRN not yet implemented for shape: " << *(input->shape()))
+                PRINT_ERROR_AND_DIE("LRN not yet implemented for Tensor with num_dims != 4")
             }
         }
     }

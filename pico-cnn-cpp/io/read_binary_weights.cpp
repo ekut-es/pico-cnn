@@ -157,7 +157,7 @@ int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::T
                         fclose(binary_file);
                         return 1;
                     }
-                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0), bias_values, num_biases*sizeof(fp_t));
+                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0, 0), bias_values, num_biases*sizeof(fp_t));
 
                     bias_idx++;
 
@@ -183,7 +183,7 @@ int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::T
                         fclose(binary_file);
                         return 1;
                     }
-                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0), gamma_values, num_gamma*sizeof(fp_t));
+                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0, 0), gamma_values, num_gamma*sizeof(fp_t));
 
                     bias_idx++;
 
@@ -208,7 +208,7 @@ int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::T
                         fclose(binary_file);
                         return 1;
                     }
-                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0), beta_values, num_beta*sizeof(fp_t));
+                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0, 0), beta_values, num_beta*sizeof(fp_t));
 
                     bias_idx++;
 
@@ -233,7 +233,7 @@ int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::T
                         fclose(binary_file);
                         return 1;
                     }
-                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0), mean_values, num_mean*sizeof(fp_t));
+                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0, 0), mean_values, num_mean*sizeof(fp_t));
 
                     bias_idx++;
 
@@ -258,7 +258,7 @@ int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::T
                         fclose(binary_file);
                         return 1;
                     }
-                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0), variance_values, num_variance*sizeof(fp_t));
+                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0, 0), variance_values, num_variance*sizeof(fp_t));
 
                     bias_idx++;
 
@@ -294,6 +294,9 @@ int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::T
                 uint32_t kernel;
                 auto *values = new fp_t[kernel_height*kernel_width]();
 
+                if(num_kernels != 1)
+                    PRINT_ERROR_AND_DIE("Number of kernels != 1")
+
                 for(kernel = 0; kernel < num_kernels; kernel++) {
                     if(fread((void *) values, sizeof(float), kernel_height * kernel_width, binary_file) != (kernel_height*kernel_width)) {
                         PRINT_ERROR("ERROR while reading kernel values.")
@@ -301,7 +304,7 @@ int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::T
                         fclose(binary_file);
                         return 1;
                     }
-                    std::memcpy((*kernels)[kernel_idx]->get_ptr_to_channel(kernel), values, kernel_height*kernel_width*sizeof(fp_t));
+                    std::memcpy((*kernels)[kernel_idx]->get_ptr_to_channel(0, kernel), values, kernel_height*kernel_width*sizeof(fp_t));
                 }
 
                 kernel_idx++;
@@ -325,7 +328,7 @@ int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::T
                         fclose(binary_file);
                         return 1;
                     }
-                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0), bias_values, num_biases*sizeof(fp_t));
+                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0, 0), bias_values, num_biases*sizeof(fp_t));
 
                     bias_idx++;
 
@@ -349,7 +352,7 @@ int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::T
                         fclose(binary_file);
                         return 1;
                     }
-                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0), bias_values, num_biases*sizeof(fp_t));
+                    std::memcpy((*biases)[bias_idx]->get_ptr_to_channel(0, 0), bias_values, num_biases*sizeof(fp_t));
 
                     bias_idx++;
 

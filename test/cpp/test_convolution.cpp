@@ -4,54 +4,23 @@ CPPUNIT_TEST_SUITE_REGISTRATION(TestConvolution);
 
 void TestConvolution::setUp() {
     TestFixture::setUp();
-
-//    input_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
-//    output_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
-//    expected_output_shape = new pico_cnn::naive::TensorShape(1, 4);
-//    kernel_shape = new pico_cnn::naive::TensorShape(6, 4);
-//    bias_shape = new pico_cnn::naive::TensorShape(1, 4);
-//
-//    input_tensor = new pico_cnn::naive::Tensor(input_shape);
-//    output_tensor = new pico_cnn::naive::Tensor(output_shape);
-//    expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-//    kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
-//    bias_tensor = new pico_cnn::naive::Tensor(bias_shape);
 }
 
 void TestConvolution::tearDown() {
-
-//    delete input_tensor;
-//    delete output_tensor;
-//    delete expected_output_tensor;
-//    delete kernel_tensor;
-//    delete bias_tensor;
-//
-//    delete input_shape;
-//    delete output_shape;
-//    delete expected_output_shape;
-//    delete kernel_shape;
-//    delete bias_shape;
-
     TestFixture::tearDown();
 }
 
 void TestConvolution::runTestConvolution_1d() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 11);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 5);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 5);
-    auto kernel_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 3);
 
-
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 11);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 5);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 5);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 3);
 
     uint32_t stride[2] = {1, 2};
     uint32_t num_groups = 1;
 
-    auto bias_shape = new pico_cnn::naive::TensorShape(1);
-    auto bias_tensor = new pico_cnn::naive::Tensor(bias_shape);
+    auto bias_tensor = new pico_cnn::naive::Tensor(1);
     bias_tensor->access_blob(0) = -2;
 
     fp_t kernel[3] = {2, -1, 0};
@@ -84,26 +53,15 @@ void TestConvolution::runTestConvolution_1d() {
     delete expected_output_tensor;
     delete kernel_tensor;
     delete bias_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
-    delete bias_shape;
 }
 
 
 void TestConvolution::runTestConvolution_0() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
-    auto kernel_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
 
-
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 5);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 5);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 5);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
 
     uint32_t padding[4] = {1, 1, 1, 1};
     uint32_t stride[2] = {1, 1};
@@ -144,25 +102,14 @@ void TestConvolution::runTestConvolution_0() {
     delete output_tensor;
     delete expected_output_tensor;
     delete kernel_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
 }
 
 void TestConvolution::runTestConvolution_0_no_padding() {
-    //PRINT_INFO("Test Convolution...")
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 5);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
-    auto kernel_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
 
-
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 5);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
 
     uint32_t stride[2] = {1, 1};
     uint32_t num_groups = 1;
@@ -200,24 +147,14 @@ void TestConvolution::runTestConvolution_0_no_padding() {
     delete output_tensor;
     delete expected_output_tensor;
     delete kernel_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
 }
 
 void TestConvolution::runTestConvolution_1() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 4, 3);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 4, 3);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 4, 3);
-    auto kernel_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
 
-
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 4, 3);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 4, 3);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 4, 3);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
 
     uint32_t padding[4] = {1, 1, 1, 1};
     uint32_t stride[2] = {1, 1};
@@ -260,24 +197,14 @@ void TestConvolution::runTestConvolution_1() {
     delete output_tensor;
     delete expected_output_tensor;
     delete kernel_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
 }
 
 void TestConvolution::runTestConvolution_2() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 4, 3);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 4, 3);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 4, 3);
-    auto kernel_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
 
-
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 4, 3);;
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 4, 3);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 4, 3);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
 
     uint32_t padding[4] = {1, 1, 1, 1};
     uint32_t stride[2] = {1, 1};
@@ -320,24 +247,14 @@ void TestConvolution::runTestConvolution_2() {
     delete output_tensor;
     delete expected_output_tensor;
     delete kernel_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
 }
 
 void TestConvolution::runTestConvolution_3() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 8, 6);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 10, 8);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 10, 8);
-    auto kernel_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 3);
 
-
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 8, 6);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 10, 8);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 10, 8);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 3);
 
     uint32_t padding[4] = {0,1,2,3};
     uint32_t stride[2] = {1, 1};
@@ -388,24 +305,14 @@ void TestConvolution::runTestConvolution_3() {
     delete output_tensor;
     delete expected_output_tensor;
     delete kernel_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
 }
 
 void TestConvolution::runTestConvolution_4() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 8, 6);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 3);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 3);
-    auto kernel_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 3);
 
-
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 8, 6);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 3);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 3);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 3);
 
     uint32_t padding[4] = {0,1,2,3};
     uint32_t stride[2] = {2, 3};
@@ -451,31 +358,20 @@ void TestConvolution::runTestConvolution_4() {
     delete output_tensor;
     delete expected_output_tensor;
     delete kernel_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
 }
 
 void TestConvolution::runTestConvolution_5() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 7, 5);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
-    auto kernel_shape = new pico_cnn::naive::TensorShape(1, 1, 5, 3);
 
-
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 7, 5);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(1, 1, 5, 3);
 
     uint32_t padding[4] = {1, 2, 4, 0};
     uint32_t stride[2] = {3, 2};
     uint32_t num_groups = 1;
 
-    auto bias_shape = new pico_cnn::naive::TensorShape(1);
-    auto bias_tensor = new pico_cnn::naive::Tensor(bias_shape);
+    auto bias_tensor = new pico_cnn::naive::Tensor(1);
     bias_tensor->access_blob(0) = 0.4;
 
     fp_t kernel[15] = {-3, -4,  1,
@@ -520,25 +416,14 @@ void TestConvolution::runTestConvolution_5() {
     delete expected_output_tensor;
     delete kernel_tensor;
     delete bias_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
-    delete bias_shape;
 }
 
 void TestConvolution::runTestConvolution_6() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 3, 5, 5);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
-    auto kernel_shape = new pico_cnn::naive::TensorShape(1, 3, 3, 3);
 
-
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 3, 5, 5);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(1, 3, 3, 3);
 
     uint32_t stride[2] = {1, 1};
     uint32_t num_groups = 1;
@@ -601,24 +486,14 @@ void TestConvolution::runTestConvolution_6() {
     delete output_tensor;
     delete expected_output_tensor;
     delete kernel_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
 }
 
 void TestConvolution::runTestConvolution_7() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 2, 1, 6);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 4, 1, 4);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 4, 1, 4);
-    auto kernel_shape = new pico_cnn::naive::TensorShape(4, 2, 1, 3);
 
-
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 2, 1, 6);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 4, 1, 4);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 4, 1, 4);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(4, 2, 1, 3);
 
     uint32_t stride[2] = {1, 1};
     uint32_t num_groups = 1;
@@ -662,10 +537,6 @@ void TestConvolution::runTestConvolution_7() {
                                                    kernel_tensor, nullptr, nullptr, stride, num_groups);
     layer->run(input_tensor, output_tensor);
 
-//    std::cout << *output_tensor << std::endl;
-//    std::cout << *expected_output_tensor << std::endl;
-
-
     CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
 
     delete layer;
@@ -675,24 +546,14 @@ void TestConvolution::runTestConvolution_7() {
     delete output_tensor;
     delete expected_output_tensor;
     delete kernel_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
 }
 
 void TestConvolution::runTestConvolution_8() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 2, 1, 6);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 4, 1, 4);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 4, 1, 4);
-    auto kernel_shape = new pico_cnn::naive::TensorShape(4, 2, 1, 3);
 
-
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 2, 1, 6);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 4, 1, 4);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 4, 1, 4);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(4, 2, 1, 3);
 
     uint32_t stride[2] = {1, 1};
     uint32_t num_groups = 1;
@@ -737,10 +598,6 @@ void TestConvolution::runTestConvolution_8() {
                                                    kernel_tensor, nullptr, nullptr, stride, num_groups);
     layer->run(input_tensor, output_tensor);
 
-//    std::cout << *output_tensor << std::endl;
-//    std::cout << *expected_output_tensor << std::endl;
-
-
     CPPUNIT_ASSERT(*output_tensor == *expected_output_tensor);
 
     delete layer;
@@ -750,9 +607,4 @@ void TestConvolution::runTestConvolution_8() {
     delete output_tensor;
     delete expected_output_tensor;
     delete kernel_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
 }

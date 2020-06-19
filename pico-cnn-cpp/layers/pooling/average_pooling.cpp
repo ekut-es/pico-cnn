@@ -9,12 +9,14 @@ pico_cnn::naive::AveragePooling::AveragePooling(std::string name, uint32_t id, p
 }
 
 void pico_cnn::naive::AveragePooling::pool(pico_cnn::naive::Tensor *input, pico_cnn::naive::Tensor *output) {
-    uint32_t num_dims = input->shape()->num_dimensions();
+    uint32_t num_dims = input->num_dimensions();
 
     uint32_t num_batches = input->num_batches();
     uint32_t num_channels = input->num_channels();
     uint32_t height = input->height();
     uint32_t width = input->width();
+    uint32_t output_height = output->height();
+    uint32_t output_width = output->width();
 
     uint32_t channel_row, channel_column;
     uint32_t output_channel_row, output_channel_column;
@@ -46,19 +48,20 @@ void pico_cnn::naive::AveragePooling::pool(pico_cnn::naive::Tensor *input, pico_
                                  kernel_column < channel_column + kernel_size_[1] &&
                                  kernel_column < width; kernel_column++) {
                                 if (num_dims == 4) {
-                                    pixel += input->access(batch, channel, kernel_row, kernel_column);
+                                    pixel += input->access(batch, channel, kernel_row, kernel_column,
+                                                           num_channels, height, width);
                                 } else if (num_dims == 3) {
-                                    pixel += input->access(batch, channel, kernel_column);
+                                    pixel += input->access(batch, channel, kernel_column, num_channels, width);
                                 }
                             }
                         }
 
                         if (num_dims == 4) {
-                            output->access(batch, channel, output_channel_row, output_channel_column) = pixel /
-                                    ((fp_t) (kernel_size_[0] * kernel_size_[1]));
+                            output->access(batch, channel, output_channel_row, output_channel_column,
+                                           num_channels, output_height, output_width) = pixel / ((fp_t) (kernel_size_[0] * kernel_size_[1]));
                         } else if (num_dims == 3) {
-                            output->access(batch, channel, output_channel_column) = pixel /
-                                    ((fp_t) (kernel_size_[0] * kernel_size_[1]));
+                            output->access(batch, channel, output_channel_column,
+                                           num_channels, output_width) = pixel / ((fp_t) (kernel_size_[0] * kernel_size_[1]));
                         }
                         output_channel_column++;
                     }
@@ -91,9 +94,9 @@ void pico_cnn::naive::AveragePooling::pool(pico_cnn::naive::Tensor *input, pico_
                                  kernel_column < channel_column + kernel_size_[1] &&
                                  kernel_column < width; kernel_column++) {
                                 if (num_dims == 4) {
-                                    pixel += input->access(batch, channel, kernel_row, kernel_column);
+                                    pixel += input->access(batch, channel, kernel_row, kernel_column, num_channels, height, width);
                                 } else if (num_dims == 3) {
-                                    pixel += input->access(batch, channel, kernel_column);
+                                    pixel += input->access(batch, channel, kernel_column, num_channels, width);
                                 }
                             }
                         }
@@ -103,11 +106,11 @@ void pico_cnn::naive::AveragePooling::pool(pico_cnn::naive::Tensor *input, pico_
                             output_channel_column >= crop[1] && output_channel_column < output_channel_width - crop[1]) {
 
                             if (num_dims == 4) {
-                                output->access(batch, channel, output_channel_row, output_channel_column) = pixel /
-                                        ((fp_t) (kernel_size_[0] * kernel_size_[1]));
+                                output->access(batch, channel, output_channel_row, output_channel_column,
+                                               num_channels, output_height, output_width) = pixel / ((fp_t) (kernel_size_[0] * kernel_size_[1]));
                             } else if (num_dims == 3) {
-                                output->access(batch, channel, output_channel_column) = pixel /
-                                        ((fp_t) (kernel_size_[0] * kernel_size_[1]));
+                                output->access(batch, channel, output_channel_column,
+                                               num_channels, output_width) = pixel / ((fp_t) (kernel_size_[0] * kernel_size_[1]));
                             }
 
                         // edge case
@@ -132,11 +135,11 @@ void pico_cnn::naive::AveragePooling::pool(pico_cnn::naive::Tensor *input, pico_
                             }
 
                             if (num_dims == 4) {
-                                output->access(batch, channel, output_channel_row, output_channel_column) = pixel /
-                                        ((fp_t) (divisor));
+                                output->access(batch, channel, output_channel_row, output_channel_column,
+                                               num_channels, output_height, output_width) = pixel / ((fp_t) (divisor));
                             } else if (num_dims == 3) {
-                                output->access(batch, channel, output_channel_column) = pixel /
-                                        ((fp_t) (divisor));
+                                output->access(batch, channel, output_channel_column,
+                                               num_channels, output_width) = pixel / ((fp_t) (divisor));
                             }
 
                         }

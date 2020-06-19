@@ -5,18 +5,12 @@ CPPUNIT_TEST_SUITE_REGISTRATION(TestFullyConnected);
 void TestFullyConnected::setUp() {
     TestFixture::setUp();
 
-    input_shape = new pico_cnn::naive::TensorShape(1, 6);
-    output_shape = new pico_cnn::naive::TensorShape(1, 4);
-    expected_output_shape = new pico_cnn::naive::TensorShape(1, 4);
     // It might seem as if the shape should be transposed but onnx uses this layout for gemm kernels as to improve memory access patterns
-    kernel_shape = new pico_cnn::naive::TensorShape(4, 6);
-    bias_shape = new pico_cnn::naive::TensorShape(4);
-
-    input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
-    kernel_tensor = new pico_cnn::naive::Tensor(kernel_shape);
-    bias_tensor = new pico_cnn::naive::Tensor(bias_shape);
+    input_tensor = new pico_cnn::naive::Tensor(1, 6);
+    output_tensor = new pico_cnn::naive::Tensor(1, 4);
+    expected_output_tensor = new pico_cnn::naive::Tensor(1, 4);
+    kernel_tensor = new pico_cnn::naive::Tensor(4, 6);
+    bias_tensor = new pico_cnn::naive::Tensor(4);
 
     fp_t input[6] = {-2, 4, 1, 8, -5, 0};
 
@@ -41,7 +35,7 @@ void TestFullyConnected::setUp() {
     uint32_t kernel_width = kernel_tensor->width();
     for (uint32_t row = 0; row < kernel_height; row++) {
         for (uint32_t col = 0; col < kernel_width; col++) {
-            kernel_tensor->access(row, col) = kernel[row * kernel_width + col];
+            kernel_tensor->access(row, col, kernel_width) = kernel[row * kernel_width + col];
         }
     }
 
@@ -53,12 +47,6 @@ void TestFullyConnected::tearDown() {
     delete expected_output_tensor;
     delete kernel_tensor;
     delete bias_tensor;
-
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
-    delete kernel_shape;
-    delete bias_shape;
 
     TestFixture::tearDown();
 }

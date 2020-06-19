@@ -63,6 +63,14 @@ def main():
     inputs = []
     input_shape = tuple(args.input_shape)
     data = np.ones(input_shape, dtype=float).astype(np.float32)
+
+    #  Use this piece of code if you want to have ascending values in your input data
+    # input_number = 0
+    # with np.nditer(data, op_flags=['readwrite']) as it:
+    #     for x in it:
+    #         x[...] = input_number
+    #         input_number = input_number + 1
+
     inputs.append(data)
 
     more_outputs = []

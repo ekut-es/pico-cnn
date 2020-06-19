@@ -9,6 +9,10 @@ include_directories("${PROJECT_SOURCE_DIR}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 list(APPEND LINK_LIBS m)
 
+set(CMAKE_CXX_FLAGS "-Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O1")
+
 find_library(LIB_CPPUNIT cppunit)
 if(NOT LIB_CPPUNIT)
     message(FATAL_ERROR "cppunit not found")
@@ -16,7 +20,6 @@ endif()
 
 
 set(PICO_CNN_CPP_LIBRARY_SRCS
-        ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/tensor_shape.cpp
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/tensor.cpp
 
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/layers/layer.cpp
@@ -44,19 +47,30 @@ set(PICO_CNN_CPP_IO_SRCS
         ${PROJECT_SOURCE_DIR}/pico-cnn-cpp/io/read_binary_weights.cpp
 )
 add_library(pico-cnn-cpp ${PICO_CNN_CPP_LIBRARY_SRCS} ${PICO_CNN_CPP_IO_SRCS})
-target_compile_options(pico-cnn-cpp PRIVATE -Wall -DDEBUG=0 -DINFO=1)
+target_compile_options(pico-cnn-cpp PRIVATE ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -DDEBUG=0 -DINFO=1)
 
-add_executable(dummy_lenet ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/dummy_input.cpp
-                           ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/network.cpp
-)
-target_compile_options(dummy_lenet PRIVATE -DDEBUG=0 -DINFO=1)
-target_link_libraries(dummy_lenet pico-cnn-cpp)
+#add_executable(dummy_lenet ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/dummy_input.cpp
+#                           ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/network.cpp
+#)
+#target_compile_options(dummy_lenet PRIVATE -DDEBUG=0 -DINFO=1)
+#target_link_libraries(dummy_lenet pico-cnn-cpp)
+#
+#add_executable(reference_lenet ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/reference_input.cpp
+#                               ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/network.cpp
+#)
+#target_compile_options(reference_lenet PRIVATE -DDEBUG=0 -DINFO=1)
+#target_link_libraries(reference_lenet pico-cnn-cpp)
 
-add_executable(reference_lenet ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/reference_input.cpp
-                               ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/network.cpp
-)
-target_compile_options(reference_lenet PRIVATE -DDEBUG=0 -DINFO=1)
-target_link_libraries(reference_lenet pico-cnn-cpp)
+add_executable(reference_inception ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/reference_input.cpp
+        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/network.cpp
+        )
+target_compile_options(reference_inception PRIVATE -DDEBUG=0 -DINFO=1)
+target_link_libraries(reference_inception pico-cnn-cpp)
+
+add_executable(dummy_inception ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/dummy_input.cpp
+        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/network.cpp)
+target_compile_options(dummy_inception PRIVATE  ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -DDEBUG=0 -DINFO=1)
+target_link_libraries(dummy_inception pico-cnn-cpp)
 
 # Tests
 set(UNIT_TESTS_SRCS

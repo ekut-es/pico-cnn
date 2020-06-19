@@ -11,23 +11,15 @@ void TestBatchNormalization::tearDown() {
 }
 
 void TestBatchNormalization::runTestBatchNormalization_1() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 3);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 3);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 1, 3);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 3);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 3);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 3);
 
-    auto gamma_shape = new pico_cnn::naive::TensorShape(1);
-    auto beta_shape = new pico_cnn::naive::TensorShape(1);
-    auto mean_shape = new pico_cnn::naive::TensorShape(1);
-    auto variance_shape = new pico_cnn::naive::TensorShape(1);
-
-    auto gamma_tensor = new pico_cnn::naive::Tensor(gamma_shape);
-    auto beta_tensor = new pico_cnn::naive::Tensor(beta_shape);
-    auto mean_tensor = new pico_cnn::naive::Tensor(mean_shape);
-    auto variance_tensor = new pico_cnn::naive::Tensor(variance_shape);
+    auto gamma_tensor = new pico_cnn::naive::Tensor(1);
+    auto beta_tensor = new pico_cnn::naive::Tensor(1);
+    auto mean_tensor = new pico_cnn::naive::Tensor(1);
+    auto variance_tensor = new pico_cnn::naive::Tensor(1);
 
     fp_t gammas[1] = {1.0};
     fp_t beta[1] = {0};
@@ -63,29 +55,22 @@ void TestBatchNormalization::runTestBatchNormalization_1() {
     delete output_tensor;
     delete expected_output_tensor;
 
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
+    delete gamma_tensor;
+    delete beta_tensor;
+    delete mean_tensor;
+    delete variance_tensor;
 }
 
 void TestBatchNormalization::runTestBatchNormalization_2() {
-    auto input_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
-    auto output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
-    auto expected_output_shape = new pico_cnn::naive::TensorShape(1, 1, 3, 3);
 
-    auto input_tensor = new pico_cnn::naive::Tensor(input_shape);
-    auto output_tensor = new pico_cnn::naive::Tensor(output_shape);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(expected_output_shape);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 3, 3);
 
-    auto gamma_shape = new pico_cnn::naive::TensorShape(1);
-    auto beta_shape = new pico_cnn::naive::TensorShape(1);
-    auto mean_shape = new pico_cnn::naive::TensorShape(1);
-    auto variance_shape = new pico_cnn::naive::TensorShape(1);
-
-    auto gamma_tensor = new pico_cnn::naive::Tensor(gamma_shape);
-    auto beta_tensor = new pico_cnn::naive::Tensor(beta_shape);
-    auto mean_tensor = new pico_cnn::naive::Tensor(mean_shape);
-    auto variance_tensor = new pico_cnn::naive::Tensor(variance_shape);
+    auto gamma_tensor = new pico_cnn::naive::Tensor(1);
+    auto beta_tensor = new pico_cnn::naive::Tensor(1);
+    auto mean_tensor = new pico_cnn::naive::Tensor(1);
+    auto variance_tensor = new pico_cnn::naive::Tensor(1);
 
     fp_t gammas[1] = {1.5};
     fp_t beta[1] = {1.1};
@@ -125,7 +110,8 @@ void TestBatchNormalization::runTestBatchNormalization_2() {
     delete output_tensor;
     delete expected_output_tensor;
 
-    delete input_shape;
-    delete output_shape;
-    delete expected_output_shape;
+    delete gamma_tensor;
+    delete beta_tensor;
+    delete mean_tensor;
+    delete variance_tensor;
 }
