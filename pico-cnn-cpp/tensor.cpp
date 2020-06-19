@@ -54,6 +54,10 @@ namespace pico_cnn {
             return num_dimensions_;
         }
 
+        uint32_t Tensor::num_dimensions() const {
+            return shape_->num_dimensions();
+        }
+
         uint32_t Tensor::num_batches() const {
             if (num_dimensions_ == 4) {
                 return shape_[0];
