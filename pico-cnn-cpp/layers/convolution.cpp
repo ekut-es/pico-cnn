@@ -56,6 +56,8 @@ namespace pico_cnn {
             uint32_t output_height = output->height();
             uint32_t output_width = output->width();
 
+            uint32_t num_kernel_input_channel = kernel_->num_channels();
+
             auto *tmp_tensor = new Tensor(num_batches, num_output_channels, output_height, output_width);
 
             for (uint32_t batch = 0; batch < num_batches; batch++) {
@@ -66,7 +68,7 @@ namespace pico_cnn {
 
                         this->convolve(input_tensor, output, g * num_input_channels / num_groups_, i, 0,
                                        num_input_channels, input_height, input_width,
-                                       num_output_channels, output_height, output_width);
+                                       num_output_channels, output_height, output_width, num_kernel_input_channel);
 
                         if (num_input_channels > num_groups_) {
                             uint32_t cnt = 1;
@@ -76,7 +78,7 @@ namespace pico_cnn {
 
                                 this->convolve(input_tensor, tmp_tensor, j, i, cnt,
                                                num_input_channels, input_height, input_width,
-                                               num_output_channels, output_height, output_width);
+                                               num_output_channels, output_height, output_width, num_kernel_input_channel);
 
                                 output->add_channel(tmp_tensor, 0, i);
 //                                for (uint32_t tmp = 0; tmp < output_height; tmp++){
@@ -105,7 +107,8 @@ namespace pico_cnn {
         void Convolution::convolve(Tensor *input, Tensor *output, uint32_t input_channel, uint32_t output_channel,
                                    uint32_t cnt,
                                    uint32_t num_input_channels, uint32_t input_height, uint32_t input_width,
-                                   uint32_t num_output_channels, uint32_t output_height, uint32_t output_width) {
+                                   uint32_t num_output_channels, uint32_t output_height, uint32_t output_width,
+                                   uint32_t num_kernel_channels) {
 
             uint32_t channel_row, channel_col;
             uint32_t kernel_row, kernel_col;
@@ -130,7 +133,7 @@ namespace pico_cnn {
                         for(kernel_col = 0; kernel_col < kernel_width; kernel_col++) {
 
                             pixel += kernel_->access(output_channel, cnt, kernel_row, kernel_col,
-                                                     num_input_channels, kernel_height, kernel_width) *
+                                                     num_kernel_channels, kernel_height, kernel_width) *
                                      input->access(0, input_channel, channel_row-height_crop+kernel_row, channel_col-width_crop+kernel_col,
                                                    num_input_channels, input_height, input_width);
 //                            pixel += kernel_->data_[(output_channel*num_input_channels*kernel_height*kernel_width) + (cnt*kernel_height*kernel_width) + (kernel_row*kernel_width) + kernel_col] *
@@ -138,7 +141,7 @@ namespace pico_cnn {
                         }
                     }
 
-                    if (input_channel == 0 && bias_) {
+                    if (cnt == 0 && bias_) {
 //                        pixel += bias_->data_[output_channel];
                         pixel += bias_->access(output_channel);
                     }

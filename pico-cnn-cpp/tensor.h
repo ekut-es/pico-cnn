@@ -56,6 +56,14 @@ namespace pico_cnn {
                 return data_[(x0*num_channels*height*width) + (x1*height*width) + (x2*width) + x3];
             }
 
+//            inline fp_t &safe_access(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3) const {
+//                if (x0 < num_batches() && x1 < num_channels() && x2 < height() && x3 < width()) {
+//                    return data_[(x0*shape_[1]*shape_[2]*shape_[3]) + (x1*shape_[2]*shape_[3]) + (x2*shape_[3]) + x3];
+//                } else {
+//                    PRINT_ERROR_AND_DIE("Access out of tensor bounds.")
+//                }
+//            }
+
             inline fp_t &access_blob(uint32_t x) const {
                 return data_[x];
             }
