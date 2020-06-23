@@ -25,7 +25,7 @@ namespace pico_cnn {
              * @param bias We use the same data layout as used in the onnx file format: bias->shape == (1, Y)
              */
             FullyConnected(std::string name, uint32_t id, op_type op, Tensor *kernel, Tensor *bias);
-            ~FullyConnected() = default;
+            ~FullyConnected() override = default;
 
             /**
              *
@@ -39,6 +39,19 @@ namespace pico_cnn {
 
             Tensor *kernel_;
             Tensor *bias_;
+        };
+
+        class MatMul : Layer {
+        public:
+            MatMul(std::string name, uint32_t id, op_type op, Tensor *weights);
+            ~MatMul() override = default;
+
+            void run(Tensor *input, Tensor *output);
+
+        private:
+            void matmul(Tensor *input, Tensor *output);
+
+            Tensor *weights_;
         };
     }
 }

@@ -123,7 +123,7 @@ namespace pico_cnn {
 //            }
         }
 
-        bool Tensor::add_channel(Tensor *other, uint32_t batch, uint32_t channel) {
+        bool Tensor::add_channel(Tensor *other, uint32_t batch, uint32_t channel) const {
             uint32_t height = this->height();
             uint32_t width = this->width();
 
@@ -135,6 +135,12 @@ namespace pico_cnn {
             }
 
             return true;
+        }
+
+        void Tensor::mul_with_factor(Tensor *other, fp_t factor) {
+            for (uint32_t i = 0; i < num_elements_; i++) {
+                other->data_[i] = this->data_[i] * factor;
+            }
         }
 
         fp_t *Tensor::get_ptr_to_channel(uint32_t x0, uint32_t x1) const {

@@ -519,76 +519,79 @@ OperationRegistry.register(BatchNorm)
 #
 #
 # OperationRegistry.register(Clip)
-#
-#
-# class MatMul(BaseLayer):
-#     name = "PicoCNNMatMul"
-#     operator = "MatMul"
-#     template_file = "pico_cnn_matmul.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         weight_buffer = memory_manager.get_buffer(graph, node.inputs[1])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_size = reduce_mult(input_buffer.shape)
-#         output_size = reduce_mult(output_buffer.shape)
-#
-#         operation = cls(node, graph)
-#
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['input_size'] = input_size
-#         operation.attributes['weight_buffer'] = weight_buffer
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['output_size'] = output_size
-#
-#         return operation
-#
-#
-# OperationRegistry.register(MatMul)
-#
-#
-# class Mul(BaseLayer):
-#     name = "PicoCNNMul"
-#     operator = "Mul"
-#     template_file = "mul.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         factor = node.input_tensors[node.inputs[1]]
-#
-#         input_shape = input_buffer.shape
-#         output_shape = output_buffer.shape
-#
-#         assert(input_shape == output_shape)
-#
-#         mul_code = ""
-#         mul_code += "for(uint32_t i = 0; i < {}; i++)\n".format(input_shape[1])
-#         mul_code += "    for(uint32_t j = 0; j < {}*{}; j++)\n".format(input_shape[2], input_shape[3])
-#         mul_code += "        {}[i][j] = {}[i][j] * {};\n".format(output_buffer.name, input_buffer.name, factor)
-#
-#         operation = cls(node, graph)
-#
-#         operation.attributes['mul_code'] = mul_code
-#
-#         # operation.attributes['input_buffer'] = input_buffer
-#         # operation.attributes['input_size'] = input_size
-#         # operation.attributes['weight_buffer'] = weight_buffer
-#         # operation.attributes['output_buffer'] = output_buffer
-#         # operation.attributes['output_size'] = output_size
-#
-#         return operation
-#
-#
-# OperationRegistry.register(Mul)
+
+
+class MatMul(BaseLayer):
+    name = "PicoCNNMatMul"
+    operator = "MatMul"
+    template_file_declaration = "fc/pico_cnn_matmul_decl.cpp"
+    template_file_allocation = "fc/pico_cnn_matmul_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        weight_buffer = memory_manager.get_buffer(graph, node.inputs[1])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        input_size = reduce_mult(input_buffer.shape)
+        output_size = reduce_mult(output_buffer.shape)
+
+        operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['weight_buffer'] = weight_buffer
+        operation.attributes['output_buffer'] = output_buffer
+
+        return operation
+
+
+OperationRegistry.register(MatMul)
+
+
+class Mul(BaseLayer):
+    name = "PicoCNNMul"
+    operator = "Mul"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_mul.cpp"
+    template_file_deletion = "empty.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        factor = node.input_tensors[node.inputs[1]]
+
+        if factor.size != 1:
+            print("ERROR: Mul operation currently does not support Tensor-styled factors.")
+            exit(1)
+
+        input_shape = input_buffer.shape
+        output_shape = output_buffer.shape
+
+        assert(input_shape == output_shape)
+
+        operation = cls(node, graph)
+
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['factor'] = factor
+
+        return operation
+
+
+OperationRegistry.register(Mul)
 
 
 class AveragePool2D(BaseLayer):
@@ -854,7 +857,7 @@ class Transpose(BaseLayer):
                                                            input_width)
         else:
             print("ERROR: Unsupported permutation in Transpose operation.")
-            return None
+            exit(1)
 
         transpose_code += "    " + test_code
 
@@ -1046,7 +1049,7 @@ class Add(BaseLayer):
                 else:
                     # TODO: This needs a better solution!!!
                     print("Broadcasting is not supported for add operation")
-                    return None
+                    exit(1)
 
         operation = cls(node, graph)
         operation.attributes['name'] = node.name

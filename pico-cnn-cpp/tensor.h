@@ -88,7 +88,8 @@ namespace pico_cnn {
             void concatenate_from(uint32_t num_inputs, Tensor **inputs, uint32_t dimension) const;
 
             bool add_tensor(Tensor *other) const;
-            bool add_channel(Tensor *other, uint32_t batch, uint32_t channel);
+            bool add_channel(Tensor *other, uint32_t batch, uint32_t channel) const;
+            void mul_with_factor(Tensor *other, fp_t factor);
 
             bool operator ==(const Tensor &other) const {
                 for (uint32_t i = 0; i < num_dimensions_; i++) {

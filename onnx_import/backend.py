@@ -115,8 +115,8 @@ class BackendRep(backend_base.BackendRep):
                 buffer = memory_manager.get_buffer(graph, input)
                 data = node.input_tensors[input]
 
-                if node.op_type == "Gemm":
-                    data = data.transpose()
+                # if node.op_type == "Gemm":
+                #     data = data.transpose()
 
                 type_code = "fp_t " + buffer.name + "[]"
                 declaration = "// " + str(data.shape) + "\n"
@@ -178,7 +178,7 @@ class BackendRep(backend_base.BackendRep):
 
                 data = node.input_tensors[input]
 
-                # if node.op_type == "Gemm":
+                # if node.op_type == "MatMul":
                 #     data = data.transpose()
 
                 if len(data.shape) == 4:
