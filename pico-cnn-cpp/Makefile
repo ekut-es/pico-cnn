@@ -1,9 +1,10 @@
 CC = g++
-CFLAGS = -Wall -O2 -DINFO
+AR = ar
+CFLAGS = -Wall -flto -O3 -march=native -DINFO
 LDFLAGS =
 
 libpico-cnn-cpp.a: layers io parameters.h utils.h
-	ar -rcs libpico-cnn-cpp.a *.o layers/*.o layers/activation_functions/*.o layers/pooling/*.o io/*.o
+	$(AR) -rcs libpico-cnn-cpp.a *.o layers/*.o layers/activation_functions/*.o layers/pooling/*.o io/*.o
 
 # remove the library directory
 .PHONY: clean
