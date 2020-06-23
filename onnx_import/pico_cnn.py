@@ -1124,47 +1124,46 @@ class Softmax(BaseLayer):
 OperationRegistry.register(Softmax)
 
 
-# class LocalResponseNormalization(BaseLayer):
-#     """
-#     Local response normalization function.
-#     """
-#     name = "LocalResponseNormalizationGeneric"
-#     operator = "LRN"
-#     template_file = "pico_cnn_lrn.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         """
-#         Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
-#         :param node: ComputeNode object of a CNN layer
-#         :param graph: ComputeGraph object of the CNN
-#         :param memory_manager: MemoryManager object containing information about input and output buffers.
-#         :return:
-#         """
-#         attrs = node.attrs
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_shape = input_buffer.shape
-#         height = input_shape[2]
-#         width = input_shape[3]
-#
-#         depth = input_shape[1]
-#
-#         operation = cls(node, graph)
-#         operation.attributes["input_buffer"] = input_buffer
-#         operation.attributes["output_buffer"] = output_buffer
-#         operation.attributes["height"] = height
-#         operation.attributes["width"] = width
-#         operation.attributes["depth"] = depth
-#         operation.attributes["alpha"] = attrs["alpha"]
-#         operation.attributes["beta"] = attrs["beta"]
-#         operation.attributes["size"] = attrs["size"]
-#
-#         return operation
-#
-#
-# OperationRegistry.register(LocalResponseNormalization)
+class LocalResponseNormalization(BaseLayer):
+    """
+    Local response normalization function.
+    """
+    name = "LocalResponseNormalizationGeneric"
+    operator = "LRN"
+    template_file_declaration = "activation/pico_cnn_lrn_decl.cpp"
+    template_file_allocation = "activation/pico_cnn_lrn_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        """
+        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
+        :param node: ComputeNode object of a CNN layer
+        :param graph: ComputeGraph object of the CNN
+        :param memory_manager: MemoryManager object containing information about input and output buffers.
+        :return:
+        """
+        attrs = node.attrs
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
+        operation.attributes["input_buffer"] = input_buffer
+        operation.attributes["output_buffer"] = output_buffer
+        operation.attributes["alpha"] = attrs["alpha"]
+        operation.attributes["beta"] = attrs["beta"]
+        operation.attributes["n"] = attrs["size"]
+
+        return operation
+
+
+OperationRegistry.register(LocalResponseNormalization)
 
 
 class Squeeze(BaseLayer):
