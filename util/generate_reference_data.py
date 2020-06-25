@@ -50,6 +50,14 @@ def main():
         help="Required input shape. Format \"--shape 1 1 1 16000\" for (1, 1, 1, 16000) with "
              "(batch_size, num_input_ch, height, width)."
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        nargs=1,
+        required=False,
+        default=None,
+        help="Seed to give to np.random(). Default is None."
+    )
     args = parser.parse_args()
 
     if args.file:
@@ -186,6 +194,7 @@ def main():
         input_data = input_data.reshape(input_shape)
 
     elif file_type == 'random':
+        np.random.seed(args.seed)
         input_data = np.random.uniform(r[0], r[1], input_shape)
         input_data = input_data.astype(np.float32)
 
