@@ -22,16 +22,22 @@ def generate_dummy_main(graph):
     inputs = graph.inputs
     outputs = graph.outputs
 
+    num_input_dims = 0
+    num_input_batches = 0
+    num_input_channels = 0
+    input_channel_height = 0
+    input_channel_width = 0
+
     if len(inputs) > 1:
         print("ERROR: Multiple inputs not supported!")
-        return 1
+        exit(1)
     else:
         input_shape = graph.shape_dict[inputs[0].name]
 
         if len(input_shape) == 4:
             if input_shape[0] != 1:
                 print("ERROR: Inference for batch_size > 1 currently not supported!")
-                return 1
+                exit(1)
 
             num_input_dims = 4
             num_input_batches = input_shape[0]
@@ -48,7 +54,7 @@ def generate_dummy_main(graph):
         elif len(input_shape) == 3:
             if input_shape[0] != 1:
                 print("ERROR: Inference for batch_size > 1 currently not supported!")
-                return 1
+                exit(1)
 
             num_input_dims = 3
             num_input_batches = input_shape[0]
@@ -58,11 +64,17 @@ def generate_dummy_main(graph):
 
         else:
             print("ERROR: Creation of dummy input not supported for this input shape: {}".format(input_shape))
-            return 1
+            exit(1)
+
+    num_output_dims = 0
+    num_output_batches = 0
+    num_output_channels = 0
+    output_channel_height = 0
+    output_channel_width = 0
 
     if len(outputs) > 1:
         print("ERROR: Multiple outputs not supported!")
-        return 1
+        exit(1)
     else:
         output_shape = graph.shape_dict[outputs[0].name]
 
@@ -111,16 +123,22 @@ def generate_reference_main(graph):
     inputs = graph.inputs
     outputs = graph.outputs
 
+    num_input_dims = 0
+    num_input_batches = 0
+    num_input_channels = 0
+    input_channel_height = 0
+    input_channel_width = 0
+
     if len(inputs) > 1:
         print("ERROR: Multiple inputs not supported!")
-        return 1
+        exit(1)
     else:
         input_shape = inputs[0].shape
 
         if len(input_shape) == 4:
             if input_shape[0] != 1:
                 print("ERROR: Inference for batch_size > 1 currently not supported!")
-                return 1
+                exit(1)
 
             num_input_dims = 4
             num_input_batches = input_shape[0]
@@ -137,7 +155,7 @@ def generate_reference_main(graph):
         elif len(input_shape) == 3:
             if input_shape[0] != 1:
                 print("ERROR: Inference for batch_size > 1 currently not supported!")
-                return 1
+                exit(1)
 
             num_input_dims = 3
             num_input_batches = input_shape[0]
@@ -147,7 +165,13 @@ def generate_reference_main(graph):
 
         else:
             print("ERROR: Creation of dummy input not supported for this input shape: {}".format(input_shape))
-            return 1
+            exit(1)
+
+    num_output_dims = 0
+    num_output_batches = 0
+    num_output_channels = 0
+    output_channel_height = 0
+    output_channel_width = 0
 
     if len(outputs) > 1:
         print("ERROR: Multiple outputs not supported!")
