@@ -2,8 +2,9 @@
 
 int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_cnn::naive::Tensor **input_tensor) {
 
-    if ((*input_tensor)->num_dimensions() != 4) {
-        PRINT_ERROR("Reference input data can only be copied into a 4D-Tensor (num_batches, num_channels, height, width).")
+    if (!((*input_tensor)->num_dimensions() == 4 || (*input_tensor)->num_dimensions() == 3 || (*input_tensor)->num_dimensions() == 2)) {
+        PRINT_ERROR("Reference input data can only be copied into a 4D-Tensor (num_batches, num_channels, height, width) or a 3D-Tensor (num_batches, num_channels, width) while height == 1.")
+        PRINT_ERROR("Input tensor num_dimensions: " << (*input_tensor)->num_dimensions())
         return 1;
     }
 
@@ -139,7 +140,7 @@ int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_c
 int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_cnn::naive::Tensor **output_tensor) {
 
     if ((*output_tensor)->num_dimensions() != 2) {
-        PRINT_ERROR("Reference ouptut data can only be copied into a 1D-Tensor (num_outputs).")
+        PRINT_ERROR("Reference ouptut data can only be copied into a 2D-Tensor (num_batches, num_outputs).")
         return 1;
     }
 
