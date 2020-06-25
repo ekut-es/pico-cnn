@@ -77,13 +77,14 @@ void max_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t height
  * @param kernel_size
  * @param stride
  * @param bias
+ * @param padding This parameter is only needed for center/edge case detection when count_include_pad == 0
  * @param count_include_pad If 1 the padded pixels of the channel will be taken into account for average computation,
  *        if 0 they will not be taken into account. This parameter has to be 1 if the function is used directly
  *        and not called via the padded version.
  */
 void average_pooling2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width,
                              fp_t* output_channel, const uint16_t kernel_size, const uint16_t stride,
-                             fp_t bias, const uint16_t count_include_pad);
+                             fp_t bias, const uint16_t* padding, const uint16_t count_include_pad);
 
 /**
  * @brief Extends the input channel with the given padding and passes the extended input channel to average_pooling2d_naive
@@ -110,12 +111,13 @@ void average_pooling2d_naive_padded(const fp_t* input_channel, const uint16_t he
  * @param kernel_size
  * @param stride
  * @param bias
+ * @param padding This parameter is only needed for center/edge case detection when count_include_pad == 0
  * @param count_include_pad If 1 the padded pixels of the channel will be taken into account for average computation,
  *        if 0 they will not be taken into account. This parameter has to be 1 if the function is used directly
  *        and not called via the padded version.
  */
 void average_pooling1d_naive(const fp_t* input_channel, const uint16_t input_width, fp_t* output_channel,
-                             const uint16_t kernel_size, const uint16_t stride, fp_t bias,
+                             const uint16_t kernel_size, const uint16_t stride, fp_t bias, const uint16_t* padding,
                              const uint16_t count_include_pad);
 
 /**
