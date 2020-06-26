@@ -135,8 +135,7 @@ void pico_cnn::naive::AveragePooling::pool(pico_cnn::naive::Tensor *input, pico_
                             }
                         } else if (num_dims == 3) {
                             // center case
-                            if (output_channel_row >= padding_[0] && output_channel_row < output_channel_height - padding_[2] &&
-                                output_channel_column >= padding_[1] && output_channel_column < output_channel_width - padding_[3]) {
+                            if (output_channel_column >= padding_[0] && output_channel_column < output_channel_width - padding_[1]) {
 
                                 output->access(batch, channel, output_channel_column,
                                                num_channels, output_width) = pixel / ((fp_t) (kernel_size_[0] * kernel_size_[1]));
