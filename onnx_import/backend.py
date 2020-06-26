@@ -681,7 +681,7 @@ class BackendRep(backend_base.BackendRep):
         """
         # TODO: Does this need to be more sophisticated?
         self.makefile = "CC = gcc\n"
-        self.makefile += "CFLAGS = -Wall -g -DINFO\n"
+        self.makefile += "CFLAGS = -Wall -flto -O3 -march=native -DINFO\n"
         self.makefile += "LDFLAGS = -L../../../pico-cnn\n"
         self.makefile += "LD_LIBS = -lpico-cnn -lm\n\n"
         self.makefile += "# list of all generated .c files.\n"
