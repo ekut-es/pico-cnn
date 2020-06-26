@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g3 -DINFO
+CFLAGS = -Wall -flto -O3 -march=native -DINFO
 LDFLAGS = -lm
 
 libpico-cnn.a: utils io layers
