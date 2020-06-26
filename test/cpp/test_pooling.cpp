@@ -12,9 +12,9 @@ void TestPooling::tearDown() {
 
 void TestPooling::runTestMaxPooling1d() {
 
-    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 16);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 7);
-    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 7);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 16);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 7);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 7);
 
     fp_t input[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
 
@@ -27,8 +27,8 @@ void TestPooling::runTestMaxPooling1d() {
         expected_output_tensor->access_blob(i) = expected_output[i];
     }
 
-    uint32_t kernel_size[2] = {1, 3};
-    uint32_t stride[2] = {1, 2};
+    uint32_t kernel_size[1] = {3};
+    uint32_t stride[1] = {2};
 
     auto *layer = new pico_cnn::naive::MaxPooling("MaxPool", 0, pico_cnn::op_type::MaxPool, kernel_size, stride, nullptr);
 

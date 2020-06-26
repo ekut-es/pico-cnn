@@ -12,12 +12,12 @@ void TestConvolution::tearDown() {
 
 void TestConvolution::runTestConvolution_1d() {
 
-    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 11);
-    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 5);
-    auto expected_output_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 5);
-    auto kernel_tensor = new pico_cnn::naive::Tensor(1, 1, 1, 3);
+    auto input_tensor = new pico_cnn::naive::Tensor(1, 1, 11);
+    auto output_tensor = new pico_cnn::naive::Tensor(1, 1, 5);
+    auto expected_output_tensor = new pico_cnn::naive::Tensor( 1, 1, 5);
+    auto kernel_tensor = new pico_cnn::naive::Tensor(1, 1, 3);
 
-    uint32_t stride[2] = {1, 2};
+    uint32_t stride[1] = {2};
     uint32_t num_groups = 1;
 
     auto bias_tensor = new pico_cnn::naive::Tensor(1);
