@@ -137,8 +137,6 @@ namespace pico_cnn {
             uint32_t output_channel_row = 0;
             uint32_t output_channel_col = 0;
 
-            uint32_t output_channel_width = (input_width - kernel_width)/stride_width + 1;
-
             for(channel_row = height_crop; channel_row < input_height-height_crop; channel_row+=stride_height) {
                 for(channel_col = width_crop; channel_col < input_width - width_crop; channel_col += stride_width) {
                     pixel = 0.0;

@@ -73,9 +73,8 @@ void pico_cnn::naive::MaxPooling::pool(pico_cnn::naive::Tensor *input, pico_cnn:
         uint32_t width = input->width();
         uint32_t output_width = output->width();
 
-        uint32_t output_channel_row, output_channel_column;
-        uint32_t output_channel_height, output_channel_width;
-
+        uint32_t output_channel_column;
+        uint32_t output_channel_width;
 
         output_channel_width = (width - kernel_size_[0]) / stride_[0] + 1;
 
@@ -84,7 +83,6 @@ void pico_cnn::naive::MaxPooling::pool(pico_cnn::naive::Tensor *input, pico_cnn:
         for (uint32_t batch = 0; batch < num_batches; batch++) {
             for (uint32_t channel = 0; channel < num_channels; channel++) {
 
-                output_channel_row = 0;
                 output_channel_column = 0;
 
 

@@ -464,42 +464,36 @@ class BatchNorm(BaseLayer):
 OperationRegistry.register(BatchNorm)
 
 
-# class Clip(BaseLayer):
-#     name = "PicoCNNClip"
-#     operator = "Clip"
-#     template_file = "pico_cnn_clip.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#
-#         attrs = node.attrs
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_shape = input_buffer.shape
-#         num_input_channels = input_shape[1]
-#
-#         if len(input_shape) >= 4:
-#             input_height = input_shape[2]
-#             input_width = input_shape[3]
-#         else:
-#             input_height = 1
-#             input_width = input_shape[2]
-#
-#         operation = cls(node, graph)
-#
-#         operation.attributes['num_input_channels'] = num_input_channels
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['input_height'] = input_height
-#         operation.attributes['input_width'] = input_width
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['max'] = attrs['max']
-#         operation.attributes['min'] = attrs['min']
-#
-#         return operation
-#
-#
-# OperationRegistry.register(Clip)
+class Clip(BaseLayer):
+    name = "PicoCNNClip"
+    operator = "Clip"
+    template_file_declaration = "activation/pico_cnn_clip_decl.cpp"
+    template_file_allocation = "activation/pico_cnn_clip_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+
+        attrs = node.attrs
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['min'] = attrs['min']
+        operation.attributes['max'] = attrs['max']
+
+        return operation
+
+
+OperationRegistry.register(Clip)
 
 
 class MatMul(BaseLayer):
@@ -596,11 +590,7 @@ class AveragePool2D(BaseLayer):
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
-        input_shape = input_buffer.shape
-        kernel_shape = attrs["kernel_shape"]
         kernel_stride = attrs["strides"]
-
-        num_input_channels = input_shape[1]
 
         padding = attrs.get("pads", (0, 0, 0, 0))
         padding_needed = False
@@ -635,68 +625,61 @@ class AveragePool2D(BaseLayer):
 OperationRegistry.register(AveragePool2D)
 
 
-# class AveragePool1D(BaseLayer):
-#     name = "PicoCNNAveragePool"
-#     operator = "AveragePool"
-#     template_file = "pico_cnn_average_pool1d.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#
-#         kernel_shape = attrs["kernel_shape"]
-#         if not (len(kernel_shape) == 1 or (len(kernel_shape) == 2 and kernel_shape[1] == 1)):
-#             print("{} is not a 1DAvgPool".format(node.name))
-#             return None
-#
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#         bias_buffer = None
-#
-#         input_shape = input_buffer.shape
-#
-#         kernel_size = kernel_shape[0]
-#         kernel_stride = attrs["strides"][0]
-#
-#         num_input_channels = input_shape[1]
-#
-#         padding = attrs["pads"]
-#         padding_needed = False
-#         for num in padding:
-#             if num != 0:
-#                 padding_needed = True
-#
-#         count_include_pad = attrs.get("count_include_pad", 0)
-#
-#         # As we have to pass the count_include_pad attribute even if we don't have padding we need to
-#         # set it manually so that the correct amount of pixels is used for the average computation
-#         if not padding_needed:
-#             count_include_pad = 1
-#
-#         operation = cls(node, graph)
-#
-#         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
-#
-#         operation.attributes['identifier'] = identifier
-#
-#         operation.attributes['num_input_channels'] = num_input_channels
-#         operation.attributes['input_buffer'] = input_buffer
-#         operation.attributes['input_width'] = input_buffer.shape[2]
-#         operation.attributes['output_buffer'] = output_buffer
-#         operation.attributes['output_width'] = output_buffer.shape[2]
-#         operation.attributes['kernel_size'] = kernel_size
-#         operation.attributes['kernel_stride'] = kernel_stride
-#         operation.attributes['bias_buffer'] = bias_buffer
-#         operation.attributes['padding_needed'] = padding_needed
-#         operation.attributes['padding'] = padding
-#         operation.attributes['count_include_pad'] = count_include_pad
-#
-#         return operation
-#
-#
-# OperationRegistry.register(AveragePool1D)
-#
-#
+class AveragePool1D(BaseLayer):
+    name = "PicoCNNAveragePool"
+    operator = "AveragePool"
+    template_file_declaration = "pool/pico_cnn_avg_pool2d_decl.cpp"
+    template_file_allocation = "pool/pico_cnn_avg_pool1d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        kernel_shape = attrs["kernel_shape"]
+
+        if not (len(kernel_shape) == 1 or (len(kernel_shape) == 2 and kernel_shape[1] == 1)):
+            print("{} is not a 1DAvgPool".format(node.name))
+            return None
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        kernel_stride = attrs["strides"]
+
+        padding = attrs["pads"]
+        padding_needed = False
+        for num in padding:
+            if num != 0:
+                padding_needed = True
+
+        count_include_pad = attrs.get("count_include_pad", 0)
+
+        # As we have to pass the count_include_pad attribute even if we don't have padding we need to
+        # set it manually so that the correct amount of pixels is used for the average computation
+        if not padding_needed:
+            count_include_pad = 1
+
+        operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
+        operation.attributes["input_buffer"] = input_buffer
+        operation.attributes["output_buffer"] = output_buffer
+        operation.attributes["kernel_shape"] = kernel_shape
+        operation.attributes["stride"] = kernel_stride
+        operation.attributes['padding_needed'] = padding_needed
+        operation.attributes['padding'] = padding
+        operation.attributes['count_include_pad'] = count_include_pad
+        return operation
+
+
+OperationRegistry.register(AveragePool1D)
+
+
 # class GlobalMaxPool2D(BaseLayer):
 #     name = "PicoCNNGlobalMaxPool2D"
 #     operator = "GlobalMaxPool"
@@ -823,9 +806,8 @@ class Transpose(BaseLayer):
                                                                            input_height,
                                                                            input_width)
         elif len(permutations) == 2:
-            input_width = input_shape[3]
-
-            output_width = output_shape[3]
+            input_width = input_shape[1]
+            output_width = output_shape[1]
 
             test_code = "{}->access({}, {}, {})".format(output_buffer.name,
                                                         "dim"+str(permutations[0]),

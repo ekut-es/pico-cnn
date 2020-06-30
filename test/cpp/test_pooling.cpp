@@ -173,8 +173,8 @@ void TestPooling::runTestAvgPooling1d() {
         expected_output_tensor->access_blob(i) = expected_output[i];
     }
 
-    uint32_t kernel_size[2] = {1, 3};
-    uint32_t stride[2] = {1, 1};
+    uint32_t kernel_size[2] = {3};
+    uint32_t stride[2] = {1};
 
     auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, nullptr, 1);
 
@@ -212,8 +212,8 @@ void TestPooling::runTestAvgPooling1dPadding() {
         expected_output_tensor_count_include_pad_1->access_blob(i) = expected_output_count_include_pad_1[i];
     }
 
-    uint32_t kernel_size[2] = {1, 5};
-    uint32_t stride[2] = {1, 1};
+    uint32_t kernel_size[2] = {5};
+    uint32_t stride[2] = {1};
     uint32_t padding[2] = {2, 2};
 
     auto *layer = new pico_cnn::naive::AveragePooling("AvgPool", 0, pico_cnn::op_type::AveragePool, kernel_size, stride, padding, 0);
