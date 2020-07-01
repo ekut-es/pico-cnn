@@ -1,3 +1,0 @@
-{
-{{ squeeze_code }}
-}

@@ -15,7 +15,7 @@ def generate_dummy_main(graph):
     :param graph: ComputeGraph representing the CNN.
     :return: String containing the generated code.
     """
-    template = template_env.get_template("dummy_input.c")
+    template = template_env.get_template("main_program/dummy_input.cpp")
 
     attributes = {}
 
@@ -116,7 +116,7 @@ def generate_reference_main(graph):
     :param graph: ComputeGraph representing the CNN.
     :return: String containing the generated code.
     """
-    template = template_env.get_template("reference_input.c")
+    template = template_env.get_template("main_program/reference_input.cpp")
 
     attributes = {}
 

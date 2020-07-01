@@ -1,3 +1,0 @@
-{
-{{ transpose_code }}
-}

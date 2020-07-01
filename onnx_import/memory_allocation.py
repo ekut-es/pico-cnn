@@ -34,7 +34,7 @@ class KernelAllocationCode(BaseCode):
     Class implementing generation of memory allocation code for kernels and biases.
     """
     name = "KernelAllocation"
-    template_file = "kernel_allocation.c"
+    template_file = "memory_allocation/kernel_allocation.cpp"
 
     @classmethod
     def create(cls, buffer, pos=-1, pos_kernel=-1, pos_bias=-1):
@@ -113,7 +113,7 @@ class OutputAllocation(BaseCode):
     Class implementing generation of memory allocation code for outputs of layers (used as input for the next layer).
     """
     name = "OutputAllocation"
-    template_file = "output_allocation.c"
+    template_file = "memory_allocation/output_allocation.cpp"
 
     @classmethod
     def create(cls, buffer, pos=-1, pos_kernel=-1, pos_bias=-1):
@@ -212,7 +212,7 @@ class BufferCleanup(BaseCode):
     Class implementing generation of code that frees all previously allocated buffers.
     """
     name = "BufferCleanup"
-    template_file = "buffer_cleanup.c"
+    template_file = "memory_allocation/buffer_cleanup.cpp"
 
     @classmethod
     def create(cls, buffer, pos=-1, pos_kernel=-1, pos_bias=-1):

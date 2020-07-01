@@ -994,7 +994,7 @@ class Add(BaseLayer):
     operator = "Add"
     template_file_declaration = "empty.cpp"
     template_file_allocation = "empty.cpp"
-    template_file_execution = "pico_cnn_add.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_add.cpp"
     template_file_deletion = "empty.cpp"
 
     @classmethod
@@ -1027,7 +1027,10 @@ OperationRegistry.register(Add)
 # class Sum(Add):
 #     name = "SumGeneric"
 #     operator = "Sum"
-#     template_file = "pico_cnn_add.c"
+#     template_file_declaration = "empty.cpp"
+#     template_file_allocation = "empty.cpp"
+#     template_file_execution = "pico_cnn_add.cpp"
+#     template_file_deletion = "empty.cpp"
 #
 #
 # OperationRegistry.register(Sum)
