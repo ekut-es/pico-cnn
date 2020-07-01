@@ -1,7 +1,8 @@
-//
-// Created by junga on 03.04.20.
-//
-
+/**
+ * @brief Sigmoid activation function.
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef PICO_CNN_SIGMOID_H
 #define PICO_CNN_SIGMOID_H
 

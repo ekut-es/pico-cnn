@@ -1,7 +1,8 @@
-//
-// Created by junga on 17.04.20.
-//
-
+/**
+ * @brief Average Pooling operation.
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef PICO_CNN_AVERAGE_POOLING_H
 #define PICO_CNN_AVERAGE_POOLING_H
 

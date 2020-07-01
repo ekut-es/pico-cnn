@@ -1,7 +1,8 @@
-//
-// Created by junga on 20.04.20.
-//
-
+/**
+ * @brief Global Max Pooling operation.
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef PICO_CNN_GLOBAL_MAX_POOLING_H
 #define PICO_CNN_GLOBAL_MAX_POOLING_H
 

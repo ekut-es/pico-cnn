@@ -1,7 +1,8 @@
-//
-// Created by junga on 03.04.20.
-//
-
+/**
+ * @brief Softmax activation function.
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef PICO_CNN_SOFTMAX_H
 #define PICO_CNN_SOFTMAX_H
 

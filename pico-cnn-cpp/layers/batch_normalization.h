@@ -1,7 +1,8 @@
-//
-// Created by junga on 15.05.20.
-//
-
+/**
+ * @brief Batch Normalization operation.
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef PICO_CNN_BATCH_NORMALIZATION_H
 #define PICO_CNN_BATCH_NORMALIZATION_H
 

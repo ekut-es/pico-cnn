@@ -1,5 +1,5 @@
 /**
- * @brief pico_cnn::naive::ReLU provides the ReLU activation function
+ * @brief ReLU activation function.
  *
  * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */

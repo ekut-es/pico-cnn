@@ -1,7 +1,3 @@
-//
-// Created by junga on 15.05.20.
-//
-
 #include "batch_normalization.h"
 
 pico_cnn::naive::BatchNormalization::BatchNormalization(std::string name, uint32_t id, pico_cnn::op_type op,

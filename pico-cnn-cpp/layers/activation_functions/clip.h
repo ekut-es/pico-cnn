@@ -1,7 +1,8 @@
-//
-// Created by junga on 03.04.20.
-//
-
+/**
+ * @brief Clip activation function, clipping all values between the given minimum and maximum.
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef PICO_CNN_CLIP_H
 #define PICO_CNN_CLIP_H
 

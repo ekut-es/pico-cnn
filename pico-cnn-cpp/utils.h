@@ -1,6 +1,8 @@
-//
-// Created by junga on 03.04.20.
-//
+/**
+ * @brief Utility functions.
+ *
+ * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
+ */
 #ifndef UTILS_H
 #define UTILS_H
 
