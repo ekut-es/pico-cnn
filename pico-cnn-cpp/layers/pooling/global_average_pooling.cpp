@@ -1,7 +1,3 @@
-//
-// Created by junga on 20.04.20.
-//
-
 #include "global_average_pooling.h"
 
 pico_cnn::naive::GlobalAveragePooling::GlobalAveragePooling(std::string name, uint32_t id, pico_cnn::op_type op,
@@ -22,26 +18,39 @@ void pico_cnn::naive::GlobalAveragePooling::pool(pico_cnn::naive::Tensor *input,
 
     fp_t global_sum = 0.0;
 
-    for (uint32_t batch = 0; batch < num_batches; batch++) {
-        for (uint32_t channel = 0; channel < num_channels; channel++) {
+    if (num_dims == 4) {
 
-            for (uint32_t row = 0; row < height; row++) {
-                for (uint32_t col = 0; col < width; col++) {
-                    if (num_dims == 4) {
+        for (uint32_t batch = 0; batch < num_batches; batch++) {
+            for (uint32_t channel = 0; channel < num_channels; channel++) {
+
+                for (uint32_t row = 0; row < height; row++) {
+                    for (uint32_t col = 0; col < width; col++) {
+
                         global_sum += input->access(batch, channel, row, col, num_channels, height, width);
-                    } else if (num_dims == 3) {
+                    }
+                }
+                output->access(batch, channel, 0, 0, num_channels, output_height, output_width) = global_sum / (fp_t)(height*width);
+
+                global_sum = 0.0;
+            }
+        }
+
+    } else if (num_dims == 3) {
+
+        for (uint32_t batch = 0; batch < num_batches; batch++) {
+            for (uint32_t channel = 0; channel < num_channels; channel++) {
+
+                for (uint32_t row = 0; row < height; row++) {
+                    for (uint32_t col = 0; col < width; col++) {
+
                         global_sum += input->access(batch, channel, col, num_channels, width);
                     }
                 }
-            }
-
-            if (num_dims == 4) {
-                output->access(batch, channel, 0, 0, num_channels, output_height, output_width) = global_sum / (fp_t)(height*width);
-            } else if (num_dims == 3) {
                 output->access(batch, channel, 0, num_channels, output_width) = global_sum / (fp_t)(height*width);
-            }
 
-            global_sum = 0.0;
+                global_sum = 0.0;
+            }
         }
+
     }
 }

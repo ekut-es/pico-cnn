@@ -680,39 +680,38 @@ class AveragePool1D(BaseLayer):
 OperationRegistry.register(AveragePool1D)
 
 
-# class GlobalMaxPool2D(BaseLayer):
-#     name = "PicoCNNGlobalMaxPool2D"
-#     operator = "GlobalMaxPool"
-#     template_file = "pico_cnn_global_max_pool2d.c"
-#
-#     @classmethod
-#     def create(cls, node, graph, memory_manager):
-#         attrs = node.attrs
-#
-#         # if not len(kernel_shape) == 2:
-#         #     print("{} is not a 2DAvgPool".format(node.name))
-#         #     return None
-#
-#         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-#         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-#
-#         input_shape = input_buffer.shape
-#         num_input_channels = input_shape[1]
-#         input_height = input_shape[2]
-#         input_width = input_shape[3]
-#
-#         operation = cls(node, graph)
-#
-#         operation.attributes["num_input_channels"] = num_input_channels
-#         operation.attributes["input_buffer"] = input_buffer
-#         operation.attributes["input_height"] = input_height
-#         operation.attributes["input_width"] = input_width
-#         operation.attributes["output_buffer"] = output_buffer
-#
-#         return operation
-#
-#
-# OperationRegistry.register(GlobalMaxPool2D)
+class GlobalMaxPool2D(BaseLayer):
+    name = "PicoCNNGlobalMaxPool2D"
+    operator = "GlobalMaxPool"
+    template_file_declaration = "pool/pico_cnn_global_max_pool2d_decl.cpp"
+    template_file_allocation = "pool/pico_cnn_global_max_pool2d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
+
+    @classmethod
+    def create(cls, node, graph, memory_manager):
+        attrs = node.attrs
+
+        # if not len(kernel_shape) == 2:
+        #     print("{} is not a 2DAvgPool".format(node.name))
+        #     return None
+
+        input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
+        output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
+
+        operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
+        operation.attributes["input_buffer"] = input_buffer
+        operation.attributes["output_buffer"] = output_buffer
+
+        return operation
+
+
+OperationRegistry.register(GlobalMaxPool2D)
 
 
 class GlobalAveragePool2D(BaseLayer):
