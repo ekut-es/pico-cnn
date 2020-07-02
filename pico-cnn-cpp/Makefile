@@ -1,6 +1,6 @@
 CC = g++
 AR = ar
-CFLAGS = -Wall -flto -O3 -march=native -DINFO
+CFLAGS = -Wall -O2 -march=native -DINFO
 LDFLAGS =
 
 libpico-cnn-cpp.a: layers io parameters.h utils.h
@@ -20,7 +20,15 @@ clean:
 
 # list of all files to consider in io
 IO_SRC = io/read_binary_reference_data.cpp \
-         io/read_binary_weights.cpp
+         io/read_binary_weights.cpp \
+         io/read_imagenet_labels.cpp \
+         io/read_imagenet_validation_labels.cpp \
+         io/read_jpeg.cpp \
+         io/read_means.cpp \
+         io/read_mnist.cpp \
+         io/read_pgm.cpp \
+         io/write_float.cpp \
+         io/write_pgm.cpp
 
 IO_H = $(IO_SRC:.cpp=.h)
 IO_OBJ = $(IO_SRC:.cpp=.o)
