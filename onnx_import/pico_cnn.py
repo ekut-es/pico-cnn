@@ -218,12 +218,19 @@ class FullyConnected(BaseLayer):
 
         if 'alpha' in node.attrs:
             if node.attrs['alpha'] != 1.0:
+                print("ERROR: Generation of Gemm layer aborted: alpha = {}".format(node.attrs['alpha']))
                 return None
         if 'beta' in node.attrs:
             if node.attrs['beta'] != 1.0:
+                print("ERROR: Generation of Gemm layer aborted: beta = {}".format(node.attrs['beta']))
+                return None
+        if 'tranA' in node.attrs:
+            if node.attrs['transA'] != 0:
+                print("ERROR: Generation of Gemm layer aborted: tranA = {}".format(node.attrs['tranA']))
                 return None
         if 'tranB' in node.attrs:
             if node.attrs['transB'] != 1:
+                print("ERROR: Generation of Gemm layer aborted: tranB = {}".format(node.attrs['tranB']))
                 return None
 
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
