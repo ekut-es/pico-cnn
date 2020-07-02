@@ -28,51 +28,12 @@ set(PICO_CNN_LIBRARY_SRCS
 )
 add_library(libpico-cnn ${PICO_CNN_LIBRARY_SRCS})
 
-# MobileNet
-add_executable(mobilenet_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/dummy_input.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network_initialization.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network_cleanup.c)
-target_link_libraries(mobilenet_dummy libpico-cnn ${LINK_LIBS})
-
-add_executable(mobilenet_reference ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/reference_input.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network_initialization.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/mobilenetv2-1/network_cleanup.c)
-target_link_libraries(mobilenet_reference libpico-cnn ${LINK_LIBS})
-
-# Inception
-add_executable(inceptionv3_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/dummy_input.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/network.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/network_initialization.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/network_cleanup.c)
-target_link_libraries(inceptionv3_dummy libpico-cnn ${LINK_LIBS})
-
-add_executable(inceptionv3_reference ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/reference_input.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/network.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/network_initialization.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inceptionv3/network_cleanup.c)
-target_link_libraries(inceptionv3_reference libpico-cnn ${LINK_LIBS})
-
-# InceptionResNet
-add_executable(inception_resnet_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inception_resnet_v2/dummy_input.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inception_resnet_v2/network.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inception_resnet_v2/network_initialization.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inception_resnet_v2/network_cleanup.c)
-target_link_libraries(inception_resnet_dummy libpico-cnn ${LINK_LIBS})
-
-add_executable(inception_resnet_reference ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inception_resnet_v2/reference_input.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inception_resnet_v2/network.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inception_resnet_v2/network_initialization.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/inception_resnet_v2/network_cleanup.c)
-target_link_libraries(inception_resnet_reference libpico-cnn ${LINK_LIBS})
-
-# TC-ResNet
-add_executable(tc_resnet_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/tc-res8-update/dummy_input.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/tc-res8-update/network.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/tc-res8-update/network_initialization.c
-        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/tc-res8-update/network_cleanup.c)
-target_link_libraries(tc_resnet_dummy libpico-cnn ${LINK_LIBS})
+# LeNet
+#add_executable(lenet_dummy ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/dummy_input.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/network.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/network_initialization.c
+#        ${PROJECT_SOURCE_DIR}/onnx_import/generated_code/lenet/network_cleanup.c)
+#target_link_libraries(lenet_dummy libpico-cnn ${LINK_LIBS})
 
 # Tests
 add_executable(run_tests ${PROJECT_SOURCE_DIR}/test/run_tests.c

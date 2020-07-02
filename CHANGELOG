@@ -1,4 +1,19 @@
-# Changelog 
+# Changelog
+## Version 1.0.2
+
+ tag `v1.0.2`
+
+ * Bugfixes
+   * Fixed bug in AveragePooling: When using asymmetric padding with `count_include_pad == 0` the center/edge case computation assumed symmetric padding.
+   * Fixed typo in activation function test.
+   * Fixed bug using 'height' twice when generating random 4D input reference data.
+ * Additional tests
+   * Added three more tests for the convolution layer covering multiple output channels.
+ * Miscellaneous
+   * Added optimization flags to the library's and the generated Makefile.
+   * Added seeding option for the generation of reference data when using random input.
+   * Removed targets from CMakeLists.txt which have to be generated first (an example target for LeNet can be found commented). CMake should only be used for debugging. For all other uses please use the (generated) Makefiles.
+
 ## Version 1.0.1
 
  tag `v1.0.1`

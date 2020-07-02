@@ -171,7 +171,7 @@ int32_t test_avg_pooling1d() {
     fp_t* output = (fp_t*) malloc(1*expected_output_width* sizeof(float));
 
     average_pooling1d_naive(input, input_width, output, kernel_size, stride,
-                            0.0, count_include_pad);
+                            0.0, NULL, count_include_pad);
 
     for(int32_t i = 0; i < 1*expected_output_width; i++){
         if(expected_output[i] != output[i]) {
@@ -257,7 +257,7 @@ int32_t test_avg_pooling2d() {
     fp_t* output = (fp_t*) malloc(expected_output_height*expected_output_width* sizeof(float));
 
     average_pooling2d_naive(input, input_height, input_width, output, kernel_size, stride,
-                            0.0, count_include_pad);
+                            0.0, NULL, count_include_pad);
 
     for(int32_t i = 0; i < expected_output_height*expected_output_width; i++){
         if(expected_output[i] != output[i]) {

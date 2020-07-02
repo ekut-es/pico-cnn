@@ -418,3 +418,281 @@ int32_t test_add_channel2d_naive() {
     #undef input_width
     #undef input_height
 }
+
+int32_t test_convolution2d_naive_6() {
+    int32_t return_value = 0;
+    printf("test_convolution2d_naive_6()\n");
+
+
+    #define num_input_channels 1
+    #define input_height 1
+    #define input_width 6
+    #define kernel_height 1
+    #define kernel_width 3
+    #define num_output_channels 4
+    #define expected_output_height 1
+    #define expected_output_width 4
+
+    fp_t error = 0.001;
+
+    uint16_t padding[4] = {0, 0, 0, 0};
+    int32_t stride_height = 1;
+    int32_t stride_width = 1;
+
+    fp_t kernel_0[kernel_height*kernel_width] = {2, 0, 1};
+    fp_t kernel_1[kernel_height*kernel_width] = {0, 2, 0};
+    fp_t kernel_2[kernel_height*kernel_width] = {3, 1, 1};
+    fp_t kernel_3[kernel_height*kernel_width] = {1, 1, 2};
+
+    fp_t* kernel[num_output_channels] = {kernel_0, kernel_1, kernel_2, kernel_3};
+
+    fp_t input[input_height*input_width] = {1, 3, 3, 0, 1, 2};
+
+
+    fp_t expected_output_0[expected_output_height * expected_output_width] = {5, 6, 7, 2};
+    fp_t expected_output_1[expected_output_height * expected_output_width] = {6, 6, 0, 2};
+    fp_t expected_output_2[expected_output_height * expected_output_width] = {9, 12, 10, 3};
+    fp_t expected_output_3[expected_output_height * expected_output_width] = {10, 6, 5, 5};
+
+    fp_t* expected_output[num_output_channels] = {expected_output_0, expected_output_1, expected_output_2, expected_output_3};
+
+    int32_t* dimensions = (int32_t*) malloc(2 * sizeof(int32_t));
+    convolution2d_output_size(input_height, input_width, kernel_height, kernel_width,
+                              stride_height, stride_width, padding, dimensions);
+
+    assert(dimensions[0] == expected_output_height);
+    assert(dimensions[1] == expected_output_width);
+
+    fp_t** output = (fp_t**) malloc(num_output_channels*sizeof(fp_t*));
+    for(uint32_t i = 0; i < num_output_channels; i++) {
+        output[i] = (fp_t*) malloc(expected_output_width*expected_output_height*sizeof(fp_t));
+    }
+
+    for(uint32_t g = 0; g < 1; g++) {
+        for (uint32_t i = g * num_output_channels / 1; i < (g + 1) * num_output_channels / 1; i += 1) {
+            convolution2d_naive(input, input_height, input_width, output[i],
+                                kernel[i], kernel_height, kernel_width,
+                                stride_height, stride_width, 0);
+        }
+    }
+
+    return_value = compare2dFloatArray(output, expected_output, num_output_channels, expected_output_height*expected_output_width, error);
+
+    free(dimensions);
+    free(output);
+
+    return return_value;
+
+    #undef num_input_channels
+    #undef input_height
+    #undef input_width
+    #undef kernel_height
+    #undef kernel_width
+    #undef num_output_channels
+    #undef expected_output_width
+    #undef expected_output_height
+}
+
+int32_t test_convolution2d_naive_7() {
+    int32_t return_value = 0;
+    printf("test_convolution2d_naive_7()\n");
+
+
+    #define num_input_channels 2
+    #define input_height 1
+    #define input_width 6
+    #define kernel_height 1
+    #define kernel_width 3
+    #define num_output_channels 4
+    #define expected_output_height 1
+    #define expected_output_width 4
+
+    fp_t error = 0.001;
+
+    uint16_t padding[4] = {0, 0, 0, 0};
+    int32_t stride_height = 1;
+    int32_t stride_width = 1;
+
+    fp_t kernel[num_output_channels*num_input_channels][kernel_height*kernel_width] =
+            {{2, 0, 1},
+             {2, 0, 1},
+
+             {0, 2, 0},
+             {0, 2, 0},
+
+             {3, 1, 1},
+             {3, 1, 1},
+
+             {1, 1, 2},
+             {1, 1, 2}};
+
+    fp_t input_0[input_height*input_width] = {1, 3, 3, 0, 1, 2};
+    fp_t input_1[input_height*input_width] = {1, 3, 3, 0, 1, 2};
+    fp_t* input[num_input_channels] = {input_0, input_1};
+
+
+    fp_t expected_output_0[expected_output_height * expected_output_width] = {10, 12, 14, 4};
+    fp_t expected_output_1[expected_output_height * expected_output_width] = {12, 12, 0, 4};
+    fp_t expected_output_2[expected_output_height * expected_output_width] = {18, 24, 20, 6};
+    fp_t expected_output_3[expected_output_height * expected_output_width] = {20, 12, 10, 10};
+
+    fp_t* expected_output[num_output_channels] = {expected_output_0, expected_output_1, expected_output_2, expected_output_3};
+
+    int32_t* dimensions = (int32_t*) malloc(2 * sizeof(int32_t));
+    convolution2d_output_size(input_height, input_width, kernel_height, kernel_width,
+                              stride_height, stride_width, padding, dimensions);
+
+    assert(dimensions[0] == expected_output_height);
+    assert(dimensions[1] == expected_output_width);
+
+    fp_t** output = (fp_t**) malloc(num_output_channels*sizeof(fp_t*));
+    for(uint32_t i = 0; i < num_output_channels; i++) {
+        output[i] = (fp_t*) malloc(expected_output_width*expected_output_height*sizeof(fp_t));
+    }
+
+    for (uint32_t i = 0; i < num_output_channels; i += 1) {
+
+        convolution2d_naive(input[0], input_height, input_width, output[i],
+                            kernel[i*num_input_channels], kernel_height, kernel_width,
+                            stride_height, stride_width, 0);
+
+        for(uint32_t j = 1; j < num_input_channels; j+=1){
+
+            static fp_t temp_buffer[expected_output_height * expected_output_width];
+
+            convolution2d_naive(input[j],
+                                input_height,
+                                input_width,
+                                temp_buffer,
+                                kernel[i*num_input_channels+j],
+                                kernel_height,
+                                kernel_width,
+                                stride_height,
+                                stride_width,
+                                0.0);
+
+            add_channel2d_naive(output[i],
+                                temp_buffer,
+                                expected_output_height,
+                                expected_output_width);
+        }
+    }
+
+    return_value = compare2dFloatArray(output, expected_output, num_output_channels, expected_output_height*expected_output_width, error);
+
+    free(dimensions);
+    free(output);
+
+    return return_value;
+
+    #undef num_input_channels
+    #undef input_height
+    #undef input_width
+    #undef kernel_height
+    #undef kernel_width
+    #undef num_output_channels
+    #undef expected_output_width
+    #undef expected_output_height
+}
+
+int32_t test_convolution2d_naive_8() {
+    int32_t return_value = 0;
+    printf("test_convolution2d_naive_8()\n");
+
+
+    #define num_input_channels 2
+    #define input_height 1
+    #define input_width 6
+    #define kernel_height 1
+    #define kernel_width 3
+    #define num_output_channels 4
+    #define expected_output_height 1
+    #define expected_output_width 4
+
+    fp_t error = 0.001;
+
+    uint16_t padding[4] = {0, 0, 0, 0};
+    int32_t stride_height = 1;
+    int32_t stride_width = 1;
+
+    fp_t kernel[num_output_channels*num_input_channels][kernel_height*kernel_width] =
+            {{0.02, 0.00, 0.01},
+             {0.02, 0.00, 0.01},
+
+             {0.00, 0.02, 0.00},
+             {0.00, 0.02, 0.00},
+
+             {0.03, 0.01, 0.01},
+             {0.03, 0.01, 0.01},
+
+             {0.01, 0.01, 0.02},
+             {0.01, 0.01, 0.02}};
+
+    fp_t input_0[input_height*input_width] = {0.01, 0.03, 0.03, 0.00, 0.01, 0.02};
+    fp_t input_1[input_height*input_width] = {0.01, 0.03, 0.03, 0.00, 0.01, 0.02};
+    fp_t* input[num_input_channels] = {input_0, input_1};
+
+
+    fp_t expected_output_0[expected_output_height * expected_output_width] = {0.0010, 0.0012, 0.0014, 0.0004};
+    fp_t expected_output_1[expected_output_height * expected_output_width] = {0.0012, 0.0012, 0.0000, 0.0004};
+    fp_t expected_output_2[expected_output_height * expected_output_width] = {0.0018, 0.0024, 0.0020, 0.0006};
+    fp_t expected_output_3[expected_output_height * expected_output_width] = {0.0020, 0.0012, 0.0010, 0.0010};
+
+    fp_t* expected_output[num_output_channels] = {expected_output_0, expected_output_1, expected_output_2, expected_output_3};
+
+    int32_t* dimensions = (int32_t*) malloc(2 * sizeof(int32_t));
+    convolution2d_output_size(input_height, input_width, kernel_height, kernel_width,
+                              stride_height, stride_width, padding, dimensions);
+
+    assert(dimensions[0] == expected_output_height);
+    assert(dimensions[1] == expected_output_width);
+
+    fp_t** output = (fp_t**) malloc(num_output_channels*sizeof(fp_t*));
+    for(uint32_t i = 0; i < num_output_channels; i++) {
+        output[i] = (fp_t*) malloc(expected_output_width*expected_output_height*sizeof(fp_t));
+    }
+
+    for (uint32_t i = 0; i < num_output_channels; i += 1) {
+
+        convolution2d_naive(input[0], input_height, input_width, output[i],
+                            kernel[i*num_input_channels], kernel_height, kernel_width,
+                            stride_height, stride_width, 0);
+
+        for(uint32_t j = 1; j < num_input_channels; j+=1){
+
+            static fp_t temp_buffer[expected_output_height * expected_output_width];
+
+            convolution2d_naive(input[j],
+                                input_height,
+                                input_width,
+                                temp_buffer,
+                                kernel[i*num_input_channels+j],
+                                kernel_height,
+                                kernel_width,
+                                stride_height,
+                                stride_width,
+                                0.0);
+
+            add_channel2d_naive(output[i],
+                                temp_buffer,
+                                expected_output_height,
+                                expected_output_width);
+        }
+    }
+
+    return_value = compare2dFloatArray(output, expected_output, num_output_channels, expected_output_height*expected_output_width, error);
+
+    free(dimensions);
+    free(output);
+
+    return return_value;
+
+    #undef num_input_channels
+    #undef input_height
+    #undef input_width
+    #undef kernel_height
+    #undef kernel_width
+    #undef num_output_channels
+    #undef expected_output_width
+    #undef expected_output_height
+}

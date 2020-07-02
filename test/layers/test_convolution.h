@@ -23,5 +23,8 @@ int32_t test_convolution2d_naive_3(); // with non-square kernel
 int32_t test_convolution2d_naive_4(); // with non-square kernel
 int32_t test_convolution2d_naive_5(); // with non-square kernel
 int32_t test_add_channel2d_naive();
+int32_t test_convolution2d_naive_6();
+int32_t test_convolution2d_naive_7();
+int32_t test_convolution2d_naive_8();
 
 #endif // TEST_CONVOLUTION_H

@@ -22,6 +22,7 @@ for (uint32_t i = 0; i < {{num_input_channels}}; i++) {
                             {% else %}
                             0,
                             {% endif %}
+                            NULL,
                             {{count_include_pad}});
 }
 {% endif %}
