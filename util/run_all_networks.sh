@@ -1,5 +1,10 @@
 #!/bin/bash
 
+pushd ../pico-cnn-cpp
+make clean
+make
+popd
+
 pushd ../onnx_import
 source venv/bin/activate
 
@@ -7,7 +12,7 @@ echo "LeNet..."
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/lenet/lenet.onnx
 pushd generated_code/lenet
 make reference_input
-./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/lenet/input.data /nfs/es-genial/pico-cnn/data/onnx/lenet/output.data
+./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/lenet/random_lenet_input.data /nfs/es-genial/pico-cnn/data/onnx/lenet/random_lenet_output.data
 popd
 echo "LeNet done."
 echo ""
@@ -16,7 +21,7 @@ echo "LeNet AVG Pooling..."
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/lenet_avg/lenet_avg.onnx
 pushd generated_code/lenet_avg
 make reference_input
-./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/lenet_avg/input.data /nfs/es-genial/pico-cnn/data/onnx/lenet_avg/output.data
+./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/lenet_avg/random_lenet_avg_input.data /nfs/es-genial/pico-cnn/data/onnx/lenet_avg/random_lenet_avg_output.data
 popd
 echo "LeNet AVG Pooling done."
 echo ""
@@ -70,7 +75,7 @@ echo "Inception-V3..."
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/inception_v3/inceptionv3.onnx
 pushd generated_code/inceptionv3
 make reference_input
-./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/inception_v3/inceptionv3_input.data /nfs/es-genial/pico-cnn/data/onnx/inception_v3/inceptionv3_output.data
+./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/inception_v3/random_inceptionv3_input.data /nfs/es-genial/pico-cnn/data/onnx/inception_v3/random_inceptionv3_output.data
 popd
 echo "Inception-V3 done."
 echo ""
@@ -79,7 +84,7 @@ echo "Inception-Resnet-V2..."
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/inception_resnet_v2/inception_resnet_v2.onnx
 pushd generated_code/inception_resnet_v2
 make reference_input
-./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/inception_resnet_v2/inception_resnet_v2_input.data /nfs/es-genial/pico-cnn/data/onnx/inception_resnet_v2/inception_resnet_v2_output.data
+./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/inception_resnet_v2/random_inception_resnet_v2_input.data /nfs/es-genial/pico-cnn/data/onnx/inception_resnet_v2/random_inception_resnet_v2_output.data
 popd
 echo "Inception-Resnet-V2 done."
 echo ""
@@ -97,7 +102,7 @@ echo "ekut-raw-cnn3-relu..."
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu/ekut-raw-cnn3-relu.onnx
 pushd generated_code/ekut-raw-cnn3-relu
 make reference_input
-./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu/ekut-raw-cnn3-relu_input.data /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu/ekut-raw-cnn3-relu_output.data
+./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu/random_ekut-raw-cnn3-relu_input.data /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu/random_ekut-raw-cnn3-relu_output.data
 popd
 echo "ekut-raw-cnn3-relu done."
 echo ""
@@ -106,7 +111,7 @@ echo "ekut-raw-cnn3-relu-2..."
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu-2/ekut-raw-cnn3-relu-2.onnx
 pushd generated_code/ekut-raw-cnn3-relu-2
 make reference_input
-./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu-2/ekut-raw-cnn3-relu-2_input.data /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu-2/ekut-raw-cnn3-relu-2_output.data
+./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu-2/random_ekut-raw-cnn3-relu-2_input.data /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn3-relu-2/random_ekut-raw-cnn3-relu-2_output.data
 popd
 echo "ekut-raw-cnn3-relu-2 done."
 echo ""
@@ -115,7 +120,7 @@ echo "ekut-raw-cnn6-relu..."
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn6-relu/ekut-raw-cnn6-relu.onnx
 pushd generated_code/ekut-raw-cnn6-relu
 make reference_input
-./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn6-relu/ekut-raw-cnn6-relu_input.data /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn6-relu/ekut-raw-cnn6-relu_output.data
+./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn6-relu/random_ekut-raw-cnn6-relu_input.data /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn6-relu/random_ekut-raw-cnn6-relu_output.data
 popd
 echo "ekut-raw-cnn6-relu done."
 echo ""
@@ -124,7 +129,7 @@ echo "ekut-raw-cnn6-relu-simple..."
 python3.6 onnx_to_pico_cnn.py --input /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn6-relu-simple/ekut-raw-cnn6-relu-simple.onnx
 pushd generated_code/ekut-raw-cnn6-relu-simple
 make reference_input
-./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn6-relu-simple/ekut-raw-cnn6-relu-simple_input.data /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn6-relu-simple/ekut-raw-cnn6-relu-simple_output.data
+./reference_input network.weights.bin /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn6-relu-simple/random_ekut-raw-cnn6-relu-simple_input.data /nfs/es-genial/pico-cnn/data/onnx/ekut-raw-cnn6-relu-simple/random_ekut-raw-cnn6-relu-simple_output.data
 popd
 echo "ekut-raw-cnn6-relu-simple done."
 echo ""
