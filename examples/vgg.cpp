@@ -3,16 +3,10 @@
 
 #define IMAGE_SIZE 224
 
+#include <cstdlib>
+
+#include "pico-cnn-cpp/pico-cnn.h"
 #include "network.h"
-#include "network_initialization.h"
-#include "network_cleanup.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-
-#include "pico-cnn/pico-cnn.h"
 
 void usage() {
     printf("./vgg[16|19] \\\n");
@@ -56,7 +50,7 @@ void sort_prediction(fp_t* prediction, uint16_t* labels_pos, const uint16_t leng
 int32_t main(int32_t argc, char** argv) {
 
     if(argc != 5) {
-        ERROR_MSG("Too few or to many arguments!\n");
+        PRINT_ERROR("Too few or to many arguments!\n")
         usage();
         return 1;
     }
@@ -73,46 +67,49 @@ int32_t main(int32_t argc, char** argv) {
 
     uint32_t i;
 
-    initialize_network();
+    Network *net = new Network();
 
-    INFO_MSG("Reading binary weights from '%s'\n", weights_path);
+    PRINT_INFO("Reading weights from " << weights_path)
 
-    if(read_binary_weights(weights_path, &kernels, &biases) != 0) {
-        ERROR_MSG("Could not read weights from '%s'\n", weights_path);
+    if(read_binary_weights(weights_path, &net->kernels, &net->biases) != 0) {
+        PRINT_ERROR("Could not read weights from " << weights_path)
         return 1;
     }
 
     // read means
-    INFO_MSG("Reading means from '%s'\n", means_path);
+    PRINT_INFO("Reading means from " << means_path)
 
     fp_t* means = (fp_t*) malloc(3*sizeof(fp_t));
 
     if(read_means(means_path, means) != 0) {
-        ERROR_MSG("Could not read means file '%s'!\n", means_path);
+        PRINT_ERROR("Could not read means file " << means_path)
         return 1;
     }
 
     // read labels
-    INFO_MSG("Reading labels from '%s'\n", labels_path);
+    PRINT_INFO("Reading labels from " << labels_path)
 
     char** labels;
     int32_t num_labels;
     num_labels = read_imagenet_labels(labels_path, &labels, 1000);
 
     if(num_labels != 1000) {
-        ERROR_MSG("Could not read imagenet labels '%s'\n", labels_path);
+        PRINT_ERROR("Could not read imagenet labels " << labels_path)
         return 1;
     }
 
     // read input image
-    INFO_MSG("Reading input image '%s'\n", jpeg_path);
+    PRINT_INFO("Reading input image " << jpeg_path)
 
     fp_t** pre_mean_input;
 
     uint16_t height;
     uint16_t width;
 
-    read_jpeg(&pre_mean_input, jpeg_path, 0.0, 255.0, &height, &width);
+    if(read_jpeg(&pre_mean_input, jpeg_path, 0.0, 255.0, &height, &width) != 0) {
+        PRINT_ERROR("Could not read jpeg from " << jpeg_path)
+        return 1;
+    }
 
     // substract mean from each channel
     fp_t** input = (fp_t**) malloc(3*sizeof(fp_t*));
@@ -140,15 +137,20 @@ int32_t main(int32_t argc, char** argv) {
     // free means
     free(means);
 
-    float *output  = (float*) malloc(1000*sizeof(float));
+    fp_t *output  = (float*) malloc(1000*sizeof(float));
 
-    INFO_MSG("Starting CNN\n");
+    pico_cnn::naive::Tensor *input_tensor = new pico_cnn::naive::Tensor(1, 3, 224, 224);
+    pico_cnn::naive::Tensor *output_tensor = new pico_cnn::naive::Tensor(1, 1000);
 
-    network(input, output);
+    std::memcpy(input_tensor->data_+(0*224*224), input[0], 224*224*sizeof(fp_t));
+    std::memcpy(input_tensor->data_+(1*224*224), input[1], 224*224*sizeof(fp_t));
+    std::memcpy(input_tensor->data_+(2*224*224), input[2], 224*224*sizeof(fp_t));
 
-    INFO_MSG("After CNN\n");
+    PRINT_INFO("Starting CNN");
 
-    cleanup_network();
+    net->run(input_tensor, output_tensor);
+
+    PRINT_INFO("After CNN");
 
     // free memory
     // input
@@ -165,12 +167,13 @@ int32_t main(int32_t argc, char** argv) {
         labels_pos[i] = i;
     }
 
+    std::memcpy(output, output_tensor->data_, 1000*sizeof(fp_t));
     sort_prediction(output, labels_pos, 1000);
 
-    INFO_MSG("Prediction:\n");
+    PRINT_INFO("Prediction:");
 
     for(i = 0; i < 10; i++) {
-        INFO_MSG("%d %f %s\n", i+1, output[i], labels[labels_pos[i]]);
+        PRINT_INFO(i+1 << ":\t" << output[i] << "\t" << labels[labels_pos[i]]);
     }
 
     free(output);
@@ -180,9 +183,9 @@ int32_t main(int32_t argc, char** argv) {
     }
     free(labels);
 
-    INFO_MSG("%d\n", labels_pos[0]);
-
     free(labels_pos);
+
+    delete net;
 
     return 0;
 }
