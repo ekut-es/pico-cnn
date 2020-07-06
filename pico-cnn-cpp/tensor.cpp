@@ -383,7 +383,7 @@ namespace pico_cnn {
 
                     Tensor *input = inputs[input_id];
 
-                    uint32_t num_batches = input->num_batches();
+                    //uint32_t num_batches = input->num_batches();
                     uint32_t num_input_channels = input->num_channels();
                     uint32_t input_channel_size = input->height() * input->width();
 

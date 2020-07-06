@@ -8,7 +8,7 @@
 #define PICO_CNN_READ_MEANS_H
 
 #include "../parameters.h"
-#include <cstdio>
+#include <iostream>
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>

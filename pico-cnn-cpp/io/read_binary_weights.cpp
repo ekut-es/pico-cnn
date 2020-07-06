@@ -119,7 +119,6 @@ int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::T
                             kernel_width << ", kernel_idx: " << kernel_idx)
 
                 if(kernel_height != 0 && kernel_width != 0 && num_output_channels != 0 && num_input_channels != 0) {
-                    uint32_t kernel;
                     auto *values = new fp_t[kernel_height*kernel_width]();
 
                     for (uint32_t out_ch = 0; out_ch < num_output_channels; out_ch++) {
