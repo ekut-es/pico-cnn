@@ -1,19 +1,27 @@
-/**
- * @brief contains all activation functions
- *
- * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
- * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
- */
+//
+// Created by junga on 15.05.20.
+//
+
 #ifndef PICO_CNN_TEST_BATCH_NORMALIZATION_H
 #define PICO_CNN_TEST_BATCH_NORMALIZATION_H
 
-#include "pico-cnn/parameters.h"
-#include "pico-cnn/layers/batch_normalization.h"
-#include "../utility_functions.h"
+#include <cppunit/extensions/HelperMacros.h>
+#include "../../pico-cnn/pico-cnn.h"
 
-#include <stdlib.h>
 
-int32_t test_batch_normalization_naive_1();
-int32_t test_batch_normalization_naive_2();
+class TestBatchNormalization : public CPPUNIT_NS::TestFixture {
+    CPPUNIT_TEST_SUITE(TestBatchNormalization);
+    CPPUNIT_TEST(runTestBatchNormalization_1);
+    CPPUNIT_TEST(runTestBatchNormalization_2);
+    CPPUNIT_TEST_SUITE_END();
+
+public:
+    void setUp() override;
+    void tearDown() override;
+
+    void runTestBatchNormalization_1();
+    void runTestBatchNormalization_2();
+};
+
 
 #endif //PICO_CNN_TEST_BATCH_NORMALIZATION_H

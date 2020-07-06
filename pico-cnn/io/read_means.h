@@ -2,17 +2,16 @@
  * @brief provides functions to read means previously generated from
  * tiny-dnn/caffe CNNs
  *
- * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Konstantin Luebeck, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */
-
-#ifndef READ_MEANS_H
-#define READ_MEANS_H
+#ifndef PICO_CNN_READ_MEANS_H
+#define PICO_CNN_READ_MEANS_H
 
 #include "../parameters.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdint>
+#include <cstring>
 
 /**
  * @brief reads three means from a means file
@@ -25,6 +24,4 @@
  */
 int32_t read_means(const char* path_to_means_file, fp_t* means);
 
-
-
-#endif // READ_MEANS_H
+#endif //PICO_CNN_READ_MEANS_H

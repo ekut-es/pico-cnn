@@ -94,11 +94,13 @@ namespace pico_cnn {
             bool operator ==(const Tensor &other) const {
                 for (uint32_t i = 0; i < num_dimensions_; i++) {
                     if(shape_[i] != other.shape_[i]) {
+                        PRINT_ERROR("Shape does not match at position " << i << ": " << shape_[i] << " != " << other.shape_[i])
                         return false;
                     }
                 }
                 for(uint32_t i = 0; i < num_elements_; i++) {
                     if(!fp_t_eq(this->data_[i], other.data_[i])) {
+                        PRINT_ERROR("Data does not match at position " << i << ": " << this->data_[i] << " != " << other.data_[i])
                         return false;
                     }
                 }

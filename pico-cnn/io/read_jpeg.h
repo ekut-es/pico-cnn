@@ -4,17 +4,18 @@
  * Adopted from Denis Tola:
  * https://www.quora.com/In-C-and-C%2B%2B-how-can-I-open-an-image-file-like-JPEG-and-read-it-as-a-matrix-of-pixels/answer/Denis-Tola?srid=uaBxY
  *
- * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Konstantin Luebeck, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */
 
-#ifndef READ_JPEG_H
-#define READ_JPEG_H
+
+#ifndef PICO_CNN_READ_JPEG_H
+#define PICO_CNN_READ_JPEG_H
 
 #include "../parameters.h"
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdint>
+#include <cstdlib>
+#include <cmath>
 #include <jpeglib.h>
 
 /**
@@ -32,4 +33,4 @@
  */
 int32_t read_jpeg(fp_t*** image, const char* jpeg_path, const fp_t lower_bound, const fp_t upper_bound, uint16_t *height, uint16_t *width);
 
-#endif // READ_JPEG_H
+#endif //PICO_CNN_READ_JPEG_H

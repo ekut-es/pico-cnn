@@ -1,16 +1,16 @@
 /**
  * @brief provides function to read the ImageNet validation labels
  *
- * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Konstantin Luebeck, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */
 
-#ifndef READ_IMAGENET_VALIDATION_LABELS_H
-#define READ_IMAGENET_VALIDATION_LABELS_H
+#ifndef PICO_CNN_READ_IMAGENET_VALIDATION_LABELS_H
+#define PICO_CNN_READ_IMAGENET_VALIDATION_LABELS_H
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 
 #define FILE_NAME_LENGTH 28
 
@@ -27,4 +27,4 @@
  */
 int32_t read_imagenet_validation_labels(const char* path_to_imagenet_validation_labels, uint32_t** imagenet_validation_labels, uint32_t num_labels);
 
-#endif // READ_IMAGENET_VALIDATION_LABELS_H
+#endif //PICO_CNN_READ_IMAGENET_VALIDATION_LABELS_H

@@ -20,7 +20,7 @@ void TestFullyConnected::setUp() {
                        0.1, 0.4, -0.4, -0.8, -0.9, -0.7};
 
     fp_t bias[4] = {6, -3, 0, 1};
-    fp_t expected_output[4] = {5.6999, -16.6, -13.8, 0.0999};
+    fp_t expected_output[4] = {5.7, -16.6, -13.8, 0.0999};
 
     for (uint32_t i = 0; i < input_tensor->num_elements(); i++) {
         input_tensor->access_blob(i) = input[i];

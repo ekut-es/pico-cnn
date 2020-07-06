@@ -1,38 +1,40 @@
-CC = gcc
-CFLAGS = -Wall -g3 -DINFO
-LDFLAGS = -lm
+CC = g++
+AR = ar
+CFLAGS = -Wall -O2 -march=native -DINFO
+LDFLAGS =
 
-libpico-cnn.a: utils io layers
-	ar -rcs libpico-cnn.a utils.o io/*.o layers/*.o
+libpico-cnn.a: layers io parameters.h utils.h pico-cnn.h
+	$(AR) -rcs libpico-cnn.a *.o layers/*.o layers/activation_functions/*.o layers/pooling/*.o io/*.o
 
 # remove the library directory
 .PHONY: clean
 clean:
-	rm -f libpico-cnn.a ./utils.o io/*.o layers/*.o
+	rm -f libpico-cnn.a *.o layers/*.o layers/activation_functions/*.o layers/pooling/*.o io/*.o
 
 #---------------------------------------------- utils -----------------------------------------------
 
-utils: parameters.h ./utils.h ./utils.c
-	$(CC) utils.c $(CFLAGS) -c -o utils.o
+# utils: parameters.h ./utils.h ./utils.c
+# 	$(CC) utils.c $(CFLAGS) -c -o utils.o
 
 #---------------------------------------------- io ----------------------------------------------
 
 # list of all files to consider in io
-IO_SRC = io/read_binary_reference_data.o \
-         io/read_binary_weights.o \
-  		 io/read_imagenet_labels.o \
-  		 io/read_imagenet_validation_labels.o \
-         io/read_jpeg.o \
-  		 io/read_means.o \
-  		 io/read_mnist.o \
-    	 io/read_pgm.o \
-    	 io/write_float.o \
-    	 io/write_pgm.o
-IO_H = $(IO_SRC:.c=.h)
-IO_OBJ = $(IO_SRC:.c=.o)
+IO_SRC = io/read_binary_reference_data.cpp \
+         io/read_binary_weights.cpp \
+         io/read_imagenet_labels.cpp \
+         io/read_imagenet_validation_labels.cpp \
+         io/read_jpeg.cpp \
+         io/read_means.cpp \
+         io/read_mnist.cpp \
+         io/read_pgm.cpp \
+         io/write_float.cpp \
+         io/write_pgm.cpp
+
+IO_H = $(IO_SRC:.cpp=.h)
+IO_OBJ = $(IO_SRC:.cpp=.o)
 
 # compile all .c files into .o files, write the files to lib/io
-$(IO_OBJ) : %.o: %.c %.h
+$(IO_OBJ) : %.o: %.cpp %.h
 	$(CC) $< $(CFLAGS) -c -o $@
 
 io : $(IO_OBJ) parameters.h
@@ -40,17 +42,29 @@ io : $(IO_OBJ) parameters.h
 #---------------------------------------------- layers ----------------------------------------------
 
 # list of all files to consider in layers
-LAYERS_SRC = layers/activation_function.c \
-             layers/convolution.c \
-			 layers/fully_connected.c \
-			 layers/pooling.c \
-			 layers/batch_normalization.c \
-			 layers/concatenate.c
-LAYERS_H = $(LAYERS_SRC:.c=.h)
-LAYERS_OBJ = $(LAYERS_SRC:.c=.o)
+LAYERS_SRC = tensor.cpp \
+             layers/layer.cpp \
+             layers/convolution.cpp \
+             layers/pooling/pooling.cpp \
+             layers/pooling/max_pooling.cpp \
+             layers/pooling/average_pooling.cpp \
+             layers/pooling/global_max_pooling.cpp \
+             layers/pooling/global_average_pooling.cpp \
+             layers/activation_functions/activation_function.cpp \
+             layers/activation_functions/clip.cpp \
+             layers/activation_functions/lrn.cpp \
+             layers/activation_functions/relu.cpp \
+             layers/activation_functions/sigmoid.cpp \
+             layers/activation_functions/softmax.cpp \
+             layers/activation_functions/tan_h.cpp \
+             layers/fully_connected.cpp \
+             layers/batch_normalization.cpp
+
+LAYERS_H = $(LAYERS_SRC:.cpp=.h)
+LAYERS_OBJ = $(LAYERS_SRC:.cpp=.o)
 
 # compile all .c files into .o files, write the files to lib/layers
-$(LAYERS_OBJ) : %.o: %.c %.h
+$(LAYERS_OBJ) : %.o: %.cpp %.h
 	$(CC) $< $(CFLAGS) -c -o $@
 
-layers: $(LAYERS_OBJ) $(DRIVER) parameters.h
+layers: $(LAYERS_OBJ) parameters.h utils.h

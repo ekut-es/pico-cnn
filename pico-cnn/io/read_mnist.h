@@ -1,18 +1,18 @@
 /**
  * @brief provides functions to read the MNIST training/testing images and labels
  *
- * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Konstantin Luebeck, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */
 
-#ifndef READ_MNIST_H
-#define READ_MNIST_H
+#ifndef PICO_CNN_READ_MNIST_H
+#define PICO_CNN_READ_MNIST_H
 
 #include "../parameters.h"
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
 
 /**
  * @brief changes the endianess of a 32-bit integer
@@ -52,4 +52,4 @@ uint32_t read_mnist_images(const char* path_to_mnist_images, fp_t*** mnist_image
  */
 uint32_t read_mnist_labels(const char* path_to_mnist_labels, uint8_t** mnist_labels, uint32_t num_labels);
 
-#endif // READ_MNIST_H
+#endif //PICO_CNN_READ_MNIST_H

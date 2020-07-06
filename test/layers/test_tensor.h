@@ -7,7 +7,7 @@
 #define PICO_CNN_TEST_TENSOR_H
 
 #include <cppunit/extensions/HelperMacros.h>
-#include "../../pico-cnn-cpp/pico-cnn.h"
+#include "../../pico-cnn/pico-cnn.h"
 
 class TestTensor : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST_SUITE(TestTensor);

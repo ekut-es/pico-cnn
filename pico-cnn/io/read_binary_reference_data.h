@@ -8,13 +8,15 @@
 #define PICO_CNN_READ_BINARY_REFERENCE_DATA_H
 
 #include "../parameters.h"
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
 
-int32_t read_binary_reference_input_data(const char* path_to_sample_data, fp_t*** input);
+#include "../tensor.h"
 
-int32_t read_binary_reference_output_data(const char* path_to_sample_data, fp_t** output);
+int32_t read_binary_reference_input_data(const char* path_to_sample_data, pico_cnn::naive::Tensor **input_tensor);
+
+int32_t read_binary_reference_output_data(const char* path_to_sample_data, pico_cnn::naive::Tensor **output_tensor);
 
 #endif //PICO_CNN_READ_BINARY_REFERENCE_DATA_H
