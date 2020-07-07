@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pushd ../pico-cnn-cpp
+pushd ../pico-cnn
 make clean
 make
 popd
