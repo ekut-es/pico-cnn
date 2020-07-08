@@ -8,7 +8,7 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-#define VERSION 1.0
+#define VERSION 2.0
 
 #define EPSILON 0.0001
 
