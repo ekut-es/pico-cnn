@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -g3 -DINFO -DDEBUG -std=c++11
+CFLAGS = -std=c++11 -Wall -g3 -DINFO -DDEBUG 
 LDFLAGS = -L../pico-cnn
 LD_LIBS = -lpico-cnn -lcppunit
 
