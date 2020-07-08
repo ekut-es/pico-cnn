@@ -1,16 +1,16 @@
 /**
  * @brief writes an array of floats into a pgm file
  *
- * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Konstantin Luebeck, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */
 
-#ifndef WRITE_PGM_H
-#define WRITE_PGM_H
+#ifndef PICO_CNN_WRITE_PGM_H
+#define PICO_CNN_WRITE_PGM_H
 
 #include "../parameters.h"
-#include <stdint.h>
-#include <stdio.h>
-#include <math.h>
+#include <cstdint>
+#include <cstdio>
+#include <cmath>
 
 /**
  * @brief creates an pgm file from an image (array)
@@ -24,4 +24,4 @@
  */
 int32_t write_pgm(const fp_t* image, const uint16_t height, const uint16_t width, const char* pgm_path);
 
-#endif // WRITE_PGM_H
+#endif //PICO_CNN_WRITE_PGM_H

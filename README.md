@@ -1,5 +1,5 @@
 # Pico-CNN
-Pico-CNN is a (almost) library free and lightweight neural network inference framework for embedded systems (Linux and bare-metal) implemented in C. Neural networks can be trained with any training framework which supports export of ONNX (open neural network exchange, [onnx.ai](https://onnx.ai)) and afterwards deployed using Pico-CNN's ONNX import. 
+Pico-CNN is a (almost) library free and lightweight neural network inference framework for embedded systems (Linux and bare-metal) implemented in C++. Neural networks can be trained with any training framework which supports export of ONNX (open neural network exchange, [onnx.ai](https://onnx.ai)) and afterwards deployed using Pico-CNN's ONNX import. 
 
 ## Setup and Use 
 Please read the whole document carefully!
@@ -8,19 +8,38 @@ Please read the whole document carefully!
 ```bash
 sudo apt install libjpeg-dev
 ```
+If you want to use `cppunit`:
+```bash
+sudo apt install libcppunit-dev
+```
 
 ### Scientific Linux
 ```bash
 sudo yum install libjpeg-devel
+```
+If you want to use `cppunit`:
+```bash
+git clone --branch cppunit-1.14.0 git://anongit.freedesktop.org/git/libreoffice/cppunit/
+cd cppunit
+./autogen.sh
+./configure
+make
+sudo make install
+sudo ln -s /usr/local/include/cppunit /usr/local/include/CppUnit
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ```
 
 ### macOS
 ```bash
 brew install jpeg
 ```
+If you want to use `cppunit`:
+```bash
+brew install cppunit
+```
 
-### C-Standard
-Depending on the (system-) compiler you are using you might have to add a specific C-Standard to the `CFLAGS` variable in the generated Makefile. Assuming a modern operating system like Ubuntu 18.04 the default C-Standard is `-std=gnu11`. If you are using an older version of GCC it should suffice to chose `-std=c99` or `-std=gnu99` as the C-Standard.
+### C++-Standard
+Depending on the (system-) compiler you are using you might have to add a specific C++-Standard to the `CFLAGS` variable in the generated Makefile. If you are using an older version of `g++` it should suffice to chose `-std=c++11` or `-std=gnu++11` as the C++-Standard.
 
 ### All Operating Systems
 Install Python in version 3.6.5 for example with [pyenv](https://github.com/pyenv/pyenv) (probably also works with other versions of Python 3.6). Then install the required Python packages with the requirements.txt file located in `pico-cnn/onnx_import`:
@@ -39,6 +58,13 @@ In the future you always have to activate the environment:
 ```bash
 cd onnx_import
 source venv/bin/activate
+```
+
+### Testing with `cppunit`
+```bash
+cd test
+make tests
+./tests
 ```
 
 ### Utilities
@@ -72,7 +98,7 @@ Pico-CNN was tested with the following neural networks:
 
 ### All networks
 #### Dummy Input
-For every imported onnx model a `dummy_input.c` will be generated, which uses random numbers as input and calls the network, so that no network specific input data has to be downloaded to run inferences.
+For every imported onnx model a `dummy_input.cpp` will be generated, which uses random numbers as input and calls the network, so that no network specific input data has to be downloaded to run inferences.
 ```bash
 cd onnx_import
 python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/model.onnx
@@ -86,7 +112,7 @@ make dummy_input
 You can monitor overall progress of the current `RUN` by adding `-DDEBUG` in the generated Makefile.
 
 #### Reference Input
-There will also be generated a `reference_input.c` which can be used to validate the imported network against the reference input/output that is provided for onnx models from the official [onnx model-zoo](https://github.com/onnx/models). The data has to be preprocessed:
+There will also be generated a `reference_input.cpp` which can be used to validate the imported network against the reference input/output that is provided for onnx models from the official [onnx model-zoo](https://github.com/onnx/models). The data has to be preprocessed with the following script (it is assumed that the `pico-cnn/utils` specific virtual environment is activated):
 ```bash
 python util/parse_onnx_reference_files.py --input PATH_TO_REFERENCE_DATA
 ```
@@ -97,7 +123,7 @@ make reference_input
 ./reference_input network.weights.bin PATH_TO_SAMPLE_DATA/input_X.data PATH_TO_SAMPLE_DATA/output_X.data
 ```
 
-If the model was acquired in some other way (self-trained or converted) you can create sample data with the following script:
+If the model was acquired in some other way (self-trained or converted) you can create sample data with the following script (it is assumed that the `pico-cnn/utils` specific virtual environment is activated):
 ```bash
 cd util
 python3.6 generate_reference_data.py --model model.onnx --file PATH_TO_INPUT_DATA --shape 1 NUM_CHANNELS HEIGHT WIDTH
@@ -113,11 +139,11 @@ LeNet-5 implementation as proposed by Yann LeCun et. al <a id="cit_LeCun1998">[[
 cd onnx_import
 python3.6 onnx_to_pico_cnn.py --input ../data/lenet/lenet.onnx
 ```
-Copy `examples/lenet.c` from examples folder to `onnx_import/generated_code/lenet`.
+Copy `examples/lenet.cpp` from examples folder to `onnx_import/generated_code/lenet`.
 ```bash
 cd generated_code/lenet
 make lenet
-./lenet PATH_TO_MNIST network.weights.bin
+./lenet network.weights.bin PATH_TO_MNIST
 ```
 
 ### MNIST Multi-Layer-Perceptron (MLP)
@@ -127,11 +153,11 @@ ONNX model at: [./data/mnist_mlp/mnist_mlp.onnx](./data/mnist_mlp/mnist_mlp.onnx
 cd onnx_import
 python3.6 onnx_to_pico_cnn.py --input ../data/mnist_mlp/mnist_mlp.onnx
 ```
-Copy `examples/mnist_mlp.c` to `onnx_import/generated_code/mnist_mlp`.
+Copy `examples/mnist_mlp.cpp` to `onnx_import/generated_code/mnist_mlp`.
 ```bash
 cd generated_code/mnist_mlp
 make mnist_mlp
-./mnist_mlp PATH_TO_MNIST network.weights.bin
+./mnist_mlp network.weights.bin PATH_TO_MNIST
 ```
 
 ### MNIST Perceptron
@@ -140,11 +166,11 @@ Single fully-connected layer. ONNX model at: [./data/mnist_simple_perceptron/mni
 cd onnx_import
 python3.6 onnx_to_pico_cnn.py --input ../data/mnist_simple_perceptron/mnist_simple_perceptron.onnx
 ```
-Copy `examples/mnist_simple_perceptron.c` to `onnx_import/generated_code/mnist_simple_perceptron`.
+Copy `examples/mnist_simple_perceptron.cpp` to `onnx_import/generated_code/mnist_simple_perceptron`.
 ```bash
 cd generated_code/mnist_simple_perceptron
 make mnist_simple_perceptron
-./mnist_simple_perceptron PATH_TO_MNIST network.weights.bin
+./mnist_simple_perceptron network.weights.bin PATH_TO_MNIST
 ```
 
 ## ImageNet Dataset
@@ -156,7 +182,7 @@ AlexNet <a id="cit_Krizhevsky2017">[[Krizhevsky2017]](#Krizhevsky2017)</a> ONNX 
 cd onnx_import
 python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/alexnet.onnx
 ```
-Copy `examples/alexnet.c` to `onnx_import/generated_code/alexnet`.
+Copy `examples/alexnet.cpp` to `onnx_import/generated_code/alexnet`.
 ```bash
 cd generated_code/alexnet
 ```
@@ -174,7 +200,7 @@ VGG-16 <a id="cit_Simonyan2014">[[Simonyan2014]](#Simonyan2014)</a> ONNX model r
 cd onnx_import
 python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/vgg16.onnx
 ```
-Copy `examples/vgg.c` to `onnx_import/generated_code/vgg16.c`.
+Copy `examples/vgg.cpp` to `onnx_import/generated_code/vgg16.cpp`.
 ```bash
 cd generated_code/vgg16
 ```
@@ -192,7 +218,7 @@ VGG-19 <a id="cit_Simonyan2014">[[Simonyan2014]](#Simonyan2014)</a> ONNX model r
 cd onnx_import
 python3.6 onnx_to_pico_cnn.py --input PATH_TO_ONNX/vgg19.onnx
 ```
-Copy `examples/vgg.c` to `onnx_import/generated_code/vgg19.c`.
+Copy `examples/vgg.cpp` to `onnx_import/generated_code/vgg19.cpp`.
 ```bash
 cd generated_code/vgg19
 ```

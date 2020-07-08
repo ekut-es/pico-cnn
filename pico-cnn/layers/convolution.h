@@ -1,107 +1,47 @@
 /**
- * @brief contains all convolutions
+ * @brief pico_cnn::naive::Convolution provides naive implementation of convolution operation
  *
- * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
  * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
- * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
  */
-
-#ifndef CONVOLUTION_H
-#define CONVOLUTION_H
+#ifndef PICO_CNN_CONVOLUTION_H
+#define PICO_CNN_CONVOLUTION_H
 
 #include "../parameters.h"
-#include "../utils.h"
-#include <stdint.h>
+#include "../tensor.h"
+#include "layer.h"
 
-/**
- * @brief performs a 1D convolution on input_channel with kernel and stores the
- * result to output_channel
- *
- * @param input_channel (height x width)
- * @param height
- * @param width
- * @param output_channel
- * @param kernel
- * @param kernel_size
- * @param stride
- * @param padding (0 means valid, > 0 zeros will be added to the edge). Padding for both sides
- * @param dilation
- * @param bias
- */
-void convolution1d_naive(const fp_t* input_channel, const uint16_t input_size, fp_t* output_channel, const fp_t* kernel,
-                         const uint16_t kernel_size, const uint16_t stride, const uint16_t padding, const fp_t bias);
+namespace pico_cnn {
+    namespace naive {
+        class Convolution : Layer {
+        public:
+            Convolution(std::string name, uint32_t id, op_type op, Tensor *kernel, Tensor *bias,
+                        uint32_t *padding, uint32_t *stride, uint32_t num_groups);
+            ~Convolution();
 
+            void run(Tensor *input, Tensor *output) override;
 
-/**
- * @brief performs a 2D convolution on input_channel with kernel and stores the
- * result to output_channel. Legacy version, assumes square, uneven kernel and same stride 
- *
- * @param input_channel (height x width)
- * @param height
- * @param width
- * @param output_channel (height-kernel_size/2 x width-kernel_size/2)
- * @param kernel (kernel_size x kernel_size)
- * @param kernel_size
- * @param stride
- * @param padding (0 means valid, > 0 zeros will be added to the edge)
- * @param bias
- */
-void convolution2d_naive_legacy(const fp_t* input_channel, const uint16_t height, const uint16_t width,
-                                fp_t* output_channel, const fp_t* kernel, const uint16_t kernel_size,
-                                const uint16_t stride, const uint16_t padding, const fp_t bias);
+        private:
+            void convolve(Tensor *input, Tensor *output, uint32_t input_channel, uint32_t output_channel,
+                          uint32_t cnt,
+                          uint32_t num_input_channels, uint32_t input_height, uint32_t input_width,
+                          uint32_t num_output_channels, uint32_t output_height, uint32_t output_width,
+                          uint32_t num_kernel_channels);
 
+            void convolve_1d(Tensor *input, Tensor *output, uint32_t input_channel, uint32_t output_channel,
+                             uint32_t cnt,
+                             uint32_t num_input_channels, uint32_t input_width,
+                             uint32_t num_output_channels, uint32_t output_width,
+                             uint32_t num_kernel_channels);
 
-/**
- * @brief performs a 2D convolution on input_channel with kernel and stores the
- * result to output_channel
- *
- * @param input_channel (height x width)
- * @param height
- * @param width
- * @param output_channel (height-kernel_size/2 x width-kernel_size/2)
- * @param kernel (kernel_height * kernel_width)
- * @param kernel_height needs to be uneven
- * @param kernel_width needs to be even
- * @param stride_height stride in height direction
- * @param stride_width stride in width direction
- * @param bias
- */
-void convolution2d_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
-                         const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
-                         const uint16_t stride_height, const uint16_t stride_width, const fp_t bias);
+            uint32_t kernel_height, kernel_width;
 
+            Tensor *kernel_;
+            Tensor *bias_;
+            uint32_t *padding_;
+            uint32_t *stride_;
+            uint32_t num_groups_;
+        };
+    }
+}
 
-/**
- * @brief performs a 2D convolution on input_channel with kernel and stores the
- * result to output_channel
- *
- * @param input_channel (height x width)
- * @param height
- * @param width
- * @param output_channel (height-kernel_size/2 x width-kernel_size/2)
- * @param kernel (kernel_height * kernel_width)
- * @param kernel_height needs to be uneven
- * @param kernel_width needs to be even
- * @param stride_height stride in height direction
- * @param stride_width stride in width direction
- * @param padding integer array with length four, specifying padding
- *        padding[0], padding[2]: Padding at start, end of height dimension
- *        padding[1], padding[3]: Padding at start, end of width dimension
- * @param bias
- */
-void convolution2d_padding_naive(const fp_t* input_channel, const uint16_t height, const uint16_t width, fp_t* output_channel,
-                                 const fp_t* kernel, const uint16_t kernel_height, const uint16_t kernel_width,
-                                 const uint16_t stride_height, const uint16_t stride_width,
-                                 const uint16_t* padding, const fp_t bias);
-
-/**
- * @brief adds channel_a and channel_b pixel by pixel and stores result in channel_a
- *
- * @param channel_a (height x width)
- * @param channel_b (height x width)
- * @param height
- * @param width
- */
-void add_channel2d_naive(fp_t* channel_a, const fp_t* channel_b, const uint16_t height, const uint16_t width);
-
-#endif // CONVOLUTION_H
+#endif //PICO_CNN_CONVOLUTION_H

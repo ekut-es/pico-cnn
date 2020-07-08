@@ -1,21 +1,28 @@
-/**
- * @brief contains all activation functions
- *
- * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
- * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
- */
-#ifndef TEST_FULLY_CONNECTED_H
-#define TEST_FULLY_CONNECTED_H
+//
+// Created by junga on 06.04.20.
+//
 
-#include "pico-cnn/parameters.h"
-#include "pico-cnn/layers/fully_connected.h"
-#include "../utility_functions.h" // for floatsAlmostEqual()
+#ifndef PICO_CNN_TEST_FULLY_CONNECTED_H
+#define PICO_CNN_TEST_FULLY_CONNECTED_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <math.h>
+#include <cppunit/extensions/HelperMacros.h>
+#include "../../pico-cnn/pico-cnn.h"
+#include "../../pico-cnn/utils.h"
 
-int32_t test_fully_connected();
+class TestFullyConnected : public CPPUNIT_NS::TestFixture {
+    CPPUNIT_TEST_SUITE(TestFullyConnected);
+    CPPUNIT_TEST(runTestFullyConnected);
+    CPPUNIT_TEST_SUITE_END();
 
-#endif // TEST_FULLY_CONNECTED_H
+private:
+    pico_cnn::naive::Tensor *input_tensor, *output_tensor, *expected_output_tensor, *kernel_tensor, *bias_tensor;
+
+public:
+    void setUp() override;
+    void tearDown() override;
+
+    void runTestFullyConnected();
+};
+
+
+#endif //PICO_CNN_TEST_FULLY_CONNECTED_H

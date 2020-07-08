@@ -8,11 +8,13 @@
 #define PICO_CNN_READ_BINARY_WEIGHTS_H
 
 #include "../parameters.h"
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
 
-int32_t read_binary_weights(const char* path_to_weights_file, fp_t**** kernels, fp_t*** biases);
+#include "../tensor.h"
+
+int32_t read_binary_weights(const char* path_to_weights_file, pico_cnn::naive::Tensor ***kernels, pico_cnn::naive::Tensor ***biases);
 
 #endif //PICO_CNN_READ_BINARY_WEIGHTS_H

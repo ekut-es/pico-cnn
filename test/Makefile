@@ -1,25 +1,17 @@
-CC = gcc
-CFLAGS = -Wall -g3 
+CC = g++
+CFLAGS = -std=c++11 -Wall -g3 -DINFO -DDEBUG 
 LDFLAGS = -L../pico-cnn
-LD_LIBS = -lpico-cnn -lm
+LD_LIBS = -lpico-cnn -lcppunit
 
-TEST_SRCS = utility_functions.c \
-			utility_functions.h \
-			layers/test_pooling.c \
-			layers/test_pooling.h \
-			layers/test_activation_function.c \
-			layers/test_activation_function.h \
-			layers/test_fully_connected.c \
-			layers/test_fully_connected.h \
-			layers/test_convolution.c \
-			layers/test_convolution.h \
-			layers/test_batch_normalization.c \
-			layers/test_batch_normalization.h \
-			layers/test_concatenate.c \
-			layers/test_concatenate.h
+TEST_SRCS = layers/test_activation_functions.cpp \
+            layers/test_batch_normalization.cpp \
+            layers/test_convolution.cpp \
+            layers/test_fully_connected.cpp \
+            layers/test_pooling.cpp \
+            layers/test_tensor.cpp \
 
-tests: run_tests.c $(TEST_SRCS) libpico-cnn.a
-	$(CC) run_tests.c $(TEST_SRCS) $(CFLAGS) -I.. $(LDFLAGS) -o tests $(LD_LIBS)
+tests: main.cpp $(TEST_SRCS) libpico-cnn.a
+	$(CC) main.cpp $(TEST_SRCS) $(CFLAGS) -I../../pico-cnn $(LDFLAGS) -o tests $(LD_LIBS)
 
 run: tests
 	./tests

@@ -1,18 +1,19 @@
 /**
  * @brief reads a pgm file and stores it into a 1-dimensional array
  *
- * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Konstantin Luebeck, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */
 
-#ifndef READ_PGM_H
-#define READ_PGM_H
+
+#ifndef PICO_CNN_READ_PGM_H
+#define PICO_CNN_READ_PGM_H
 
 #include "../parameters.h"
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
 
 /**
  * @brief reads a pgm file and stores it into a 1-dimensional array
@@ -28,4 +29,4 @@
  */
 int32_t read_pgm(fp_t** image, const char* pgm_path, const uint8_t padding, const fp_t lower_bound, const fp_t upper_bound, uint16_t* height, uint16_t* width);
 
-#endif // READ_PGM_H
+#endif //PICO_CNN_READ_PGM_H

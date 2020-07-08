@@ -50,6 +50,7 @@ def main():
             magic_number = bytes("FCI\n", "ascii")
             packed_file.append(struct.pack('{}s'.format(len(magic_number)), magic_number))
             # TODO: Maybe insert file name to identify the model for which the data is intended
+            packed_file.append(struct.pack('i', tensor_shape[0]))
             packed_file.append(struct.pack('i', tensor_shape[1]))
             packed_file.append(struct.pack('i', tensor_shape[2]))
             packed_file.append(struct.pack('i', tensor_shape[3]))
@@ -57,6 +58,9 @@ def main():
             for channel in tensor_array[0]:
                 for row in channel:
                     packed_file.append(struct.pack('f'*len(row), *row))
+
+            tupac = bytes("end\n", "ascii")
+            packed_file.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
             with open(os.path.join(args.input, "input_{}.data".format(i)), "wb") as f:
                 for packed_struct in packed_file:
@@ -88,9 +92,13 @@ def main():
             magic_number = bytes("FCO\n", "ascii")
             packed_file.append(struct.pack('{}s'.format(len(magic_number)), magic_number))
             # TODO: Maybe insert file name to identify the model for which the data is intended
+            packed_file.append(struct.pack('i', tensor_shape[0]))
             packed_file.append(struct.pack('i', tensor_shape[1]))
 
             packed_file.append(struct.pack('f'*len(tensor_array[0]), *tensor_array[0]))
+
+            tupac = bytes("end\n", "ascii")
+            packed_file.append(struct.pack('{}s'.format(len(tupac)), tupac))
 
             with open(os.path.join(args.input, "output_{}.data".format(i)), "wb") as f:
                 for packed_struct in packed_file:

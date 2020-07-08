@@ -1,0 +1,1 @@
+    delete {{buffer_name}};

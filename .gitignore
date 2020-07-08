@@ -10,6 +10,7 @@ data/imagenet_dataset
 onnx_import/venv
 onnx_import/.idea
 onnx_import/generated_code
+onnx_import/aswdl
 *.onnx
 *.pb
 *.pbtxt
@@ -18,3 +19,4 @@ onnx_import/generated_code
 test/tests
 util/venv
 cmake-build-debug
+test/layers/tests

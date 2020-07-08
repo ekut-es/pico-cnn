@@ -24,94 +24,25 @@ class BaseLayer(object):
         self.graph = graph
         self.attributes = {}
 
-    def generate_code(self):
-        template = template_env.get_template(self.template_file)
+    def generate_declaration(self):
+        template = template_env.get_template(self.template_file_declaration)
+        return template.render(**self.attributes)
+
+    def generate_allocation(self):
+        template = template_env.get_template(self.template_file_allocation)
+        return template.render(**self.attributes)
+
+    def generate_execution(self):
+        template = template_env.get_template(self.template_file_execution)
+        return template.render(**self.attributes)
+
+    def generate_deletion(self):
+        template = template_env.get_template(self.template_file_deletion)
         return template.render(**self.attributes)
 
     @classmethod
     def create(cls, node, graph, memory_manager):
         pass
-
-
-class Conv2DLegacy(BaseLayer):
-    """
-    2-dimensional convolution layer.
-    """
-    name = "PicoCNNConv2D"
-    operator = "Conv"
-    template_file = "pico_cnn_conv2d_legacy.c"
-
-    @classmethod
-    def create(cls, node, graph, memory_manager):
-        """
-        Derive necessary information from ComputeNode, ComputeGraph and MemoryManager to generate the layer code.
-        :param node: ComputeNode object of a CNN layer
-        :param graph: ComputeGraph object of the CNN
-        :param memory_manager: MemoryManager object containing information about input and output buffers.
-        :return:
-        """
-        operation = cls(node, graph)
-
-        attrs = node.attrs
-        input_buffers = [memory_manager.get_buffer(graph, id) for id in node.inputs]
-        output_buffers = [memory_manager.get_buffer(graph, id) for id in node.outputs]
-
-        input_shape = input_buffers[0].shape
-        num_input_channels = input_shape[1]
-
-        if not (len(input_shape) == 4 and input_shape[3] != 1):
-            print("{} is not a 2DConvolution".format(node.name))
-            return None
-
-        if input_shape[2] != input_shape[3]:
-            print("WARNING: Not a squared input image ({}x{})!!!".format(input_shape[2], input_shape[3]))
-
-        output_shape = output_buffers[0].shape
-        output_size = output_shape[2]
-        num_output_channels = output_shape[1]
-
-        kernel_size = attrs["kernel_shape"][0]
-        stride = attrs["strides"][0]
-        # dilation = attrs["dilations"][0]
-
-        num_groups = attrs.get("group", 1)
-
-        # TODO: handle auto padding
-        if "auto_pad" in attrs:
-            print("{} auto padding is currently not supported".format(node.name))
-            exit(1)
-
-        pads = attrs.get("pads", (0, 0, 0, 0))
-
-        if (kernel_size % 2) == 0:
-            print("PicoCNN only supports odd kernel sizes in 2D convolution")
-            exit(1)
-
-        padding = pads[0]
-
-        operation.attributes['input_buffer'] = input_buffers[0]
-        operation.attributes['input_height'] = input_shape[2]
-        operation.attributes['input_width'] = input_shape[3]
-        operation.attributes['num_input_channels'] = num_input_channels
-
-        operation.attributes['kernel'] = input_buffers[1]
-        operation.attributes['kernel_size'] = kernel_size
-        operation.attributes['stride'] = stride
-        operation.attributes['padding'] = padding
-
-        operation.attributes['output_buffer'] = output_buffers[0]
-        operation.attributes['output_feature_size'] = output_size
-        operation.attributes['num_output_channels'] = num_output_channels
-
-        operation.attributes['num_groups'] = num_groups
-
-        if len(input_buffers) > 2:
-            operation.attributes['bias_buffer'] = input_buffers[2]
-
-        return operation
-
-
-# OperationRegistry.register(Conv2DLegacy)
 
 
 class Conv2D(BaseLayer):
@@ -120,7 +51,10 @@ class Conv2D(BaseLayer):
     """
     name = "PicoCNNConv2D"
     operator = "Conv"
-    template_file = "pico_cnn_conv2d.c"
+    template_file_declaration = "conv/pico_cnn_conv2d_decl.cpp"
+    template_file_allocation = "conv/pico_cnn_conv2d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -140,7 +74,7 @@ class Conv2D(BaseLayer):
         input_shape = input_buffers[0].shape
         num_input_channels = input_shape[1]
 
-        if not (len(input_shape) == 4 and input_shape[3] != 1):
+        if not (len(input_shape) == 4):
             print("{} is not a 2DConvolution".format(node.name))
             return None
 
@@ -175,25 +109,14 @@ class Conv2D(BaseLayer):
 
         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
 
+        operation.attributes['name'] = node.name
         operation.attributes['identifier'] = identifier
-
         operation.attributes['input_buffer'] = input_buffers[0]
-        operation.attributes['input_height'] = input_shape[2]
-        operation.attributes['input_width'] = input_shape[3]
-        operation.attributes['num_input_channels'] = num_input_channels
-
         operation.attributes['kernel'] = input_buffers[1]
-        operation.attributes['kernel_height'] = kernel_shape[0]
-        operation.attributes['kernel_width'] = kernel_shape[1]
-        operation.attributes['stride_height'] = stride[0]
-        operation.attributes['stride_width'] = stride[1]
+        operation.attributes['stride'] = stride
         operation.attributes['padding_needed'] = padding_needed
         operation.attributes['padding'] = padding
-
         operation.attributes['output_buffer'] = output_buffers[0]
-        operation.attributes['output_feature_size'] = output_size
-        operation.attributes['num_output_channels'] = num_output_channels
-
         operation.attributes['num_groups'] = num_groups
 
         if len(input_buffers) > 2:
@@ -208,7 +131,10 @@ OperationRegistry.register(Conv2D)
 class Conv1D(BaseLayer):
     name = "PicoCNNConv1D"
     operator = "Conv"
-    template_file = "pico_cnn_conv1d.c"
+    template_file_declaration = "conv/pico_cnn_conv2d_decl.cpp"
+    template_file_allocation = "conv/pico_cnn_conv1d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -220,53 +146,46 @@ class Conv1D(BaseLayer):
 
         input_shape = input_buffers[0].shape
 
-        if not (len(input_shape) == 3 or (len(input_shape) == 4 and input_shape[3] == 1)):
+        if not (len(input_shape) == 3):
             print("{} is not a 1DConvolution".format(node.name))
             return None
 
-        input_size = input_shape[2]
-        num_input_channels = input_shape[1]
+        kernel_shape = attrs["kernel_shape"]
+        stride = attrs["strides"]
+        # dilation = attrs["dilations"][0]
 
-        output_shape = output_buffers[0].shape
-        num_output_channels = output_shape[1]
-        output_feature_size = output_shape[2]
-
-        kernel_size = attrs["kernel_shape"][0]
-        stride = attrs["strides"][0]
-        dilation = attrs["dilations"][0]
+        num_groups = attrs.get("group", 1)
 
         # TODO: handle auto padding
         if "auto_pad" in attrs:
             print("{} auto padding is currently not supported".format(node.name))
             exit(1)
 
-        pads = (attrs["pads"][0], attrs["pads"][1]) if len(attrs["pads"]) == 2 else (attrs["pads"][0], attrs["pads"][2])
+        padding = attrs.get("pads", [0, 0])
 
-        if pads[0] != pads[1]:
-            print("PicoCNN only supports same padding in all directions")
+        if (kernel_shape[0] % 2) == 0:
+            print("PicoCNN only supports odd kernel sizes in 2D convolution")
             exit(1)
 
-        if (kernel_size % 2) == 0:
-            print("PicoCNN only supports odd kernel sizes in 1D convolution")
-            exit(1)
+        padding_needed = False
+        for num in padding:
+            if num != 0:
+                padding_needed = True
 
-        padding = pads[0]
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
 
-        operation.attributes['kernel_size'] = kernel_size
-        operation.attributes['stride'] = stride
-        operation.attributes['padding'] = padding
-        operation.attributes['num_input_channels'] = num_input_channels
-        operation.attributes['input_size'] = input_size
-        operation.attributes['num_output_channels'] = num_output_channels
-        operation.attributes['padding'] = padding
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
         operation.attributes['input_buffer'] = input_buffers[0]
         operation.attributes['kernel'] = input_buffers[1]
-        operation.attributes['output_feature_size'] = output_feature_size
+        operation.attributes['stride'] = stride
+        operation.attributes['padding_needed'] = padding_needed
+        operation.attributes['padding'] = padding
+        operation.attributes['output_buffer'] = output_buffers[0]
+        operation.attributes['num_groups'] = num_groups
+
         if len(input_buffers) > 2:
             operation.attributes['bias_buffer'] = input_buffers[2]
-
-        operation.attributes['output_buffer'] = output_buffers[0]
-        operation.attributes['dilation'] = dilation
 
         return operation
 
@@ -281,7 +200,10 @@ class FullyConnected(BaseLayer):
     """
     name = "PicoCNNFullyConnected"
     operator = "Gemm"
-    template_file = "pico_cnn_fc.c"
+    template_file_declaration = "fc/pico_cnn_fc_decl.cpp"
+    template_file_allocation = "fc/pico_cnn_fc_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -296,12 +218,19 @@ class FullyConnected(BaseLayer):
 
         if 'alpha' in node.attrs:
             if node.attrs['alpha'] != 1.0:
+                print("ERROR: Generation of Gemm layer aborted: alpha = {}".format(node.attrs['alpha']))
                 return None
         if 'beta' in node.attrs:
             if node.attrs['beta'] != 1.0:
+                print("ERROR: Generation of Gemm layer aborted: beta = {}".format(node.attrs['beta']))
+                return None
+        if 'tranA' in node.attrs:
+            if node.attrs['transA'] != 0:
+                print("ERROR: Generation of Gemm layer aborted: tranA = {}".format(node.attrs['tranA']))
                 return None
         if 'tranB' in node.attrs:
             if node.attrs['transB'] != 1:
+                print("ERROR: Generation of Gemm layer aborted: tranB = {}".format(node.attrs['tranB']))
                 return None
 
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
@@ -311,17 +240,16 @@ class FullyConnected(BaseLayer):
             bias_buffer = memory_manager.get_buffer(graph, node.inputs[2])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
-        input_size = reduce_mult(input_buffer.shape)
-        output_size = reduce_mult(output_buffer.shape)
-
         operation = cls(node, graph)
 
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
         operation.attributes['input_buffer'] = input_buffer
-        operation.attributes['input_size'] = input_size
         operation.attributes['weight_buffer'] = weight_buffer
         operation.attributes['bias_buffer'] = bias_buffer
         operation.attributes['output_buffer'] = output_buffer
-        operation.attributes['output_size'] = output_size
 
         return operation
 
@@ -336,7 +264,10 @@ class MaxPool2D(BaseLayer):
     """
     name = "PicoCNNMaxPool2D"
     operator = "MaxPool"
-    template_file = "pico_cnn_max_pool2d.c"
+    template_file_declaration = "pool/pico_cnn_max_pool2d_decl.cpp"
+    template_file_allocation = "pool/pico_cnn_max_pool2d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -366,8 +297,8 @@ class MaxPool2D(BaseLayer):
 
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
-        kernel_size = attrs["kernel_shape"][0]
-        kernel_stride = attrs["strides"][0]
+        kernel_shape = attrs["kernel_shape"]
+        stride = attrs["strides"]
 
         padding = attrs.get("pads", (0, 0, 0, 0))
         padding_needed = False
@@ -379,15 +310,12 @@ class MaxPool2D(BaseLayer):
 
         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
 
+        operation.attributes['name'] = node.name
         operation.attributes['identifier'] = identifier
-
-        operation.attributes['num_input_channels'] = num_input_channels
         operation.attributes['input_buffer'] = input_buffer
-        operation.attributes['input_height'] = input_shape[2]
-        operation.attributes['input_width'] = input_shape[3]
         operation.attributes['output_buffer'] = output_buffer
-        operation.attributes['kernel_size'] = kernel_size
-        operation.attributes['kernel_stride'] = kernel_stride
+        operation.attributes['kernel_shape'] = kernel_shape
+        operation.attributes['stride'] = stride
         operation.attributes['padding_needed'] = padding_needed
         operation.attributes['padding'] = padding
 
@@ -400,56 +328,41 @@ OperationRegistry.register(MaxPool2D)
 class MaxPool1D(BaseLayer):
     name = "PicoCNNMaxPool1D"
     operator = "MaxPool"
-    template_file = "pico_cnn_max_pool1d.c"
+    template_file_declaration = "pool/pico_cnn_max_pool2d_decl.cpp"
+    template_file_allocation = "pool/pico_cnn_max_pool1d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
         attrs = node.attrs
 
-        # assert tuple(attrs["pads"]) == (0, 0)
         kernel_shape = attrs["kernel_shape"]
-
-        if not (len(kernel_shape) == 1 or (len(kernel_shape) == 2 and kernel_shape[1] == 1)):
+        if not (len(kernel_shape) == 1):
             print("{} is not a 1DMaxPool".format(node.name))
             return None
 
-        input_id = node.inputs[0]
-        input_shape = graph.get_shape(input_id)
-        # input_buffer = "buffer" + input_id
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
-        num_input_channels = input_shape[1]
-
-        # output_buffer = "buffer" + node.outputs[0]
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
-        if graph.is_output(node.outputs[0]):
-            output_buffer = "output" + node.outputs[0]
+        stride = attrs["strides"]
 
-        # output_width = graph.get_shape(node.outputs[0], node)[2]
-
-        kernel_size = attrs["kernel_shape"][0]
-        kernel_stride = attrs["strides"][0]
-
-        padding = attrs["pads"]
+        padding = attrs.get("pads", (0, 0))
         padding_needed = False
         for num in padding:
             if num != 0:
                 padding_needed = True
 
-        input_buffer_size = reduce_mult(input_shape)
-
         operation = cls(node, graph)
 
         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
 
+        operation.attributes['name'] = node.name
         operation.attributes['identifier'] = identifier
-
-        operation.attributes['num_input_channels'] = num_input_channels
         operation.attributes['input_buffer'] = input_buffer
         operation.attributes['output_buffer'] = output_buffer
-        operation.attributes['input_width'] = input_shape[2]
-        operation.attributes['kernel_size'] = kernel_size
-        operation.attributes['kernel_stride'] = kernel_stride
+        operation.attributes['kernel_shape'] = kernel_shape
+        operation.attributes['stride'] = stride
         operation.attributes['padding_needed'] = padding_needed
         operation.attributes['padding'] = padding
 
@@ -465,7 +378,10 @@ class Relu(BaseLayer):
     """
     name = "PicoCNNRelu"
     operator = "Relu"
-    template_file = "pico_cnn_relu.c"
+    template_file_declaration = "activation/pico_cnn_relu_decl.cpp"
+    template_file_allocation = "activation/pico_cnn_relu_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -501,10 +417,11 @@ class Relu(BaseLayer):
 
         operation = cls(node, graph)
 
-        operation.attributes['num_input_channels'] = num_input_channels
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
         operation.attributes['input_buffer'] = input_buffer
-        operation.attributes['input_height'] = input_height
-        operation.attributes['input_width'] = input_width
         operation.attributes['output_buffer'] = output_buffer
 
         return operation
@@ -516,7 +433,10 @@ OperationRegistry.register(Relu)
 class BatchNorm(BaseLayer):
     name = "PicoCNNBatchNorm"
     operator = "BatchNormalization"
-    template_file = "pico_cnn_batchnorm.c"
+    template_file_declaration = "batch_normalization/pico_cnn_batchnorm_decl.cpp"
+    template_file_allocation = "batch_normalization/pico_cnn_batchnorm_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -530,18 +450,14 @@ class BatchNorm(BaseLayer):
 
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
-        input_shape = input_buffer.shape
-        num_input_channels = input_shape[1]
-        input_height = input_shape[2]
-        input_width = 1
-        if len(input_shape) >= 4:
-            input_width = input_shape[3]
-
         operation = cls(node, graph)
-        operation.attributes['num_input_channels'] = num_input_channels
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
+
         operation.attributes['input_buffer'] = input_buffer
-        operation.attributes['input_height'] = input_height
-        operation.attributes['input_width'] = input_width
         operation.attributes['output_buffer'] = output_buffer
         operation.attributes['gamma_buffer'] = gamma_buffer
         operation.attributes['bias_buffer'] = bias_buffer
@@ -558,7 +474,10 @@ OperationRegistry.register(BatchNorm)
 class Clip(BaseLayer):
     name = "PicoCNNClip"
     operator = "Clip"
-    template_file = "pico_cnn_clip.c"
+    template_file_declaration = "activation/pico_cnn_clip_decl.cpp"
+    template_file_allocation = "activation/pico_cnn_clip_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -567,25 +486,16 @@ class Clip(BaseLayer):
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
-        input_shape = input_buffer.shape
-        num_input_channels = input_shape[1]
-
-        if len(input_shape) >= 4:
-            input_height = input_shape[2]
-            input_width = input_shape[3]
-        else:
-            input_height = 1
-            input_width = input_shape[2]
-
         operation = cls(node, graph)
 
-        operation.attributes['num_input_channels'] = num_input_channels
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
         operation.attributes['input_buffer'] = input_buffer
-        operation.attributes['input_height'] = input_height
-        operation.attributes['input_width'] = input_width
         operation.attributes['output_buffer'] = output_buffer
-        operation.attributes['max'] = attrs['max']
         operation.attributes['min'] = attrs['min']
+        operation.attributes['max'] = attrs['max']
 
         return operation
 
@@ -596,7 +506,10 @@ OperationRegistry.register(Clip)
 class MatMul(BaseLayer):
     name = "PicoCNNMatMul"
     operator = "MatMul"
-    template_file = "pico_cnn_matmul.c"
+    template_file_declaration = "fc/pico_cnn_matmul_decl.cpp"
+    template_file_allocation = "fc/pico_cnn_matmul_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -611,11 +524,13 @@ class MatMul(BaseLayer):
 
         operation = cls(node, graph)
 
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
         operation.attributes['input_buffer'] = input_buffer
-        operation.attributes['input_size'] = input_size
         operation.attributes['weight_buffer'] = weight_buffer
         operation.attributes['output_buffer'] = output_buffer
-        operation.attributes['output_size'] = output_size
 
         return operation
 
@@ -626,7 +541,10 @@ OperationRegistry.register(MatMul)
 class Mul(BaseLayer):
     name = "PicoCNNMul"
     operator = "Mul"
-    template_file = "mul.c"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_mul.cpp"
+    template_file_deletion = "empty.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -637,25 +555,20 @@ class Mul(BaseLayer):
 
         factor = node.input_tensors[node.inputs[1]]
 
+        if factor.size != 1:
+            print("ERROR: Mul operation currently does not support Tensor-styled factors.")
+            exit(1)
+
         input_shape = input_buffer.shape
         output_shape = output_buffer.shape
 
         assert(input_shape == output_shape)
 
-        mul_code = ""
-        mul_code += "for(uint32_t i = 0; i < {}; i++)\n".format(input_shape[1])
-        mul_code += "    for(uint32_t j = 0; j < {}*{}; j++)\n".format(input_shape[2], input_shape[3])
-        mul_code += "        {}[i][j] = {}[i][j] * {};\n".format(output_buffer.name, input_buffer.name, factor)
-
         operation = cls(node, graph)
 
-        operation.attributes['mul_code'] = mul_code
-
-        # operation.attributes['input_buffer'] = input_buffer
-        # operation.attributes['input_size'] = input_size
-        # operation.attributes['weight_buffer'] = weight_buffer
-        # operation.attributes['output_buffer'] = output_buffer
-        # operation.attributes['output_size'] = output_size
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['output_buffer'] = output_buffer
+        operation.attributes['factor'] = factor
 
         return operation
 
@@ -666,7 +579,10 @@ OperationRegistry.register(Mul)
 class AveragePool2D(BaseLayer):
     name = "PicoCNNAveragePool"
     operator = "AveragePool"
-    template_file = "pico_cnn_average_pool2d.c"
+    template_file_declaration = "pool/pico_cnn_avg_pool2d_decl.cpp"
+    template_file_allocation = "pool/pico_cnn_avg_pool2d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -680,13 +596,8 @@ class AveragePool2D(BaseLayer):
 
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-        bias_buffer = None
 
-        input_shape = input_buffer.shape
-        kernel_size = attrs["kernel_shape"][0]
-        kernel_stride = attrs["strides"][0]
-
-        num_input_channels = input_shape[1]
+        kernel_stride = attrs["strides"]
 
         padding = attrs.get("pads", (0, 0, 0, 0))
         padding_needed = False
@@ -705,16 +616,12 @@ class AveragePool2D(BaseLayer):
 
         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
 
+        operation.attributes['name'] = node.name
         operation.attributes['identifier'] = identifier
-
-        operation.attributes["num_input_channels"] = num_input_channels
         operation.attributes["input_buffer"] = input_buffer
-        operation.attributes["input_height"] = input_shape[2]
-        operation.attributes["input_width"] = input_shape[3]
         operation.attributes["output_buffer"] = output_buffer
-        operation.attributes["kernel_size"] = kernel_size
-        operation.attributes["kernel_stride"] = kernel_stride
-        operation.attributes["bias_buffer"] = bias_buffer
+        operation.attributes["kernel_shape"] = kernel_shape
+        operation.attributes["stride"] = kernel_stride
         operation.attributes['padding_needed'] = padding_needed
         operation.attributes['padding'] = padding
         operation.attributes['count_include_pad'] = count_include_pad
@@ -728,27 +635,25 @@ OperationRegistry.register(AveragePool2D)
 class AveragePool1D(BaseLayer):
     name = "PicoCNNAveragePool"
     operator = "AveragePool"
-    template_file = "pico_cnn_average_pool1d.c"
+    template_file_declaration = "pool/pico_cnn_avg_pool2d_decl.cpp"
+    template_file_allocation = "pool/pico_cnn_avg_pool1d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
         attrs = node.attrs
 
         kernel_shape = attrs["kernel_shape"]
+
         if not (len(kernel_shape) == 1 or (len(kernel_shape) == 2 and kernel_shape[1] == 1)):
             print("{} is not a 1DAvgPool".format(node.name))
             return None
 
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
-        bias_buffer = None
 
-        input_shape = input_buffer.shape
-
-        kernel_size = kernel_shape[0]
-        kernel_stride = attrs["strides"][0]
-
-        num_input_channels = input_shape[1]
+        kernel_stride = attrs["strides"]
 
         padding = attrs["pads"]
         padding_needed = False
@@ -767,20 +672,15 @@ class AveragePool1D(BaseLayer):
 
         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
 
+        operation.attributes['name'] = node.name
         operation.attributes['identifier'] = identifier
-
-        operation.attributes['num_input_channels'] = num_input_channels
-        operation.attributes['input_buffer'] = input_buffer
-        operation.attributes['input_width'] = input_buffer.shape[2]
-        operation.attributes['output_buffer'] = output_buffer
-        operation.attributes['output_width'] = output_buffer.shape[2]
-        operation.attributes['kernel_size'] = kernel_size
-        operation.attributes['kernel_stride'] = kernel_stride
-        operation.attributes['bias_buffer'] = bias_buffer
+        operation.attributes["input_buffer"] = input_buffer
+        operation.attributes["output_buffer"] = output_buffer
+        operation.attributes["kernel_shape"] = kernel_shape
+        operation.attributes["stride"] = kernel_stride
         operation.attributes['padding_needed'] = padding_needed
         operation.attributes['padding'] = padding
         operation.attributes['count_include_pad'] = count_include_pad
-
         return operation
 
 
@@ -790,7 +690,10 @@ OperationRegistry.register(AveragePool1D)
 class GlobalMaxPool2D(BaseLayer):
     name = "PicoCNNGlobalMaxPool2D"
     operator = "GlobalMaxPool"
-    template_file = "pico_cnn_global_max_pool2d.c"
+    template_file_declaration = "pool/pico_cnn_global_max_pool2d_decl.cpp"
+    template_file_allocation = "pool/pico_cnn_global_max_pool2d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -803,17 +706,13 @@ class GlobalMaxPool2D(BaseLayer):
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
-        input_shape = input_buffer.shape
-        num_input_channels = input_shape[1]
-        input_height = input_shape[2]
-        input_width = input_shape[3]
-
         operation = cls(node, graph)
 
-        operation.attributes["num_input_channels"] = num_input_channels
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
         operation.attributes["input_buffer"] = input_buffer
-        operation.attributes["input_height"] = input_height
-        operation.attributes["input_width"] = input_width
         operation.attributes["output_buffer"] = output_buffer
 
         return operation
@@ -825,7 +724,10 @@ OperationRegistry.register(GlobalMaxPool2D)
 class GlobalAveragePool2D(BaseLayer):
     name = "PicoCNNGlobalAveragePool"
     operator = "GlobalAveragePool"
-    template_file = "pico_cnn_global_average_pool2d.c"
+    template_file_declaration = "pool/pico_cnn_global_avg_pool2d_decl.cpp"
+    template_file_allocation = "pool/pico_cnn_global_avg_pool2d_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -838,17 +740,13 @@ class GlobalAveragePool2D(BaseLayer):
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
-        input_shape = input_buffer.shape
-        num_input_channels = input_shape[1]
-        input_height = input_shape[2]
-        input_width = input_shape[3]
-
         operation = cls(node, graph)
 
-        operation.attributes["num_input_channels"] = num_input_channels
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
         operation.attributes["input_buffer"] = input_buffer
-        operation.attributes["input_height"] = input_height
-        operation.attributes["input_width"] = input_width
         operation.attributes["output_buffer"] = output_buffer
 
         return operation
@@ -860,7 +758,10 @@ OperationRegistry.register(GlobalAveragePool2D)
 class Transpose(BaseLayer):
     name = "TransposeGeneric"
     operator = "Transpose"
-    template_file = "transpose.c"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/transpose.cpp"
+    template_file_deletion = "empty.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -871,7 +772,10 @@ class Transpose(BaseLayer):
         permutations = attrs['perm']
         orig_permutation = range(len(input_buffer.shape))
         transpose_code = ""
-        print(input_buffer.shape)
+
+        input_shape = input_buffer.shape
+        output_shape = output_buffer.shape
+
         for input_dim, output_dim in enumerate(permutations):
             dim_size = input_buffer.shape[input_dim] if input_dim < len(input_buffer.shape) else 1
             transpose_code += "    " * (input_dim + 1)
@@ -882,36 +786,47 @@ class Transpose(BaseLayer):
         transpose_code += "    " * len(permutations)
 
         if len(permutations) == 4:
-            test_code = "{}[{}][{}]".format(output_buffer.name,
-                                            "dim"+str(permutations[1]),
-                                            "dim"+str(permutations[2]) + "*" +
-                                            str(input_buffer.shape[permutations[3]]
-                                                if permutations[3] < len(input_buffer.shape) else 1)
-                                            + " + " +
-                                            "dim"+str(permutations[3])) + " = " \
-                        + "{}[{}][{}];".format(input_buffer.name,
-                                               "dim"+str(orig_permutation[1]),
-                                               "dim"+str(orig_permutation[2]) + "*" +
-                                               str(input_buffer.shape[orig_permutation[3]]
-                                                   if orig_permutation[3] < len(input_buffer.shape) else 1)
-                                               + " + " +
-                                               "dim"+str(orig_permutation[3]))
+            num_input_channels = input_shape[1]
+            input_height = input_shape[2]
+            input_width = input_shape[3]
+
+            num_output_channels = output_shape[1]
+            output_height = output_shape[2]
+            output_width = output_shape[3]
+
+            test_code = "{}->access({}, {}, {}, {}, {}, {}, {})".format(output_buffer.name,
+                                                                        "dim" + str(permutations[0]),
+                                                                        "dim" + str(permutations[1]),
+                                                                        "dim" + str(permutations[2]),
+                                                                        "dim" + str(permutations[3]),
+                                                                        num_output_channels,
+                                                                        output_height,
+                                                                        output_width)\
+                        + " = " \
+                        + "{}->access({}, {}, {}, {}, {}, {}, {});".format(input_buffer.name,
+                                                                           "dim" + str(orig_permutation[0]),
+                                                                           "dim" + str(orig_permutation[1]),
+                                                                           "dim" + str(orig_permutation[2]),
+                                                                           "dim" + str(orig_permutation[3]),
+                                                                           num_input_channels,
+                                                                           input_height,
+                                                                           input_width)
         elif len(permutations) == 2:
-            test_code = "{}[{}]".format(output_buffer.name,
-                                        "dim"+str(permutations[0]) + "*" +
-                                        str(input_buffer.shape[permutations[1]]
-                                            if permutations[1] < len(input_buffer.shape) else 1)
-                                        + " + " +
-                                        "dim"+str(permutations[1])) + " = " \
-                        + "{}[{}];".format(input_buffer.name,
-                                           "dim"+str(orig_permutation[0]) + "*" +
-                                           str(input_buffer.shape[orig_permutation[1]]
-                                               if orig_permutation[1] < len(input_buffer.shape) else 1)
-                                           + " + " +
-                                           "dim"+str(orig_permutation[1]))
+            input_width = input_shape[1]
+            output_width = output_shape[1]
+
+            test_code = "{}->access({}, {}, {})".format(output_buffer.name,
+                                                        "dim"+str(permutations[0]),
+                                                        "dim"+str(permutations[1]),
+                                                        output_width) \
+                        + " = " \
+                        + "{}->access({}, {}, {});".format(input_buffer.name,
+                                                           "dim"+str(orig_permutation[0]),
+                                                           "dim"+str(orig_permutation[1]),
+                                                           input_width)
         else:
             print("ERROR: Unsupported permutation in Transpose operation.")
-            return None
+            exit(1)
 
         transpose_code += "    " + test_code
 
@@ -930,7 +845,10 @@ class Concat(BaseLayer):
     """
     name = "ConcatGeneric"
     operator = "Concat"
-    template_file = "pico_cnn_concat.c"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_concat.cpp"
+    template_file_deletion = "empty.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -965,34 +883,25 @@ class Concat(BaseLayer):
 
         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
 
-        input_declaration = "fp_t*** inputs_{} = (fp_t***) malloc({} * sizeof(fp_t**));\n".format(identifier,
-                                                                                                  str(num_input_shapes))
+        input_declaration = "pico_cnn::naive::Tensor* inputs_{}[{}] = {{".format(identifier,
+                                                                                 str(num_input_shapes))
         for idx in range(num_input_shapes):
-            input_declaration += "    inputs_{}[{}] = {};\n".format(identifier, str(idx), input_buffers[idx].name)
+            input_declaration += "{}".format(input_buffers[idx].name)
+            if idx < num_input_shapes-1:
+                input_declaration += ", "
+            else:
+                input_declaration += "};"
 
-        cleanup_input = "free(inputs_{});\n".format(identifier)
-
-        input_shape_code = ""
-        input_shape_code += "const uint16_t* input_shape_{}[{}];\n".format(identifier, len(input_shapes))
-        for num, input_shape in enumerate(input_shapes):
-            input_shape_code += "    uint16_t input_shape_{}_{}[3] = {{ {}, {}, {} }};\n".format(identifier, str(num),
-                                                                                                 input_shape[1],
-                                                                                                 input_shape[2],
-                                                                                                 input_shape[3])
-            input_shape_code += "    input_shape_{}[{}] = input_shape_{}_{};\n".format(identifier, str(num),
-                                                                                       identifier, str(num))
-
-        dimension = attrs['axis'] - 1
+        dimension = attrs['axis']
 
         operation = cls(node, graph)
+
         operation.attributes['input_declaration'] = input_declaration
-        operation.attributes['input_shape_code'] = input_shape_code
-        operation.attributes['inputs'] = "inputs_{}".format(identifier)
-        operation.attributes['input_shape'] = "input_shape_{}".format(identifier)
-        operation.attributes['dimension'] = dimension
-        operation.attributes['num_inputs'] = len(input_buffers)
+
         operation.attributes['output_buffer'] = output_buffer
-        operation.attributes['cleanup_input'] = cleanup_input
+        operation.attributes['num_inputs'] = len(input_buffers)
+        operation.attributes['inputs'] = "inputs_{}".format(identifier)
+        operation.attributes['dimension'] = dimension
 
         return operation
 
@@ -1006,7 +915,10 @@ class Reshape(BaseLayer):
     """
     name = "ReshapeGeneric"
     operator = "Reshape"
-    template_file = "reshape.c"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_reshape.cpp"
+    template_file_deletion = "empty.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -1030,41 +942,10 @@ class Reshape(BaseLayer):
 
         assert(reduce_mult(input_shape) == reduce_mult(output_shape))
 
-        if len(input_shape) == 4:
-            num_input_channels = input_shape[1]
-            input_height = input_shape[2]
-            input_width = input_shape[3]
-        elif len(input_shape) == 3:
-            num_input_channels = input_shape[1]
-            input_height = 1
-            input_width = input_shape[2]
-        elif len(input_shape) == 2:
-            num_input_channels = input_shape[0]
-            input_height = 1
-            input_width = input_shape[1]
-        else:
-            print("ERROR: Unsupported input shape for reshape layer: {}".format(input_shape))
-            exit(1)
-
-        if len(output_shape) == 4:
-            hotfix = "[0]"
-        else:
-            hotfix = ""
-
-        # TODO: Find better alternative to this. See issue #60
-        if input_shape == output_shape:
-            no_change = True
-        else:
-            no_change = False
-
         operation = cls(node, graph)
+        operation.attributes['name'] = node.name
         operation.attributes['input_buffer'] = input_buffer
-        operation.attributes['num_input_channels'] = num_input_channels
-        operation.attributes['input_height'] = input_height
-        operation.attributes['input_width'] = input_width
-        operation.attributes['no_change'] = no_change
         operation.attributes['output_buffer'] = output_buffer
-        operation.attributes['hotfix'] = hotfix
 
         return operation
 
@@ -1078,7 +959,10 @@ class Flatten(BaseLayer):
     """
     name = "FlattenGeneric"
     operator = "Flatten"
-    template_file = "flatten.c"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_flatten.cpp"
+    template_file_deletion = "empty.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -1101,29 +985,10 @@ class Flatten(BaseLayer):
 
         assert(reduce_mult(input_shape) == reduce_mult(output_shape))
 
-        if len(input_shape) == 4:
-            num_input_channels = input_shape[1]
-            input_height = input_shape[2]
-            input_width = input_shape[3]
-            no_change = 0
-        elif len(input_shape) == 2:
-            num_input_channels = 1
-            input_height = 1
-            input_width = input_shape[1]
-            no_change = 1
-        else:
-            print("ERROR: Unsupported tensor shape in flatten operation: {}".format(input_shape))
-            return 1
-
         operation = cls(node, graph)
+        operation.attributes['name'] = node.name
         operation.attributes['input_buffer'] = input_buffer
-        operation.attributes['num_input_channels'] = num_input_channels
-        operation.attributes['input_height'] = input_height
-        operation.attributes['input_width'] = input_width
-
         operation.attributes['output_buffer'] = output_buffer
-
-        operation.attributes['no_change'] = no_change
 
         return operation
 
@@ -1134,7 +999,10 @@ OperationRegistry.register(Flatten)
 class Add(BaseLayer):
     name = "AddGeneric"
     operator = "Add"
-    template_file = "pico_cnn_add.c"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_add.cpp"
+    template_file_deletion = "empty.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -1150,35 +1018,12 @@ class Add(BaseLayer):
                 else:
                     # TODO: This needs a better solution!!!
                     print("Broadcasting is not supported for add operation")
-                    return None
-
-        dimensionality = 0
-
-        if len(input_shapes[0]) == 4:
-            dimensionality = 4
-            num_channels = input_shapes[0][1]
-            height = input_shapes[0][2]
-            width = input_shapes[0][3]
-        elif len(input_shapes[0]) == 3:
-            dimensionality = 4
-            num_channels = input_shapes[0][1]
-            height = 1
-            width = input_shapes[0][2]
-        elif len(input_shapes[0]) == 2:
-            dimensionality = 2
-            num_channels = 1
-            height = input_shapes[0][0]
-            width = input_shapes[0][1]
-        else:
-            return None
+                    exit(1)
 
         operation = cls(node, graph)
-        operation.attributes['dimensionality'] = dimensionality
+        operation.attributes['name'] = node.name
         operation.attributes['input_buffers'] = input_buffers
         operation.attributes['output_buffer'] = output_buffer
-        operation.attributes['num_channels'] = num_channels
-        operation.attributes['height'] = height
-        operation.attributes['width'] = width
 
         return operation
 
@@ -1189,7 +1034,10 @@ OperationRegistry.register(Add)
 # class Sum(Add):
 #     name = "SumGeneric"
 #     operator = "Sum"
-#     template_file = "pico_cnn_add.c"
+#     template_file_declaration = "empty.cpp"
+#     template_file_allocation = "empty.cpp"
+#     template_file_execution = "pico_cnn_add.cpp"
+#     template_file_deletion = "empty.cpp"
 #
 #
 # OperationRegistry.register(Sum)
@@ -1201,7 +1049,10 @@ class Softmax(BaseLayer):
     """
     name = "SoftmaxGeneric"
     operator = "Softmax"
-    template_file = "pico_cnn_softmax.c"
+    template_file_declaration = "activation/pico_cnn_softmax_decl.cpp"
+    template_file_allocation = "activation/pico_cnn_softmax_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -1216,15 +1067,14 @@ class Softmax(BaseLayer):
         input_buffers = [memory_manager.get_buffer(graph, i) for i in node.inputs]
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
-        input_shape = input_buffers[0].shape
-        input_height = input_shape[0]
-        input_width = input_shape[1]
-
         operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
         operation.attributes["input_buffer"] = input_buffers[0]
         operation.attributes["output_buffer"] = output_buffer
-        operation.attributes["input_height"] = input_height
-        operation.attributes["input_width"] = input_width
 
         return operation
 
@@ -1238,7 +1088,10 @@ class LocalResponseNormalization(BaseLayer):
     """
     name = "LocalResponseNormalizationGeneric"
     operator = "LRN"
-    template_file = "pico_cnn_lrn.c"
+    template_file_declaration = "activation/pico_cnn_lrn_decl.cpp"
+    template_file_allocation = "activation/pico_cnn_lrn_alloc.cpp"
+    template_file_execution = "layer_exec.cpp"
+    template_file_deletion = "layer_delete.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -1253,21 +1106,17 @@ class LocalResponseNormalization(BaseLayer):
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
-        input_shape = input_buffer.shape
-        height = input_shape[2]
-        width = input_shape[3]
-
-        depth = input_shape[1]
-
         operation = cls(node, graph)
+
+        identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
+        operation.attributes['name'] = node.name
+        operation.attributes['identifier'] = identifier
         operation.attributes["input_buffer"] = input_buffer
         operation.attributes["output_buffer"] = output_buffer
-        operation.attributes["height"] = height
-        operation.attributes["width"] = width
-        operation.attributes["depth"] = depth
         operation.attributes["alpha"] = attrs["alpha"]
         operation.attributes["beta"] = attrs["beta"]
-        operation.attributes["size"] = attrs["size"]
+        operation.attributes["n"] = attrs["size"]
 
         return operation
 
@@ -1277,11 +1126,14 @@ OperationRegistry.register(LocalResponseNormalization)
 
 class Squeeze(BaseLayer):
     """
-    Local response normalization function.
+    Remove single-dimensional entries from the shape of a tensor.
     """
     name = "SqueezeGeneric"
     operator = "Squeeze"
-    template_file = "squeeze.c"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_squeeze.cpp"
+    template_file_deletion = "empty.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -1296,27 +1148,9 @@ class Squeeze(BaseLayer):
         input_buffer = memory_manager.get_buffer(graph, node.inputs[0])
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
-        input_shape = input_buffer.shape
-        output_shape = output_buffer.shape
-
-        squeeze_code = ""
-
-        if 2 in attrs['axes'] and 3 in attrs['axes'] and len(output_shape) == 2 and input_shape[1] == output_shape[1]:
-            for idx, dim in enumerate(output_shape):
-                squeeze_code += "    " * (idx + 1)
-                squeeze_code += "for(uint32_t dim{} = 0; dim{} < {}; dim{}++)".format(idx, idx, dim, idx)
-                squeeze_code += "\n"
-
-            squeeze_code += "    " * len(output_shape)
-            squeeze_code += "    " + "{}[{}] = {}[{}][{}];\n".format(output_buffer.name, "dim1",
-                                                                     input_buffer.name, "dim1", "0")
-        else:
-            # TODO: Implement general version of squeeze
-            print("ERROR: Squeeze operation only for one special case implemented.")
-            exit(1)
-
         operation = cls(node, graph)
-        operation.attributes['squeeze_code'] = squeeze_code
+        operation.attributes['input_buffer'] = input_buffer
+        operation.attributes['output_buffer'] = output_buffer
 
         return operation
 
@@ -1327,7 +1161,10 @@ OperationRegistry.register(Squeeze)
 class Pad(BaseLayer):
     name = "PicoCNNPad"
     operator = "Pad"
-    template_file = "pico_cnn_pad.c"
+    template_file_declaration = "empty.cpp"
+    template_file_allocation = "empty.cpp"
+    template_file_execution = "tensor_operations/pico_cnn_pad.cpp"
+    template_file_deletion = "empty.cpp"
 
     @classmethod
     def create(cls, node, graph, memory_manager):
@@ -1337,13 +1174,10 @@ class Pad(BaseLayer):
         output_buffer = memory_manager.get_buffer(graph, node.outputs[0])
 
         input_shape = input_buffer.shape
-        output_shape = output_buffer.shape
 
         pads = attrs['pads']
         mode = attrs['mode'].decode("utf-8")
         value = attrs['value']
-
-        height = width = dimensionality = num_input_channels = 0
 
         if mode != 'constant':
             print("ERROR: Pad layer only supported in mode constant (not: {}).").format(mode)
@@ -1353,21 +1187,12 @@ class Pad(BaseLayer):
             if pads[0] != 0 or pads[1] != 0 or pads[4] != 0 or pads[5] != 0:
                 print("ERROR: Padding only supported for height and width dimension. pads = {}").format(pads)
                 exit(1)
-            else:
-                num_input_channels = input_shape[1]
-                height = input_shape[2]
-                width = input_shape[3]
-                dimensionality = 4
         elif len(input_shape) == 3:
-            num_input_channels = input_shape[1]
-            height = 1
-            width = input_shape[2]
-            dimensionality = 3
+            if pads[0] != 0 or pads[1] != 0 or pads[3] != 0 or pads[4] != 0:
+                print("ERROR: Padding only supported for height and width dimension. pads = {}").format(pads)
+                exit(1)
         elif len(input_shape) == 2:
-            num_input_channels = 1
-            height = input_shape[0]
-            width = input_shape[1]
-            dimensionality = 2
+            pass
         else:
             print("ERROR: Unsupported shape for pad operation: {}".format(input_shape))
             exit(1)
@@ -1375,14 +1200,12 @@ class Pad(BaseLayer):
         operation = cls(node, graph)
 
         identifier = node.name.replace('.', '_').replace(':', '_').replace('/', '_')
+
         operation.attributes['identifier'] = identifier
 
-        operation.attributes['num_input_channels'] = num_input_channels
+        operation.attributes['num_dims'] = len(input_shape)
         operation.attributes['input_buffer'] = input_buffer
-        operation.attributes['input_height'] = height
-        operation.attributes['input_width'] = width
         operation.attributes['output_buffer'] = output_buffer
-        operation.attributes['dimensionality'] = dimensionality
         operation.attributes['padding'] = pads
         operation.attributes['initializer'] = value
 

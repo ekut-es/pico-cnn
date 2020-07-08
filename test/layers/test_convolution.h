@@ -1,30 +1,50 @@
-/**
- * @brief contains all activation functions
- *
- * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
- * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
- */
-#ifndef TEST_CONVOLUTION_H
-#define TEST_CONVOLUTION_H
+//
+// Created by junga on 07.04.20.
+//
 
-#include "pico-cnn/parameters.h"
-#include "pico-cnn/layers/convolution.h"
-#include "../utility_functions.h"
+#ifndef PICO_CNN_TEST_CONVOLUTION_H
+#define PICO_CNN_TEST_CONVOLUTION_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <cppunit/extensions/HelperMacros.h>
+#include "../../pico-cnn/pico-cnn.h"
+#include "../../pico-cnn/utils.h"
 
-int32_t test_convolution1d_naive();
-int32_t test_convolution2d_naive();
-int32_t test_convolution2d_naive_1();
-int32_t test_convolution2d_naive_2();
-int32_t test_convolution2d_naive_3(); // with non-square kernel
-int32_t test_convolution2d_naive_4(); // with non-square kernel
-int32_t test_convolution2d_naive_5(); // with non-square kernel
-int32_t test_add_channel2d_naive();
-int32_t test_convolution2d_naive_6();
-int32_t test_convolution2d_naive_7();
-int32_t test_convolution2d_naive_8();
+class TestConvolution : public CPPUNIT_NS::TestFixture {
+    CPPUNIT_TEST_SUITE(TestConvolution);
+    CPPUNIT_TEST(runTestConvolution_1d);
+    CPPUNIT_TEST(runTestConvolution_0);
+    CPPUNIT_TEST(runTestConvolution_0_no_padding);
+    CPPUNIT_TEST(runTestConvolution_1);
+    CPPUNIT_TEST(runTestConvolution_2);
+    CPPUNIT_TEST(runTestConvolution_3);
+    CPPUNIT_TEST(runTestConvolution_4);
+    CPPUNIT_TEST(runTestConvolution_5);
+    CPPUNIT_TEST(runTestConvolution_6);
+    CPPUNIT_TEST(runTestConvolution_7);
+    CPPUNIT_TEST(runTestConvolution_8);
+    CPPUNIT_TEST_SUITE_END();
 
-#endif // TEST_CONVOLUTION_H
+private:
+    //pico_cnn::naive::TensorShape *input_shape, *output_shape, *expected_output_shape, *kernel_shape, *bias_shape;
+    //pico_cnn::naive::Tensor *input_tensor, *output_tensor, *expected_output_tensor, *kernel_tensor, *bias_tensor;
+
+public:
+    void setUp() override;
+    void tearDown() override;
+
+    void runTestConvolution_1d();
+    void runTestConvolution_0();
+    void runTestConvolution_0_no_padding();
+    void runTestConvolution_1();
+    void runTestConvolution_2();
+    void runTestConvolution_3();
+    void runTestConvolution_4();
+    void runTestConvolution_5();
+    void runTestConvolution_6();
+    void runTestConvolution_7();
+    void runTestConvolution_8();
+
+};
+
+
+#endif //PICO_CNN_TEST_CONVOLUTION_H

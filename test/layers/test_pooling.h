@@ -1,34 +1,49 @@
-/**
- * @brief contains all activation functions
- *
- * @author Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
- * @author Nils Weinhardt (University of Tuebingen, Chair for Embedded Systems)
- */
-#ifndef TEST_POOLING_H
-#define TEST_POOLING_H
+//
+// Created by junga on 17.04.20.
+//
 
-#include "pico-cnn/parameters.h"
-#include "pico-cnn/layers/pooling.h"
-#include "../utility_functions.h"
+#ifndef PICO_CNN_TEST_POOLING_H
+#define PICO_CNN_TEST_POOLING_H
 
-#include <stdio.h>
-#include <assert.h>
+#include <cppunit/extensions/HelperMacros.h>
+#include "../../pico-cnn/pico-cnn.h"
+#include "../../pico-cnn/utils.h"
 
-void pooling_output_channel_dimensions(uint16_t height, uint16_t width,
-                                       const uint16_t kernel_size[2],
-                                       uint16_t stride, uint16_t **computed_dimensions);
+class TestPooling : public CPPUNIT_NS::TestFixture {
+    CPPUNIT_TEST_SUITE(TestPooling);
+    CPPUNIT_TEST(runTestMaxPooling1d);
+    CPPUNIT_TEST(runTestMaxPooling1dPadding);
+    CPPUNIT_TEST(runTestMaxPooling2d);
+    CPPUNIT_TEST(runTestMaxPooling2dPadding);
+    CPPUNIT_TEST(runTestAvgPooling1d);
+    CPPUNIT_TEST(runTestAvgPooling1dPadding);
+    CPPUNIT_TEST(runTestAvgPooling2d);
+    CPPUNIT_TEST(runTestAvgPooling2dPadding);
+    CPPUNIT_TEST(runTestGlobalAvgPool2d);
+    CPPUNIT_TEST(runTestGlobalMaxPool2d);
+    CPPUNIT_TEST_SUITE_END();
 
-int32_t test_max_pooling1d();
-int32_t test_max_pooling1d_padding();
-int32_t test_max_pooling2d();
-int32_t test_max_pooling2d_padding();
+private:
 
-int32_t test_avg_pooling1d();
-int32_t test_avg_pooling1d_padding();
-int32_t test_avg_pooling2d();
-int32_t test_avg_pooling2d_padding();
+public:
+    void setUp() override;
+    void tearDown() override;
 
-int32_t test_global_average_pooling2d();
-int32_t test_global_max_pooling2d();
+    void runTestMaxPooling1d();
+    void runTestMaxPooling1dPadding();
 
-#endif //TEST_POOLING_H
+    void runTestMaxPooling2d();
+    void runTestMaxPooling2dPadding();
+
+    void runTestAvgPooling1d();
+    void runTestAvgPooling1dPadding();
+
+    void runTestAvgPooling2d();
+    void runTestAvgPooling2dPadding();
+
+    void runTestGlobalAvgPool2d();
+    void runTestGlobalMaxPool2d();
+};
+
+
+#endif //PICO_CNN_TEST_POOLING_H

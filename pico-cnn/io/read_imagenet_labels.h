@@ -1,16 +1,16 @@
 /**
  * @brief provides function to read the ImageNet labels
  *
- * @author Konstantin Luebeck (University of Tuebingen, Chair for Embedded Systems)
+ * @author Konstantin Luebeck, Alexander Jung (University of Tuebingen, Chair for Embedded Systems)
  */
 
-#ifndef READ_IMAGENET_LABELS_H
-#define READ_IMAGENET_LABELS_H
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
+#ifndef PICO_CNN_READ_IMAGENET_LABELS_H
+#define PICO_CNN_READ_IMAGENET_LABELS_H
 
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cstdint>
 
 /**
  * @brief reads ImageNet labels from a given file
@@ -23,4 +23,4 @@
  */
 int32_t read_imagenet_labels(const char* path_to_imagenet_labels, char*** imagenet_labels, uint32_t num_labels);
 
-#endif // READ_IMAGENET_LABELS_H
+#endif //PICO_CNN_READ_IMAGENET_LABELS_H
