@@ -285,6 +285,9 @@ class BackendRep(backend_base.BackendRep):
         :return:
         """
 
+        # TODO: To be changed if we want to support multiple outputs
+        output_buffer_name = graph.outputs[0].name
+
         ops_to_ignore = ['Reshape', 'Mul']
 
         buffers_allocated = []
@@ -373,7 +376,13 @@ class BackendRep(backend_base.BackendRep):
             buffer_declaration += "    // Outputs\n"
             constructor_code += "    // Outputs\n"
             for num, output in enumerate(node.outputs):
+
                 buffer = memory_manager.get_buffer(graph, output)
+
+                if output == output_buffer_name:
+                    buffer_declaration += "    // Output tensor {} with shape {} of network provided as argument of Network::run()".format(buffer.name, str(buffer.shape))
+                    constructor_code += "    // Output tensor {} with shape {} of network provided as argument of Network::run()".format(buffer.name, str(buffer.shape))
+                    continue
 
                 buffer_declaration += "    // " + str(buffer.shape) + "\n"
 
@@ -406,11 +415,17 @@ class BackendRep(backend_base.BackendRep):
         :return:
         """
 
+        # TODO: To be changed if we want to support multiple outputs
+        output_buffer_name = graph.outputs[0].name
+
         destructor_code = ""
         #destructor_code += "Network::~Network() {\n"
 
         for num, buffer_id in enumerate(memory_manager.buffers):
             buffer = memory_manager.get_buffer(graph, buffer_id)
+
+            if buffer_id == output_buffer_name:
+                continue
 
             functionality = CodeRegistry.get_funct("BufferCleanup")
             impl = functionality[0].create(buffer)
