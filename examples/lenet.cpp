@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <iomanip>
 
-#include "pico-cnn-cpp/pico-cnn.h"
+#include "pico-cnn/pico-cnn.h"
 #include "network.h"
 
 void usage() {

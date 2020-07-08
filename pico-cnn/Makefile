@@ -1,6 +1,6 @@
 CC = g++
 AR = ar
-CFLAGS = -Wall -O2 -march=native -DINFO
+CFLAGS = -Wall -O2 -march=native -DINFO -std=c++11
 LDFLAGS =
 
 libpico-cnn.a: layers io parameters.h utils.h pico-cnn.h
