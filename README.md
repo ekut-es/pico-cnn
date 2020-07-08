@@ -62,14 +62,9 @@ source venv/bin/activate
 
 ### Testing with `cppunit`
 ```bash
-git clone --branch cppunit-1.14.0 git://anongit.freedesktop.org/git/libreoffice/cppunit/
-cd cppunit
-./autogen.sh
-./configure
-make
-sudo make install
-sudo ln -s /usr/local/include/cppunit /usr/local/include/CppUnit
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+cd test
+make tests
+./tests
 ```
 
 ### Utilities
