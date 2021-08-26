@@ -278,7 +278,7 @@ make reference_input
 ## Contributors
 * Alexander Jung (Maintainer) [@alexjung](https://github.com/alexjung)
 * Konstantin Lübeck (Maintainer) [@k0nze](https://github.com/k0nze)
-* Nils Weinhardt (Developer) 
+* Nils Weinhardt (Developer) [@sea-buckthorn](https://github.com/sea-buckthorn)
 
 
 ## Citing Pico-CNN
